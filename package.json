@@ -38,7 +38,8 @@
   "scripts": {
     "watch": "rollup -cw",
     "build": "rollup -c",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "preversion": "npm run build"
   },
   "lint-staged": {
     ".(md)": [
