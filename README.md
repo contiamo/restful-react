@@ -22,8 +22,6 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Polling](#polling)
     - [`Poll` API](#poll-api)
   - [Caching](#caching)
-  - [Pagination](#pagination)
-  - [Query Params](#query-params)
 - [Contributing](#contributing)
 - [Next Steps](#next-steps)
 
@@ -460,14 +458,6 @@ There's a general idea of checking if the results are a collection or a resource
 
   - Is resource in cached collection?
     - update cached resource.
-
-### Pagination
-
-This doesn't exist yet. I suppose we'll have to amend this somehow in order to implement pagination in the Labs UI.
-
-### Query Params
-
-This doesn't exist yet but should be fairly trivial to implement using [`window.URL`](https://developer.mozilla.org/en-US/docs/Web/API/Window/URL).
 
 ## Contributing
 
