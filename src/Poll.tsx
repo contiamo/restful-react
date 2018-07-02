@@ -1,7 +1,7 @@
 import React from "react";
 import { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { RestfulProvider, Meta as GetComponentMeta, GetComponentProps } from ".";
-import { GetComponentState } from "../dist";
+import { GetComponentState } from ".";
 
 /**
  * Meta information returned from the poll.
