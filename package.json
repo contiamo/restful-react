@@ -1,7 +1,11 @@
 {
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
+<<<<<<< HEAD
   "version": "3.0.4",
+=======
+  "version": "3.1.0",
+>>>>>>> 3.1.0
   "main": "dist/index.js",
   "license": "MIT",
   "files": [
