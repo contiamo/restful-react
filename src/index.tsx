@@ -158,6 +158,11 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
             body: data,
           });
 
+          if (!response.ok) {
+            await this.setState(() => ({ loading: false }));
+            throw response;
+          }
+
           await this.setState(() => ({ loading: false }));
           const responseData: Promise<T> =
             response.headers.get("content-type") === "application/json" ? response.json() : response.text();
