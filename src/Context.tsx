@@ -13,7 +13,7 @@ export interface RestfulReactProviderProps<T = any> {
   /**
    * Options passed to the fetch request.
    */
-  requestOptions?: Partial<RequestInit>;
+  requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
 }
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<RestfulReactProviderProps>({
