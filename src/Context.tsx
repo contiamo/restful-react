@@ -1,6 +1,5 @@
 import * as React from "react";
-
-import { ResolveFunction } from ".";
+import { ResolveFunction } from "./Get";
 
 export interface RestfulReactProviderProps<T = any> {
   /** The backend URL where the RESTful resources live. */
