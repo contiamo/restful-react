@@ -4,7 +4,7 @@ import { ResolveFunction } from ".";
 
 export interface RestfulReactProviderProps<T = any> {
   /** The backend URL where the RESTful resources live. */
-  host: string;
+  base: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -17,7 +17,7 @@ export interface RestfulReactProviderProps<T = any> {
 }
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<RestfulReactProviderProps>({
-  host: "",
+  base: "",
   resolve: (data: any) => data,
   requestOptions: {},
 });

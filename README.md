@@ -52,7 +52,7 @@ To install and use this library, simply `yarn add restful-react`, or `npm i rest
 
 ### Global Configuration
 
-API endpoints usually sit alongside a host, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
+API endpoints usually sit alongside a base, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
 
 Consider,
 
@@ -63,7 +63,7 @@ import { RestfulProvider } from "restful-react";
 import App from "./App.jsx";
 
 const MyRestfulApp = () => (
-  <RestfulProvider host="https://dog.ceo/api">
+  <RestfulProvider base="https://dog.ceo/api">
     <App />
   </RestfulProvider>
 );
@@ -96,7 +96,7 @@ Here's a full overview of the API available through the `RestfulProvider`, along
 // Interface
 interface RestfulProviderProps<T> {
   /** The backend URL where the RESTful resources live. */
-  host: string;
+  base: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -109,7 +109,7 @@ interface RestfulProviderProps<T> {
 }
 
 // Usage
-<RestfulProvider host="String!" resolve={data => data} requestOptions={{}} />;
+<RestfulProvider base="String!" resolve={data => data} requestOptions={{}} />;
 ```
 
 Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) type of request options.
@@ -119,7 +119,7 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
 `Get` components can be composed together and request URLs at an accumulation of their collective path props. Consider,
 
 ```jsx
-// Assuming we're using a RestfulProvider with host={HOST} somewhere,
+// Assuming we're using a RestfulProvider with base={HOST} somewhere,
 <Get path="/cats">
   {data => {
     return (
@@ -127,7 +127,7 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
         <h1>Here are my cats!</h1>
         {data.map(cat => <img alt={cat.name} src={cat.photoUrl} />)}
 
-        {/* Request HOST/cats/persian */}
+        {/* Request BASE/cats/persian */}
         <Get path="/persian">
           {persianCats => {
             return (
@@ -207,7 +207,7 @@ const Movies = ({ dispatch }) => (
           <li>
             {movie.name}
 
-            {/* Will send a DELETE request to HOST/movies/:movie.id */}
+            {/* Will send a DELETE request to BASE/movies/:movie.id */}
             <button
               onClick={_ =>
                 actions
@@ -397,7 +397,7 @@ interface Poll<T> {
   /**
    * We can request foreign URLs with this prop.
    */
-  host?: GetComponentProps<T>["host"];
+  base?: GetComponentProps<T>["base"];
   /**
    * Any options to be passed to this request.
    */

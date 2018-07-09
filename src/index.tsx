@@ -86,8 +86,10 @@ export interface GetComponentProps<T> {
   /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL..
+   *
+   * @deprecated Deprecated in favor of a `base` prop (https://github.com/contiamo/restful-react/issues/4)
    */
-  host?: string;
+  base?: string;
 }
 
 /**
@@ -122,15 +124,26 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   }
 
   componentDidUpdate(prevProps: GetComponentProps<T>) {
-    // If the path or host prop changes, refetch!
-    const { path, host } = this.props;
-    if (prevProps.path !== path || prevProps.host !== host) {
+    // If the path or base prop changes, refetch!
+    const { path, base } = this.props;
+    if (prevProps.path !== path || prevProps.base !== base) {
       this.shouldFetchImmediately() && this.fetch("GET")();
     }
   }
 
+  setError = (erroredResponse: Response) => {
+    this.setState(() => ({
+      response: erroredResponse,
+      error: erroredResponse.statusText,
+      loading: false,
+    }));
+    return null;
+  };
+
   fetch = (method?: RequestMethod) => {
-    const { host, path, requestOptions: options } = this.props;
+    const { base, path, requestOptions: options } = this.props;
+    this.setState(() => ({ error: "", loading: true }));
+
     switch (method) {
       case "POST":
       case "PUT":
@@ -145,36 +158,38 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
             }
           };
 
-          await this.setState(() => ({ loading: true }));
-          const response = await fetch(`${host}${path}`, {
-            ...options,
-            ...requestOptions,
-            headers: new Headers({
-              ...(isJSON() && { "content-type": "application/json" }),
-              ...(options || {}).headers,
-              ...(requestOptions || {}).headers,
-            }),
-            method,
-            body: data,
-          });
+          try {
+            const response = await fetch(`${base}${path}`, {
+              ...options,
+              ...requestOptions,
+              headers: new Headers({
+                ...(isJSON() && { "content-type": "application/json" }),
+                ...(options || {}).headers,
+                ...(requestOptions || {}).headers,
+              }),
+              method,
+              body: data,
+            });
 
-          if (!response.ok) {
-            await this.setState(() => ({ loading: false }));
-            throw response;
+            if (!response.ok) {
+              throw response;
+            }
+
+            this.setState(() => ({ loading: false }));
+            const responseData: Promise<T> =
+              response.headers.get("content-type") === "application/json" ? response.json() : response.text();
+            return responseData;
+          } catch (erroredResponse) {
+            return this.setError(erroredResponse);
           }
-
-          await this.setState(() => ({ loading: false }));
-          const responseData: Promise<T> =
-            response.headers.get("content-type") === "application/json" ? response.json() : response.text();
-          return responseData;
         };
+
       default:
         return async (requestPath?: string, requestOptions?: Partial<RequestInit>) => {
           const { resolve } = this.props;
           const foolProofResolve = resolve || (data => data);
           try {
-            await this.setState({ loading: true });
-            const response = await fetch(`${host}${requestPath || path || ""}`, { ...options, ...requestOptions });
+            const response = await fetch(`${base}${requestPath || path || ""}`, { ...options, ...requestOptions });
 
             if (!response.ok) {
               throw `Failed to fetch: ${response.status}${response.statusText}`;
@@ -185,11 +200,10 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
                 ? await response.json()
                 : await response.text();
 
-            await this.setState({ data: foolProofResolve(data), loading: false });
+            this.setState({ data: foolProofResolve(data), loading: false });
             return data;
-          } catch (error) {
-            await this.setState(() => ({ error, loading: false }));
-            return null;
+          } catch (erroredResponse) {
+            return this.setError(erroredResponse);
           }
         };
     }
@@ -204,32 +218,32 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   };
 
   render() {
-    const { children, wait, path, host } = this.props;
+    const { children, wait, path, base } = this.props;
     const { data, error, loading, response } = this.state;
 
     if (wait && data === null) {
       return <></>; // Show nothing until we have data.
     }
 
-    return children(data, { loading, error }, this.actions, { response, absolutePath: `${host}${path}` });
+    return children(data, { loading, error }, this.actions, { response, absolutePath: `${base}${path}` });
   }
 }
 
 /**
  * The <Get /> component _with_ context.
  * Context is used to compose path props,
- * and to maintain the host property against
+ * and to maintain the base property against
  * which all requests will be made.
  *
  * We compose Consumers immediately with providers
- * in order to provide new `host` props that contain
+ * in order to provide new `base` props that contain
  * a segment of the path, creating composable URLs.
  */
 function Get<T>(props: GetComponentProps<T>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulProvider {...contextProps} host={`${contextProps.host}${props.path}`}>
+        <RestfulProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
           <ContextlessGet
             {...contextProps}
             {...props}
