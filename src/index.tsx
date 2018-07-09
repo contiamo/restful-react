@@ -1,5 +1,5 @@
 import * as React from "react";
-import RestfulProvider, { RestfulReactConsumer } from "./Context";
+import RestfulProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 
 /**
  * A function that resolves returned data from
@@ -10,7 +10,7 @@ export type ResolveFunction<T> = (data: any) => T;
 /**
  * HTTP Verbs: POST/GET/PUT/PATCH/DELETE.
  */
-export type RequestMethod = "POST" | "GET" | "PUT" | "DELETE" | "PATCH";
+export type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * A collection of actions that map to
@@ -18,15 +18,15 @@ export type RequestMethod = "POST" | "GET" | "PUT" | "DELETE" | "PATCH";
  */
 export interface Verbs<T> {
   /** GET a resource */
-  get: (path?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
+  get: (path?: string, extraRequestOptions?: RequestInit) => Promise<T | null>;
   /** DELETE a resource */
-  destroy: (id?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
+  destroy: (id?: string, extraRequestOptions?: RequestInit) => Promise<T | null>;
   /** POST a resource */
-  post: (data?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
+  post: (data?: string, extraRequestOptions?: RequestInit) => Promise<T | null>;
   /** PUT a resource */
-  put: (data?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
+  put: (data?: string, extraRequestOptions?: RequestInit) => Promise<T | null>;
   /** PATCH a resource */
-  patch: (data?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
+  patch: (data?: string, extraRequestOptions?: RequestInit) => Promise<T | null>;
 }
 
 /**
@@ -69,7 +69,7 @@ export interface GetComponentProps<T> {
    */
   children: (data: T | null, states: States, actions: Verbs<T>, meta: Meta) => React.ReactNode;
   /** Options passed into the fetch call. */
-  requestOptions?: Partial<RequestInit>;
+  requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -120,91 +120,99 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   };
 
   componentDidMount() {
-    this.shouldFetchImmediately() && this.fetch("GET")();
+    this.shouldFetchImmediately() && this.fetch()();
   }
 
   componentDidUpdate(prevProps: GetComponentProps<T>) {
     // If the path or base prop changes, refetch!
     const { path, base } = this.props;
     if (prevProps.path !== path || prevProps.base !== base) {
-      this.shouldFetchImmediately() && this.fetch("GET")();
+      this.shouldFetchImmediately() && this.fetch()();
     }
   }
 
-  setError = (erroredResponse: Response) => {
-    this.setState(() => ({
-      response: erroredResponse,
-      error: erroredResponse.statusText,
-      loading: false,
-    }));
-    return null;
+  getRequestOptions = (extraOptions?: Partial<RequestInit>, extraHeaders?: boolean | { [key: string]: string }) => {
+    const { requestOptions } = this.props;
+
+    if (typeof requestOptions === "function") {
+      return {
+        ...extraOptions,
+        ...requestOptions(),
+        headers: new Headers({
+          ...(typeof extraHeaders !== "boolean" ? extraHeaders : {}),
+          ...(extraOptions || {}).headers,
+          ...(requestOptions() || {}).headers,
+        }),
+      };
+    }
+
+    return {
+      ...extraOptions,
+      ...requestOptions,
+      headers: new Headers({
+        ...(typeof extraHeaders !== "boolean" ? extraHeaders : {}),
+        ...(extraOptions || {}).headers,
+        ...(requestOptions || {}).headers,
+      }),
+    };
   };
 
-  fetch = (method?: RequestMethod) => {
-    const { base, path, requestOptions: options } = this.props;
-    this.setState(() => ({ error: "", loading: true }));
+  fetch = (method: RequestMethod = "GET") => {
+    const { base, path } = this.props;
 
     switch (method) {
       case "POST":
       case "PUT":
       case "PATCH":
       case "DELETE":
-        return async (data?: string, requestOptions?: Partial<RequestInit>) => {
+        return async (body?: string, thisRequestOptions?: RequestInit) => {
+          this.setState(() => ({ error: "", loading: true }));
           const isJSON = () => {
             try {
-              return data ? Boolean(JSON.parse(data)) : false;
+              return body ? Boolean(JSON.parse(body)) : false;
             } catch (e) {
               return false;
             }
           };
 
-          try {
-            const response = await fetch(`${base}${path}`, {
-              ...options,
-              ...requestOptions,
-              headers: new Headers({
-                ...(isJSON() && { "content-type": "application/json" }),
-                ...(options || {}).headers,
-                ...(requestOptions || {}).headers,
-              }),
-              method,
-              body: data,
-            });
+          const response = await fetch(`${base}${path}`, {
+            ...this.getRequestOptions(thisRequestOptions, isJSON() && { "content-type": "application/json" }),
+            method,
+            body,
+          });
 
-            if (!response.ok) {
-              throw response;
-            }
+          this.setState({ loading: false });
 
-            this.setState(() => ({ loading: false }));
-            const responseData: Promise<T> =
-              response.headers.get("content-type") === "application/json" ? response.json() : response.text();
-            return responseData;
-          } catch (erroredResponse) {
-            return this.setError(erroredResponse);
+          if (!response.ok) {
+            throw response;
           }
+
+          const responseData: Promise<T> =
+            response.headers.get("content-type") === "application/json" ? response.json() : response.text();
+          return responseData;
         };
 
       default:
-        return async (requestPath?: string, requestOptions?: Partial<RequestInit>) => {
+        return async (requestPath?: string, thisRequestOptions?: RequestInit) => {
+          this.setState(() => ({ error: "", loading: true }));
+
           const { resolve } = this.props;
           const foolProofResolve = resolve || (data => data);
-          try {
-            const response = await fetch(`${base}${requestPath || path || ""}`, { ...options, ...requestOptions });
+          const response = await fetch(
+            `${base}${requestPath || path || ""}`,
+            this.getRequestOptions(thisRequestOptions),
+          );
 
-            if (!response.ok) {
-              throw `Failed to fetch: ${response.status}${response.statusText}`;
-            }
-
-            const data: T =
-              response.headers.get("content-type") === "application/json"
-                ? await response.json()
-                : await response.text();
-
-            this.setState({ data: foolProofResolve(data), loading: false });
-            return data;
-          } catch (erroredResponse) {
-            return this.setError(erroredResponse);
+          if (!response.ok) {
+            this.setState({ loading: false, error: `Failed to fetch: ${response.status} ${response.statusText}` });
+            throw response;
           }
+
+          const data: T =
+            response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
+
+          this.setState({ data: foolProofResolve(data) });
+          return data;
         };
     }
   };
@@ -244,11 +252,7 @@ function Get<T>(props: GetComponentProps<T>) {
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
-          <ContextlessGet
-            {...contextProps}
-            {...props}
-            requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
-          />
+          <ContextlessGet {...contextProps} {...props} />
         </RestfulProvider>
       )}
     </RestfulReactConsumer>
