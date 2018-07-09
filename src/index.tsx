@@ -10,7 +10,7 @@ export type ResolveFunction<T> = (data: any) => T;
 /**
  * HTTP Verbs: POST/GET/PUT/PATCH/DELETE.
  */
-export type RequestMethod = "post" | "get" | "put" | "delete" | "patch";
+export type RequestMethod = "POST" | "GET" | "PUT" | "DELETE" | "PATCH";
 
 /**
  * A collection of actions that map to
@@ -118,24 +118,24 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   };
 
   componentDidMount() {
-    this.shouldFetchImmediately() && this.fetch("get")();
+    this.shouldFetchImmediately() && this.fetch("GET")();
   }
 
   componentDidUpdate(prevProps: GetComponentProps<T>) {
     // If the path or host prop changes, refetch!
     const { path, host } = this.props;
     if (prevProps.path !== path || prevProps.host !== host) {
-      this.shouldFetchImmediately() && this.fetch("get")();
+      this.shouldFetchImmediately() && this.fetch("GET")();
     }
   }
 
   fetch = (method?: RequestMethod) => {
     const { host, path, requestOptions: options } = this.props;
     switch (method) {
-      case "post":
-      case "put":
-      case "patch":
-      case "delete":
+      case "POST":
+      case "PUT":
+      case "PATCH":
+      case "DELETE":
         return async (data?: string, requestOptions?: Partial<RequestInit>) => {
           const isJSON = () => {
             try {
@@ -197,10 +197,10 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
 
   actions = {
     get: this.fetch(),
-    post: this.fetch("post"),
-    put: this.fetch("put"),
-    patch: this.fetch("patch"),
-    destroy: this.fetch("delete"),
+    post: this.fetch("POST"),
+    put: this.fetch("PUT"),
+    patch: this.fetch("PATCH"),
+    destroy: this.fetch("DELETE"),
   };
 
   render() {
