@@ -39,12 +39,16 @@
     "preversion": "npm run build"
   },
   "lint-staged": {
-    ".(md)": [
+    "*.md": [
       "prettier --write",
       "doctoc",
       "git add"
     ],
-    ".(tsx)": [
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.(tsx|ts)": [
       "tslint --fix",
       "prettier --write",
       "git add"
