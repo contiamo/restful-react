@@ -42,7 +42,7 @@ export interface MutateComponentProps {
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (mutate: (body: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
+  children: (mutate: (body?: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
   /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
@@ -99,6 +99,7 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
       throw response;
     }
 
+    this.setState({ loading: false });
     return response;
   };
 
