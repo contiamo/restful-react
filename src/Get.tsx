@@ -72,7 +72,7 @@ export interface GetComponentProps<T> {
   lazy?: boolean;
   /**
    * An escape hatch and an alternative to `path` when you'd like
-   * to fetch from an entirely different URL..
+   * to fetch from an entirely different URL.
    *
    */
   base?: string;

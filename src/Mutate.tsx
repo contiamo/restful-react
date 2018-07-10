@@ -24,12 +24,12 @@ export interface Meta {
 }
 
 /**
- * Props for the <Get /> component.
+ * Props for the <Mutate /> component.
  */
 export interface MutateComponentProps {
   /**
    * The path at which to request data,
-   * typically composed by parent Gets or the RestfulProvider.
+   * typically composed by parents or the RestfulProvider.
    */
   path: string;
   /**
@@ -37,15 +37,15 @@ export interface MutateComponentProps {
    */
   verb: "POST" | "PUT" | "PATCH" | "DELETE";
   /**
-   * A function that recieves the returned, resolved
-   * data.
+   * A function that recieves a mutation function, along with
+   * some metadata.
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
   children: (mutate: (body: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
   /**
    * An escape hatch and an alternative to `path` when you'd like
-   * to fetch from an entirely different URL..
+   * to fetch from an entirely different URL.
    *
    */
   base?: string;
@@ -54,7 +54,7 @@ export interface MutateComponentProps {
 }
 
 /**
- * State for the <Get /> component. These
+ * State for the <Mutate /> component. These
  * are implementation details and should be
  * hidden from any consumers.
  */
@@ -72,21 +72,24 @@ export interface MutateComponentState {
 class ContextlessMutate extends React.Component<MutateComponentProps, MutateComponentState> {
   readonly state: Readonly<MutateComponentState> = {
     response: null,
-    error: "",
     loading: false,
+    error: "",
   };
 
   mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
-    const { base, path, verb, requestOptions: providerRequestOptions } = this.props;
+    const { base, path, verb: method, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: "", loading: true }));
 
     const response = await fetch(`${base}${path || ""}`, {
-      method: verb,
+      method,
       body: typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
       ...mutateRequestOptions,
       headers: {
         "content-type": typeof body === "object" ? "application/json" : "text/plain",
+        ...(typeof providerRequestOptions === "function"
+          ? providerRequestOptions().headers
+          : (providerRequestOptions || {}).headers),
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
     });
@@ -108,7 +111,7 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
 }
 
 /**
- * The <Get /> component _with_ context.
+ * The <Mutate /> component _with_ context.
  * Context is used to compose path props,
  * and to maintain the base property against
  * which all requests will be made.
