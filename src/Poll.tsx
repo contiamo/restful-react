@@ -1,7 +1,7 @@
 import React from "react";
-import { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
-import { RestfulProvider, Meta as GetComponentMeta, GetComponentProps } from ".";
-import { GetComponentState } from ".";
+import { RestfulReactConsumer } from "./Context";
+import { RestfulProvider } from ".";
+import { GetComponentState, Meta as GetComponentMeta, GetComponentProps } from "./Get";
 
 /**
  * Meta information returned from the poll.
@@ -84,7 +84,7 @@ interface PollProps<T> {
   /**
    * We can request foreign URLs with this prop.
    */
-  host?: GetComponentProps<T>["host"];
+  base?: GetComponentProps<T>["base"];
   /**
    * Any options to be passed to this request.
    */
@@ -156,16 +156,17 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       return;
     }
 
-    console.log("scheduling feth");
-
     // If we should keep going,
-    const { host, path, requestOptions, resolve, interval } = this.props;
-    const response = await fetch(`${host}${path}`, requestOptions);
+    const { base, path, requestOptions, resolve, interval } = this.props;
+    const response = await fetch(
+      `${base}${path}`,
+      typeof requestOptions === "function" ? requestOptions() : requestOptions,
+    );
 
     const responseBody =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    await this.setState(() => ({
+    this.setState(() => ({
       loading: false,
       lastResponse: response,
       data: resolve ? resolve(responseBody) : responseBody,
@@ -183,7 +184,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
 
   stop = async () => {
     this.keepPolling = false;
-    await this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.}
+    this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.}
   };
 
   componentDidMount() {
@@ -204,11 +205,11 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
 
   render() {
     const { lastResponse: response, data, polling, loading, error, finished } = this.state;
-    const { children, host, path } = this.props;
+    const { children, base, path } = this.props;
 
     const meta: Meta = {
       response,
-      absolutePath: `${host}${path}`,
+      absolutePath: `${base}${path}`,
     };
 
     const states: States<T> = {
@@ -232,7 +233,7 @@ function Poll<T>(props: PollProps<T>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulProvider {...contextProps} host={`${contextProps.host}${props.path}`}>
+        <RestfulProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
           <ContextlessPoll
             {...contextProps}
             {...props}
