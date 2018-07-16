@@ -61,7 +61,7 @@ export interface GetComponentProps<T = {}> {
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
-  resolve?: ResolveFunction<T>;
+  resolve: ResolveFunction<T>;
   /**
    * Should we wait until we have data before rendering?
    * This is useful in cases where data is available too quickly
@@ -109,6 +109,10 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     return { loading: !props.lazy };
   }
 
+  public static defaultProps = {
+    resolve: (noop: any) => noop,
+  };
+
   public componentDidMount() {
     if (!this.props.lazy) {
       this.fetch();
@@ -155,11 +159,8 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, path } = this.props;
+    const { base, path, resolve } = this.props;
     this.setState(() => ({ error: "", loading: true }));
-
-    const { resolve } = this.props;
-    const foolProofResolve = resolve || (noop => noop);
     const response = await fetch(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
 
     if (!response.ok) {
@@ -170,7 +171,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     const data: T =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    this.setState({ loading: false, data: foolProofResolve(data) });
+    this.setState({ loading: false, data: resolve(data) });
     return data;
   };
 
