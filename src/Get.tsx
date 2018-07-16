@@ -41,7 +41,7 @@ export interface Meta {
 /**
  * Props for the <Get /> component.
  */
-export interface GetComponentProps<T> {
+export interface GetComponentProps<T = {}> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -64,6 +64,8 @@ export interface GetComponentProps<T> {
   resolve?: ResolveFunction<T>;
   /**
    * Should we wait until we have data before rendering?
+   * This is useful in cases where data is available too quickly
+   * to display a spinner or some type of loading state.
    */
   wait?: boolean;
   /**
@@ -96,17 +98,19 @@ export interface GetComponentState<T> {
  * debugging.
  */
 class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<GetComponentState<T>>> {
-  private shouldFetchImmediately = () => !this.props.wait && !this.props.lazy;
-
   public readonly state: Readonly<GetComponentState<T>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
     error: "",
-    loading: this.shouldFetchImmediately(),
+    loading: false,
   };
 
+  public static getDerivedStateFromProps(props: Pick<GetComponentProps, "wait" | "lazy">) {
+    return { loading: !props.lazy };
+  }
+
   public componentDidMount() {
-    if (this.shouldFetchImmediately()) {
+    if (!this.props.lazy) {
       this.fetch();
     }
   }
@@ -115,7 +119,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     // If the path or base prop changes, refetch!
     const { path, base } = this.props;
     if (prevProps.path !== path || prevProps.base !== base) {
-      if (this.shouldFetchImmediately()) {
+      if (!this.props.lazy) {
         this.fetch();
       }
     }
