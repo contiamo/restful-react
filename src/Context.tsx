@@ -22,7 +22,7 @@ const { Provider, Consumer: RestfulReactConsumer } = React.createContext<Restful
 });
 
 export default class RestfulReactProvider<T> extends React.Component<RestfulReactProviderProps<T>> {
-  render() {
+  public render() {
     const { children, ...value } = this.props;
     return <Provider value={value}>{children}</Provider>;
   }

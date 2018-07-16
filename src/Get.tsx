@@ -1,5 +1,5 @@
 import * as React from "react";
-import RestfulProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 
 /**
  * A function that resolves returned data from
@@ -98,26 +98,33 @@ export interface GetComponentState<T> {
 class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<GetComponentState<T>>> {
   private shouldFetchImmediately = () => !this.props.wait && !this.props.lazy;
 
-  readonly state: Readonly<GetComponentState<T>> = {
+  public readonly state: Readonly<GetComponentState<T>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
     error: "",
     loading: this.shouldFetchImmediately(),
   };
 
-  componentDidMount() {
-    this.shouldFetchImmediately() && this.fetch();
-  }
-
-  componentDidUpdate(prevProps: GetComponentProps<T>) {
-    // If the path or base prop changes, refetch!
-    const { path, base } = this.props;
-    if (prevProps.path !== path || prevProps.base !== base) {
-      this.shouldFetchImmediately() && this.fetch();
+  public componentDidMount() {
+    if (this.shouldFetchImmediately()) {
+      this.fetch();
     }
   }
 
-  getRequestOptions = (extraOptions?: Partial<RequestInit>, extraHeaders?: boolean | { [key: string]: string }) => {
+  public componentDidUpdate(prevProps: GetComponentProps<T>) {
+    // If the path or base prop changes, refetch!
+    const { path, base } = this.props;
+    if (prevProps.path !== path || prevProps.base !== base) {
+      if (this.shouldFetchImmediately()) {
+        this.fetch();
+      }
+    }
+  }
+
+  public getRequestOptions = (
+    extraOptions?: Partial<RequestInit>,
+    extraHeaders?: boolean | { [key: string]: string },
+  ) => {
     const { requestOptions } = this.props;
 
     if (typeof requestOptions === "function") {
@@ -143,12 +150,12 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     };
   };
 
-  fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
+  public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
     const { base, path } = this.props;
     this.setState(() => ({ error: "", loading: true }));
 
     const { resolve } = this.props;
-    const foolProofResolve = resolve || (data => data);
+    const foolProofResolve = resolve || (noop => noop);
     const response = await fetch(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
 
     if (!response.ok) {
@@ -163,7 +170,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     return data;
   };
 
-  render() {
+  public render() {
     const { children, wait, path, base } = this.props;
     const { data, error, loading, response } = this.state;
 
@@ -189,9 +196,9 @@ function Get<T>(props: GetComponentProps<T>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
+        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
           <ContextlessGet {...contextProps} {...props} />
-        </RestfulProvider>
+        </RestfulReactProvider>
       )}
     </RestfulReactConsumer>
   );
