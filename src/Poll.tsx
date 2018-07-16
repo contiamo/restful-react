@@ -233,13 +233,11 @@ function Poll<T>(props: PollProps<T>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
-          <ContextlessPoll
-            {...contextProps}
-            {...props}
-            requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
-          />
-        </RestfulProvider>
+        <ContextlessPoll
+          {...contextProps}
+          {...props}
+          requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
+        />
       )}
     </RestfulReactConsumer>
   );
