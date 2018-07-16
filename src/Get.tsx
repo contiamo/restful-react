@@ -105,12 +105,12 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     loading: false,
   };
 
-  public static getDerivedStateFromProps(props: Pick<GetComponentProps, "wait" | "lazy">) {
+  public static getDerivedStateFromProps(props: Pick<GetComponentProps, "lazy">) {
     return { loading: !props.lazy };
   }
 
   public static defaultProps = {
-    resolve: (noop: any) => noop,
+    resolve: (unresolvedData: any) => unresolvedData,
   };
 
   public componentDidMount() {
