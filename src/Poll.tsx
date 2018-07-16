@@ -1,7 +1,6 @@
 import React from "react";
 import { RestfulReactConsumer } from "./Context";
-import { RestfulProvider } from ".";
-import { GetComponentState, Meta as GetComponentMeta, GetComponentProps } from "./Get";
+import { GetComponentProps, GetComponentState, Meta as GetComponentMeta } from "./Get";
 
 /**
  * Meta information returned from the poll.
@@ -128,7 +127,8 @@ interface PollState<T> {
  */
 class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollState<T>>> {
   private keepPolling = !this.props.lazy;
-  readonly state: Readonly<PollState<T>> = {
+
+  public readonly state: Readonly<PollState<T>> = {
     data: null,
     loading: !this.props.lazy,
     lastResponse: null,
@@ -136,7 +136,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     finished: false,
   };
 
-  static defaultProps = {
+  public static defaultProps = {
     interval: 1000,
     resolve: (data: any) => data,
   };
@@ -144,7 +144,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
   /**
    * This thing does the actual poll.
    */
-  cycle = async () => {
+  public cycle = async () => {
     // Have we stopped?
     if (!this.keepPolling) {
       return; // stop.
@@ -172,22 +172,23 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       data: resolve ? resolve(responseBody) : responseBody,
     }));
 
-    await new Promise(resolve => setTimeout(resolve, interval)); // Wait for interval to pass.
+    // Wait for interval to pass.
+    await new Promise(resolvePromise => setTimeout(resolvePromise, interval));
     this.cycle(); // Do it all again!
   };
 
-  start = async () => {
+  public start = async () => {
     this.keepPolling = true;
     this.setState(() => ({ polling: true })); // let everyone know we're done here.}
     this.cycle();
   };
 
-  stop = async () => {
+  public stop = async () => {
     this.keepPolling = false;
     this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.}
   };
 
-  componentDidMount() {
+  public componentDidMount() {
     const { path, lazy } = this.props;
 
     if (!path) {
@@ -196,14 +197,16 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       );
     }
 
-    !lazy && this.start();
+    if (!lazy) {
+      this.start();
+    }
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     this.stop();
   }
 
-  render() {
+  public render() {
     const { lastResponse: response, data, polling, loading, error, finished } = this.state;
     const { children, base, path } = this.props;
 

@@ -1,1 +1,23 @@
-{}
+{
+  "extends": ["tslint:recommended", "tslint-config-prettier", "tslint-plugin-blank-line"],
+  "rules": {
+    "blank-line": true,
+    "one-variable-per-declaration": false,
+    "semicolon": false,
+    "quotemark": "double",
+    "variable-name": ["allow-pascal-case"],
+    "indent": false,
+    "import-name": false,
+    "object-literal-sort-keys": false,
+    "interface-name": false,
+    "no-console": [true, "log", "error"],
+    "no-unused-expression": true,
+    "no-implicit-dependencies": [true, "dev"],
+    "no-unused-variable": [true, { "check-parameters": true }],
+    "no-duplicate-imports": true,
+    "completed-docs": false,
+    "import-spacing": true,
+    "match-default-export-name": true,
+    "member-ordering": false
+  }
+}

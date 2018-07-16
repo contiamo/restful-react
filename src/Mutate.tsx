@@ -1,5 +1,5 @@
 import * as React from "react";
-import RestfulProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 
 /**
  * An enumeration of states that a fetchable
@@ -70,13 +70,13 @@ export interface MutateComponentState {
  * debugging.
  */
 class ContextlessMutate extends React.Component<MutateComponentProps, MutateComponentState> {
-  readonly state: Readonly<MutateComponentState> = {
+  public readonly state: Readonly<MutateComponentState> = {
     response: null,
     loading: false,
     error: "",
   };
 
-  mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
+  public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
     const { base, path, verb: method, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: "", loading: true }));
 
@@ -103,7 +103,7 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
     return response;
   };
 
-  render() {
+  public render() {
     const { children, path, base } = this.props;
     const { error, loading, response } = this.state;
 
@@ -125,9 +125,9 @@ function Mutate(props: MutateComponentProps) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
+        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
           <ContextlessMutate {...contextProps} {...props} />
-        </RestfulProvider>
+        </RestfulReactProvider>
       )}
     </RestfulReactConsumer>
   );

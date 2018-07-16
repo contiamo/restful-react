@@ -5,4 +5,5 @@ export { default as Poll } from "./Poll";
 export { default as Mutate } from "./Mutate";
 
 export { Get };
+
 export default Get;
