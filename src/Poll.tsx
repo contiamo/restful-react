@@ -46,7 +46,7 @@ interface Actions {
 /**
  * Props that can control the Poll component.
  */
-interface PollProps<T> {
+interface PollProps<T = {}> {
   /**
    * What path are we polling on?
    */
@@ -126,20 +126,26 @@ interface PollState<T> {
  * The <Poll /> component without context.
  */
 class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollState<T>>> {
-  private keepPolling = !this.props.lazy;
-
   public readonly state: Readonly<PollState<T>> = {
     data: null,
     loading: !this.props.lazy,
     lastResponse: null,
-    polling: this.keepPolling,
+    polling: false,
     finished: false,
   };
+
+  public static getDerivedStateFromProps(props: Pick<PollProps, "lazy">) {
+    return {
+      polling: !props.lazy,
+    };
+  }
 
   public static defaultProps = {
     interval: 1000,
     resolve: (data: any) => data,
   };
+
+  private keepPolling = !this.props.lazy;
 
   /**
    * This thing does the actual poll.
