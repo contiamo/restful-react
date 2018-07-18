@@ -61,7 +61,7 @@ export interface GetComponentProps<T = {}> {
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
-  resolve: ResolveFunction<T>;
+  resolve?: ResolveFunction<T>;
   /**
    * Should we wait until we have data before rendering?
    * This is useful in cases where data is available too quickly
@@ -80,6 +80,10 @@ export interface GetComponentProps<T = {}> {
   base?: string;
 }
 
+interface GetComponentDefaultProps<T> {
+  resolve: ResolveFunction<T>;
+}
+
 /**
  * State for the <Get /> component. These
  * are implementation details and should be
@@ -92,6 +96,8 @@ export interface GetComponentState<T> {
   loading: boolean;
 }
 
+type PropsWithDefaults<T> = GetComponentProps<T> & GetComponentDefaultProps<T>;
+
 /**
  * The <Get /> component without Context. This
  * is a named class because it is useful in
@@ -102,12 +108,8 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     data: null, // Means we don't _yet_ have data.
     response: null,
     error: "",
-    loading: false,
+    loading: !this.props.lazy,
   };
-
-  public static getDerivedStateFromProps(props: Pick<GetComponentProps, "lazy">) {
-    return { loading: !props.lazy };
-  }
 
   public static defaultProps = {
     resolve: (unresolvedData: any) => unresolvedData,
@@ -159,9 +161,11 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, path, resolve } = this.props;
+    const { base, path, resolve } = this.props as PropsWithDefaults<T>;
     this.setState(() => ({ error: "", loading: true }));
-    const response = await fetch(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+
+    const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+    const response = await fetch(request);
 
     if (!response.ok) {
       this.setState({ loading: false, error: `Failed to fetch: ${response.status} ${response.statusText}` });

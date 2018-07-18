@@ -164,10 +164,11 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
 
     // If we should keep going,
     const { base, path, requestOptions, resolve, interval } = this.props;
-    const response = await fetch(
+    const request = new Request(
       `${base}${path}`,
       typeof requestOptions === "function" ? requestOptions() : requestOptions,
     );
+    const response = await fetch(request);
 
     const responseBody =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
