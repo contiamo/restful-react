@@ -61,7 +61,7 @@ export interface GetComponentProps<T = {}> {
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
-  resolve: ResolveFunction<T>;
+  resolve?: ResolveFunction<T>;
   /**
    * Should we wait until we have data before rendering?
    * This is useful in cases where data is available too quickly
@@ -102,14 +102,10 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     data: null, // Means we don't _yet_ have data.
     response: null,
     error: "",
-    loading: false,
+    loading: !this.props.lazy,
   };
 
-  public static getDerivedStateFromProps(props: Pick<GetComponentProps, "lazy">) {
-    return { loading: !props.lazy };
-  }
-
-  public static defaultProps = {
+  public static defaultProps: Partial<GetComponentProps<{}>> = {
     resolve: (unresolvedData: any) => unresolvedData,
   };
 
@@ -161,7 +157,9 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
     const { base, path, resolve } = this.props;
     this.setState(() => ({ error: "", loading: true }));
-    const response = await fetch(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+
+    const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+    const response = await fetch(request);
 
     if (!response.ok) {
       this.setState({ loading: false, error: `Failed to fetch: ${response.status} ${response.statusText}` });
@@ -171,7 +169,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     const data: T =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    this.setState({ loading: false, data: resolve(data) });
+    this.setState({ loading: false, data: resolve!(data) });
     return data;
   };
 
