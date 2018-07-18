@@ -111,7 +111,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     loading: !this.props.lazy,
   };
 
-  public static defaultProps = {
+  public static defaultProps: GetComponentDefaultProps<{}> = {
     resolve: (unresolvedData: any) => unresolvedData,
   };
 
