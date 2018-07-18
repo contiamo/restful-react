@@ -80,7 +80,7 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
     const { base, path, verb: method, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: "", loading: true }));
 
-    const response = await fetch(`${base}${path || ""}`, {
+    const request = new Request(`${base}${path || ""}`, {
       method,
       body: typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
@@ -93,6 +93,7 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
     });
+    const response = await fetch(request);
 
     if (!response.ok) {
       this.setState({ loading: false, error: `Failed to fetch: ${response.status} ${response.statusText}` });
