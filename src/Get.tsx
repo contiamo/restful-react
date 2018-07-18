@@ -80,10 +80,6 @@ export interface GetComponentProps<T = {}> {
   base?: string;
 }
 
-interface GetComponentDefaultProps<T> {
-  resolve: ResolveFunction<T>;
-}
-
 /**
  * State for the <Get /> component. These
  * are implementation details and should be
@@ -95,8 +91,6 @@ export interface GetComponentState<T> {
   error: string;
   loading: boolean;
 }
-
-type PropsWithDefaults<T> = GetComponentProps<T> & GetComponentDefaultProps<T>;
 
 /**
  * The <Get /> component without Context. This
@@ -111,7 +105,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     loading: !this.props.lazy,
   };
 
-  public static defaultProps: GetComponentDefaultProps<{}> = {
+  public static defaultProps: Partial<GetComponentProps<{}>> = {
     resolve: (unresolvedData: any) => unresolvedData,
   };
 
@@ -161,7 +155,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, path, resolve } = this.props as PropsWithDefaults<T>;
+    const { base, path, resolve } = this.props;
     this.setState(() => ({ error: "", loading: true }));
 
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
@@ -175,7 +169,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     const data: T =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    this.setState({ loading: false, data: resolve(data) });
+    this.setState({ loading: false, data: resolve!(data) });
     return data;
   };
 
