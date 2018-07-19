@@ -1,4 +1,6 @@
 import React from "react";
+import equal from "react-fast-compare";
+
 import { RestfulReactConsumer } from "./Context";
 import { GetComponentProps, GetComponentState, Meta as GetComponentMeta } from "./Get";
 
@@ -147,6 +149,16 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
 
   private keepPolling = !this.props.lazy;
 
+  private isModified = (response: Response, nextData: T) => {
+    if (response.status === 304) {
+      return false;
+    }
+    if (equal(this.state.data, nextData)) {
+      return false;
+    }
+    return true;
+  };
+
   /**
    * This thing does the actual poll.
    */
@@ -173,11 +185,19 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     const responseBody =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    this.setState(() => ({
-      loading: false,
-      lastResponse: response,
-      data: resolve ? resolve(responseBody) : responseBody,
-    }));
+    if (!response.ok) {
+      const error = `${response.status} ${response.statusText}`;
+      this.setState({ loading: false, lastResponse: response, data: responseBody, error });
+      throw new Error(`Failed to Poll: ${error}`);
+    }
+
+    if (this.isModified(response, responseBody)) {
+      this.setState(() => ({
+        loading: false,
+        lastResponse: response,
+        data: resolve ? resolve(responseBody) : responseBody,
+      }));
+    }
 
     // Wait for interval to pass.
     await new Promise(resolvePromise => setTimeout(resolvePromise, interval));

@@ -1,7 +1,7 @@
 {
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
-  "version": "4.0.0-3",
+  "version": "4.0.0-4",
   "main": "dist/index.js",
   "license": "MIT",
   "files": [
@@ -67,10 +67,11 @@
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-blank-line": "^0.0.8",
-    "typescript": "^3.1.0-dev.20180717"
+    "typescript": "^2.9.2"
   },
   "dependencies": {
-    "react": "^16.4.1"
+    "react": "^16.4.1",
+    "react-fast-compare": "^2.0.1"
   },
   "peerDependencies": {
     "react": "^16.4.1"
