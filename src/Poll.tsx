@@ -209,10 +209,6 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       throw new Error(`Failed to Poll: ${error}`);
     }
 
-    if (!(window as any).aaaa) {
-      (window as any).aaaa = response.headers;
-    }
-
     if (this.isModified(response, responseBody)) {
       this.setState(() => ({
         loading: false,
