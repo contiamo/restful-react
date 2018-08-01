@@ -60,11 +60,19 @@ interface PollProps<T = {}> {
    */
   children: (data: T | null, states: States<T>, actions: Actions, meta: Meta) => React.ReactNode;
   /**
-   * How long do we wait between requests?
+   * How long do we wait between repeating a request?
    * Value in milliseconds.
+   *
    * Defaults to 1000.
    */
   interval?: number;
+  /**
+   * How long should a request stay open?
+   * Value in seconds.
+   *
+   * Defaults to 60.
+   */
+  wait?: number;
   /**
    * A stop condition for the poll that expects
    * a boolean.
@@ -122,6 +130,10 @@ interface PollState<T> {
    * Do we currently have an error?
    */
   error?: GetComponentState<T>["error"];
+  /**
+   * Index of the last polled response.
+   */
+  lastPollIndex?: string;
 }
 
 /**
@@ -132,18 +144,13 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     data: null,
     loading: !this.props.lazy,
     lastResponse: null,
-    polling: false,
+    polling: !this.props.lazy,
     finished: false,
   };
 
-  public static getDerivedStateFromProps(props: Pick<PollProps, "lazy">) {
-    return {
-      polling: !props.lazy,
-    };
-  }
-
   public static defaultProps = {
     interval: 1000,
+    wait: 60,
     resolve: (data: any) => data,
   };
 
@@ -158,6 +165,12 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     }
     return true;
   };
+
+  private getRequestOptions = () =>
+    typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
+
+  // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
+  private isResponseOk = (response: Response) => response.ok || response.status === 304;
 
   /**
    * This thing does the actual poll.
@@ -175,17 +188,25 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     }
 
     // If we should keep going,
-    const { base, path, requestOptions, resolve, interval } = this.props;
-    const request = new Request(
-      `${base}${path}`,
-      typeof requestOptions === "function" ? requestOptions() : requestOptions,
-    );
+    const { base, path, resolve, interval, wait } = this.props;
+    const { lastPollIndex } = this.state;
+    const requestOptions = this.getRequestOptions();
+
+    const request = new Request(`${base}${path}`, {
+      ...requestOptions,
+
+      headers: {
+        Prefer: `wait=${wait};${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
+
+        ...requestOptions.headers,
+      },
+    });
     const response = await fetch(request);
 
     const responseBody =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    if (!response.ok) {
+    if (!this.isResponseOk(response)) {
       const error = `${response.status} ${response.statusText}`;
       this.setState({ loading: false, lastResponse: response, data: responseBody, error });
       throw new Error(`Failed to Poll: ${error}`);
@@ -196,6 +217,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
         loading: false,
         lastResponse: response,
         data: resolve ? resolve(responseBody) : responseBody,
+        lastPollIndex: response.headers.get("x-polling-index") || undefined,
       }));
     }
 

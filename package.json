@@ -1,7 +1,7 @@
 {
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
-  "version": "4.0.0-4",
+  "version": "4.0.0-5",
   "main": "dist/index.js",
   "license": "MIT",
   "files": [
@@ -62,7 +62,7 @@
     "lint-staged": "^7.2.0",
     "prettier": "^1.13.5",
     "rollup": "^0.61.2",
-    "rollup-plugin-typescript2": "^0.15.0",
+    "rollup-plugin-typescript2": "^0.16.1",
     "ts-jest": "^22.4.6",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
