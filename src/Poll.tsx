@@ -169,6 +169,9 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
   private getRequestOptions = () =>
     typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
 
+  // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
+  private isResponseOk = (response: Response) => response.ok || response.status === 304;
+
   /**
    * This thing does the actual poll.
    */
@@ -203,7 +206,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     const responseBody =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
-    if (!response.ok) {
+    if (!this.isResponseOk(response)) {
       const error = `${response.status} ${response.statusText}`;
       this.setState({ loading: false, lastResponse: response, data: responseBody, error });
       throw new Error(`Failed to Poll: ${error}`);
