@@ -1,15 +1,16 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import { GetComponentState } from "./Get";
 
 /**
  * An enumeration of states that a fetchable
  * view could possibly have.
  */
-export interface States {
+export interface States<T = {}> {
   /** Is our view currently loading? */
   loading: boolean;
   /** Do we have an error in the view? */
-  error?: string;
+  error?: GetComponentState<T>["error"];
 }
 
 /**
@@ -26,23 +27,16 @@ export interface Meta {
 /**
  * Props for the <Mutate /> component.
  */
-export interface MutateComponentProps {
+export interface MutateComponentCommonProps {
   /**
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
    */
-  path: string;
+  path?: string;
   /**
    * What HTTP verb are we using?
    */
   verb: "POST" | "PUT" | "PATCH" | "DELETE";
-  /**
-   * A function that recieves a mutation function, along with
-   * some metadata.
-   *
-   * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
-   */
-  children: (mutate: (body?: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
   /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
@@ -53,14 +47,38 @@ export interface MutateComponentProps {
   requestOptions?: RestfulReactProviderProps["requestOptions"];
 }
 
+export interface MutateComponentWithDelete extends MutateComponentCommonProps {
+  verb: "DELETE";
+  /**
+   * A function that recieves a mutation function, along with
+   * some metadata.
+   *
+   * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
+   */
+  children: (mutate: (resourceId?: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
+}
+
+export interface MutateComponentWithOtherVerb extends MutateComponentCommonProps {
+  verb: "POST" | "PUT" | "PATCH";
+  /**
+   * A function that recieves a mutation function, along with
+   * some metadata.
+   *
+   * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
+   */
+  children: (mutate: (body?: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
+}
+
+export type MutateComponentProps = MutateComponentWithDelete | MutateComponentWithOtherVerb;
+
 /**
  * State for the <Mutate /> component. These
  * are implementation details and should be
  * hidden from any consumers.
  */
-export interface MutateComponentState {
+export interface MutateComponentState<S = {}> {
   response: Response | null;
-  error: string;
+  error: GetComponentState<S>["error"];
   loading: boolean;
 }
 
@@ -73,15 +91,16 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
   public readonly state: Readonly<MutateComponentState> = {
     response: null,
     loading: false,
-    error: "",
+    error: null,
   };
 
   public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
-    const { base, path, verb: method, requestOptions: providerRequestOptions } = this.props;
-    this.setState(() => ({ error: "", loading: true }));
+    const { base, path, verb, requestOptions: providerRequestOptions } = this.props;
+    this.setState(() => ({ error: null, loading: true }));
 
-    const request = new Request(`${base}${path || ""}`, {
-      method,
+    const requestPath = verb === "DELETE" ? `${base}${path || ""}/${body}` : `${base}${path || ""}`;
+    const request = new Request(requestPath, {
+      method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
       ...mutateRequestOptions,
@@ -93,10 +112,15 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
     });
+
     const response = await fetch(request);
 
     if (!response.ok) {
-      this.setState({ loading: false, error: `Failed to fetch: ${response.status} ${response.statusText}` });
+      const responseData = await response.json();
+      this.setState({
+        loading: false,
+        error: { data: responseData, message: `Failed to fetch: ${response.status} ${response.statusText}` },
+      });
       throw response;
     }
 

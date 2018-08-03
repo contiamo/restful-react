@@ -7,15 +7,20 @@ import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps }
  */
 export type ResolveFunction<T> = (data: any) => T;
 
+export interface GetDataError<S> {
+  message: string;
+  data: S;
+}
+
 /**
  * An enumeration of states that a fetchable
  * view could possibly have.
  */
-export interface States {
+export interface States<S> {
   /** Is our view currently loading? */
   loading: boolean;
   /** Do we have an error in the view? */
-  error?: string;
+  error?: GetComponentState<S>["error"];
 }
 
 /**
@@ -41,7 +46,7 @@ export interface Meta {
 /**
  * Props for the <Get /> component.
  */
-export interface GetComponentProps<T = {}> {
+export interface GetComponentProps<T = {}, S = {}> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -54,7 +59,7 @@ export interface GetComponentProps<T = {}> {
    * @param data - data returned from the request.
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (data: T | null, states: States, actions: Actions<T>, meta: Meta) => React.ReactNode;
+  children: (data: T | null, states: States<S>, actions: Actions<T>, meta: Meta) => React.ReactNode;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
@@ -85,10 +90,10 @@ export interface GetComponentProps<T = {}> {
  * are implementation details and should be
  * hidden from any consumers.
  */
-export interface GetComponentState<T> {
+export interface GetComponentState<T, S = {}> {
   data: T | null;
   response: Response | null;
-  error: string;
+  error: GetDataError<S> | null;
   loading: boolean;
 }
 
@@ -101,8 +106,8 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
   public readonly state: Readonly<GetComponentState<T>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
-    error: "",
     loading: !this.props.lazy,
+    error: null,
   };
 
   public static defaultProps: Partial<GetComponentProps<{}>> = {
@@ -156,18 +161,21 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
     const { base, path, resolve } = this.props;
-    this.setState(() => ({ error: "", loading: true }));
+    this.setState(() => ({ error: null, loading: true }));
 
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
 
-    if (!response.ok) {
-      this.setState({ loading: false, error: `Failed to fetch: ${response.status} ${response.statusText}` });
-      throw response;
-    }
-
     const data: T =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
+
+    if (!response.ok) {
+      this.setState({
+        loading: false,
+        error: { message: `Failed to fetch: ${response.status} ${response.statusText}`, data },
+      });
+      throw response;
+    }
 
     this.setState({ loading: false, data: resolve!(data) });
     return data;

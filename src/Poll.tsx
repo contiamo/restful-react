@@ -33,7 +33,7 @@ interface States<T> {
   /**
    * Is there an error? What is it?
    */
-  error?: PollState<T>["error"];
+  error: PollState<T>["error"];
 }
 
 /**
@@ -129,7 +129,7 @@ interface PollState<T> {
   /**
    * Do we currently have an error?
    */
-  error?: GetComponentState<T>["error"];
+  error: GetComponentState<T>["error"];
   /**
    * Index of the last polled response.
    */
@@ -146,6 +146,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
     lastResponse: null,
     polling: !this.props.lazy,
     finished: false,
+    error: null,
   };
 
   public static defaultProps = {
@@ -207,7 +208,7 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
     if (!this.isResponseOk(response)) {
-      const error = `${response.status} ${response.statusText}`;
+      const error = { message: `${response.status} ${response.statusText}`, data: response };
       this.setState({ loading: false, lastResponse: response, data: responseBody, error });
       throw new Error(`Failed to Poll: ${error}`);
     }
