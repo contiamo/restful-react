@@ -184,6 +184,7 @@ describe("Get", () => {
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
       expect(children.mock.calls[1][0]).toEqual({ id: 1 });
 
       // refetch
@@ -192,6 +193,13 @@ describe("Get", () => {
         .reply(200, { id: 2 });
       children.mock.calls[1][2].refetch();
       await wait(() => expect(children.mock.calls.length).toBe(4));
+
+      // transition state
+      expect(children.mock.calls[2][1].loading).toEqual(true);
+      expect(children.mock.calls[2][0]).toEqual({ id: 1 });
+
+      // after refetch state
+      expect(children.mock.calls[3][1].loading).toEqual(false);
       expect(children.mock.calls[3][0]).toEqual({ id: 2 });
     });
   });
