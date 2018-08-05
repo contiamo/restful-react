@@ -29,7 +29,7 @@ export interface States<S> {
  */
 export interface Actions<T> {
   /** Refetches the same path */
-  refetch: () => Promise<T>;
+  refetch: () => Promise<T | null>;
 }
 
 /**
@@ -176,7 +176,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
         loading: false,
         error: { message: `Failed to fetch: ${response.status} ${response.statusText}`, data },
       });
-      throw response;
+      return null;
     }
 
     this.setState({ loading: false, data: resolve!(data) });
