@@ -166,4 +166,33 @@ describe("Get", () => {
       expect(children.mock.calls[0][0]).toBe(null);
     });
   });
+
+  describe("actions", () => {
+    it("should refetch", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // initial fetch
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+
+      // refetch
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 2 });
+      children.mock.calls[1][2].refetch();
+      await wait(() => expect(children.mock.calls.length).toBe(4));
+      expect(children.mock.calls[3][0]).toEqual({ id: 2 });
+    });
+  });
 });
