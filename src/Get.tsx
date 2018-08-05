@@ -161,7 +161,9 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
     const { base, path, resolve } = this.props;
-    this.setState(() => ({ error: null, loading: true }));
+    if (this.state.error || !this.state.loading) {
+      this.setState(() => ({ error: null, loading: true }));
+    }
 
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
