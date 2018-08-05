@@ -27,7 +27,7 @@ describe("Get", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(3));
+      await wait(() => expect(children.mock.calls.length).toBe(2));
     });
 
     it("should compose the url with the base", async () => {
@@ -44,7 +44,7 @@ describe("Get", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(3));
+      await wait(() => expect(children.mock.calls.length).toBe(2));
     });
 
     it("should set loading to `true` on mount", async () => {
@@ -61,7 +61,7 @@ describe("Get", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(3));
+      await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(children.mock.calls[0][1].loading).toEqual(true);
     });
 
@@ -79,8 +79,8 @@ describe("Get", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(3));
-      expect(children.mock.calls[2][1].loading).toEqual(false);
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
     });
 
     it("should send data on data", async () => {
@@ -97,8 +97,8 @@ describe("Get", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(3));
-      expect(children.mock.calls[2][0]).toEqual({ hello: "world" });
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual({ hello: "world" });
     });
   });
 
@@ -119,8 +119,8 @@ describe("Get", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(3));
-      expect(children.mock.calls[2][0]).toEqual({ hello: "world", foo: "bar" });
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual({ hello: "world", foo: "bar" });
     });
   });
 
