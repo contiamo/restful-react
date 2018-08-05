@@ -167,6 +167,50 @@ describe("Get", () => {
     });
   });
 
+  describe("with base", () => {
+    it("should override the base url", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://not-here.fake">
+          <Get path="" base="https://my-awesome-api.fake">
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+    });
+
+    it("should override the base url and compose with the path", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/plop")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://not-here.fake">
+          <Get path="/plop" base="https://my-awesome-api.fake">
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+    });
+  });
+
   describe("with custom request options", () => {
     it("should add a custom header", async () => {
       nock("https://my-awesome-api.fake", { reqheaders: { foo: "bar" } })
