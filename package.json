@@ -33,6 +33,7 @@
     "url": "https://github.com/contiamo/restful-react"
   },
   "scripts": {
+    "test": "jest",
     "watch": "rollup -cw",
     "build": "rollup -c",
     "precommit": "lint-staged",
@@ -60,11 +61,13 @@
     "@types/react": "^16.4.1",
     "doctoc": "^1.3.1",
     "husky": "^0.14.3",
-    "jest": "^23.1.0",
-    "jest-dom": "^1.8.1",
+    "isomorphic-fetch": "^2.2.1",
+    "jest": "^23.4.2",
+    "jest-dom": "^1.12.0",
     "lint-staged": "^7.2.0",
     "nock": "^9.4.4",
     "prettier": "^1.13.5",
+    "react-dom": "^16.4.2",
     "react-testing-library": "^4.1.2",
     "rollup": "^0.63.5",
     "rollup-plugin-typescript2": "^0.16.1",
@@ -93,6 +96,7 @@
       "jsx",
       "json",
       "node"
-    ]
+    ],
+    "testURL": "http://localhost"
   }
 }
