@@ -6,11 +6,11 @@ import { GetComponentState } from "./Get";
  * An enumeration of states that a fetchable
  * view could possibly have.
  */
-export interface States<T = {}> {
+export interface States<TData, TError> {
   /** Is our view currently loading? */
   loading: boolean;
   /** Do we have an error in the view? */
-  error?: GetComponentState<T>["error"];
+  error?: GetComponentState<TData, TError>["error"];
 }
 
 /**
@@ -47,7 +47,7 @@ export interface MutateComponentCommonProps {
   requestOptions?: RestfulReactProviderProps["requestOptions"];
 }
 
-export interface MutateComponentWithDelete extends MutateComponentCommonProps {
+export interface MutateComponentWithDelete<TData, TError> extends MutateComponentCommonProps {
   verb: "DELETE";
   /**
    * A function that recieves a mutation function, along with
@@ -55,10 +55,14 @@ export interface MutateComponentWithDelete extends MutateComponentCommonProps {
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (mutate: (resourceId?: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
+  children: (
+    mutate: (resourceId?: string | {}) => Promise<Response>,
+    states: States<TData, TError>,
+    meta: Meta,
+  ) => React.ReactNode;
 }
 
-export interface MutateComponentWithOtherVerb extends MutateComponentCommonProps {
+export interface MutateComponentWithOtherVerb<TData, TError> extends MutateComponentCommonProps {
   verb: "POST" | "PUT" | "PATCH";
   /**
    * A function that recieves a mutation function, along with
@@ -66,19 +70,25 @@ export interface MutateComponentWithOtherVerb extends MutateComponentCommonProps
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (mutate: (body?: string | {}) => Promise<Response>, states: States, meta: Meta) => React.ReactNode;
+  children: (
+    mutate: (body?: string | {}) => Promise<Response>,
+    states: States<TData, TError>,
+    meta: Meta,
+  ) => React.ReactNode;
 }
 
-export type MutateComponentProps = MutateComponentWithDelete | MutateComponentWithOtherVerb;
+export type MutateComponentProps<TData, TError> =
+  | MutateComponentWithDelete<TData, TError>
+  | MutateComponentWithOtherVerb<TData, TError>;
 
 /**
  * State for the <Mutate /> component. These
  * are implementation details and should be
  * hidden from any consumers.
  */
-export interface MutateComponentState<S = {}> {
+export interface MutateComponentState<TData, TError> {
   response: Response | null;
-  error: GetComponentState<S>["error"];
+  error: GetComponentState<TData, TError>["error"];
   loading: boolean;
 }
 
@@ -87,8 +97,11 @@ export interface MutateComponentState<S = {}> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessMutate extends React.Component<MutateComponentProps, MutateComponentState> {
-  public readonly state: Readonly<MutateComponentState> = {
+class ContextlessMutate<TData, TError> extends React.Component<
+  MutateComponentProps<TData, TError>,
+  MutateComponentState<TData, TError>
+> {
+  public readonly state: Readonly<MutateComponentState<TData, TError>> = {
     response: null,
     loading: false,
     error: null,
@@ -146,12 +159,12 @@ class ContextlessMutate extends React.Component<MutateComponentProps, MutateComp
  * in order to provide new `base` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Mutate(props: MutateComponentProps) {
+function Mutate<TError = {}, TData = {}>(props: MutateComponentProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
-          <ContextlessMutate {...contextProps} {...props} />
+          <ContextlessMutate<TData, TError> {...contextProps} {...props} />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>
