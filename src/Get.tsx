@@ -7,29 +7,29 @@ import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps }
  */
 export type ResolveFunction<T> = (data: any) => T;
 
-export interface GetDataError<S> {
+export interface GetDataError<TError> {
   message: string;
-  data: S;
+  data: TError;
 }
 
 /**
  * An enumeration of states that a fetchable
  * view could possibly have.
  */
-export interface States<S> {
+export interface States<TData, TError> {
   /** Is our view currently loading? */
   loading: boolean;
   /** Do we have an error in the view? */
-  error?: GetComponentState<S>["error"];
+  error?: GetComponentState<TData, TError>["error"];
 }
 
 /**
  * An interface of actions that can be performed
  * within Get
  */
-export interface Actions<T> {
+export interface Actions<TData> {
   /** Refetches the same path */
-  refetch: () => Promise<T | null>;
+  refetch: () => Promise<TData | null>;
 }
 
 /**
@@ -46,7 +46,7 @@ export interface Meta {
 /**
  * Props for the <Get /> component.
  */
-export interface GetComponentProps<T = {}, S = {}> {
+export interface GetComponentProps<TData, TError> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -59,14 +59,14 @@ export interface GetComponentProps<T = {}, S = {}> {
    * @param data - data returned from the request.
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (data: T | null, states: States<S>, actions: Actions<T>, meta: Meta) => React.ReactNode;
+  children: (data: TData | null, states: States<TData, TError>, actions: Actions<TData>, meta: Meta) => React.ReactNode;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
-  resolve?: ResolveFunction<T>;
+  resolve?: ResolveFunction<TData>;
   /**
    * Should we wait until we have data before rendering?
    * This is useful in cases where data is available too quickly
@@ -90,7 +90,7 @@ export interface GetComponentProps<T = {}, S = {}> {
  * are implementation details and should be
  * hidden from any consumers.
  */
-export interface GetComponentState<T, S = {}> {
+export interface GetComponentState<T, S> {
   data: T | null;
   response: Response | null;
   error: GetDataError<S> | null;
@@ -102,15 +102,18 @@ export interface GetComponentState<T, S = {}> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<GetComponentState<T>>> {
-  public readonly state: Readonly<GetComponentState<T>> = {
+class ContextlessGet<TData, TError> extends React.Component<
+  GetComponentProps<TData, TError>,
+  Readonly<GetComponentState<TData, TError>>
+> {
+  public readonly state: Readonly<GetComponentState<TData, TError>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
     loading: !this.props.lazy,
     error: null,
   };
 
-  public static defaultProps: Partial<GetComponentProps<{}>> = {
+  public static defaultProps = {
     resolve: (unresolvedData: any) => unresolvedData,
   };
 
@@ -120,7 +123,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     }
   }
 
-  public componentDidUpdate(prevProps: GetComponentProps<T>) {
+  public componentDidUpdate(prevProps: GetComponentProps<TData, TError>) {
     // If the path or base prop changes, refetch!
     const { path, base } = this.props;
     if (prevProps.path !== path || prevProps.base !== base) {
@@ -168,7 +171,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
 
-    const data: T =
+    const data =
       response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
 
     if (!response.ok) {
@@ -205,7 +208,7 @@ class ContextlessGet<T> extends React.Component<GetComponentProps<T>, Readonly<G
  * in order to provide new `base` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Get<T>(props: GetComponentProps<T>) {
+function Get<TData = {}, TError = {}>(props: GetComponentProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
