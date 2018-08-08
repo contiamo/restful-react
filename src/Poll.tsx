@@ -1,7 +1,9 @@
 import React from "react";
-import { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
-import { RestfulProvider, Meta as GetComponentMeta, GetComponentProps } from ".";
-import { GetComponentState } from ".";
+import equal from "react-fast-compare";
+
+import { RestfulReactConsumer } from "./Context";
+import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import { processResponse } from "./util/processResponse";
 
 /**
  * Meta information returned from the poll.
@@ -16,23 +18,23 @@ interface Meta extends GetComponentMeta {
 /**
  * States of the current poll
  */
-interface States<T> {
+interface States<TData, TError> {
   /**
    * Is the component currently polling?
    */
-  polling: PollState<T>["polling"];
+  polling: PollState<TData, TError>["polling"];
   /**
    * Is the initial request loading?
    */
-  loading: PollState<T>["loading"];
+  loading: PollState<TData, TError>["loading"];
   /**
    * Has the poll concluded?
    */
-  finished: PollState<T>["finished"];
+  finished: PollState<TData, TError>["finished"];
   /**
    * Is there an error? What is it?
    */
-  error?: PollState<T>["error"];
+  error: PollState<TData, TError>["error"];
 }
 
 /**
@@ -47,23 +49,31 @@ interface Actions {
 /**
  * Props that can control the Poll component.
  */
-interface PollProps<T> {
+export interface PollProps<TData, TError> {
   /**
    * What path are we polling on?
    */
-  path: GetComponentProps<T>["path"];
+  path: GetProps<TData, TError>["path"];
   /**
    * A function that gets polled data, the current
    * states, meta information, and various actions
    * that can be executed at the poll-level.
    */
-  children: (data: T | null, states: States<T>, actions: Actions, meta: Meta) => React.ReactNode;
+  children: (data: TData | null, states: States<TData, TError>, actions: Actions, meta: Meta) => React.ReactNode;
   /**
-   * How long do we wait between requests?
+   * How long do we wait between repeating a request?
    * Value in milliseconds.
+   *
    * Defaults to 1000.
    */
   interval?: number;
+  /**
+   * How long should a request stay open?
+   * Value in seconds.
+   *
+   * Defaults to 60.
+   */
+  wait?: number;
   /**
    * A stop condition for the poll that expects
    * a boolean.
@@ -71,24 +81,24 @@ interface PollProps<T> {
    * @param data - The data returned from the poll.
    * @param response - The full response object. This could be useful in order to stop polling when !response.ok, for example.
    */
-  until?: (data: T | null, response: Response | null) => boolean;
+  until?: (data: TData | null, response: Response | null) => boolean;
   /**
    * Are we going to wait to start the poll?
    * Use this with { start, stop } actions.
    */
-  lazy?: GetComponentProps<T>["lazy"];
+  lazy?: GetProps<TData, TError>["lazy"];
   /**
    * Should the data be transformed in any way?
    */
-  resolve?: GetComponentProps<T>["resolve"];
+  resolve?: GetProps<TData, TError>["resolve"];
   /**
    * We can request foreign URLs with this prop.
    */
-  host?: GetComponentProps<T>["host"];
+  base?: GetProps<TData, TError>["base"];
   /**
    * Any options to be passed to this request.
    */
-  requestOptions?: GetComponentProps<T>["requestOptions"];
+  requestOptions?: GetProps<TData, TError>["requestOptions"];
 }
 
 /**
@@ -96,7 +106,7 @@ interface PollProps<T> {
  * implementation details not necessarily exposed to
  * consumers.
  */
-interface PollState<T> {
+export interface PollState<TData, TError> {
   /**
    * Are we currently polling?
    */
@@ -112,39 +122,65 @@ interface PollState<T> {
   /**
    * What data are we holding in here?
    */
-  data: GetComponentState<T>["data"];
+  data: GetState<TData, TError>["data"];
   /**
    * Are we loading?
    */
-  loading: GetComponentState<T>["loading"];
+  loading: GetState<TData, TError>["loading"];
   /**
    * Do we currently have an error?
    */
-  error?: GetComponentState<T>["error"];
+  error: GetState<TData, TError>["error"];
+  /**
+   * Index of the last polled response.
+   */
+  lastPollIndex?: string;
 }
 
 /**
  * The <Poll /> component without context.
  */
-class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollState<T>>> {
-  private keepPolling = !this.props.lazy;
-  readonly state: Readonly<PollState<T>> = {
+class ContextlessPoll<TData, TError> extends React.Component<
+  PollProps<TData, TError>,
+  Readonly<PollState<TData, TError>>
+> {
+  public readonly state: Readonly<PollState<TData, TError>> = {
     data: null,
     loading: !this.props.lazy,
     lastResponse: null,
-    polling: this.keepPolling,
+    polling: !this.props.lazy,
     finished: false,
+    error: null,
   };
 
-  static defaultProps = {
+  public static defaultProps = {
     interval: 1000,
+    wait: 60,
     resolve: (data: any) => data,
   };
+
+  private keepPolling = !this.props.lazy;
+
+  private isModified = (response: Response, nextData: TData) => {
+    if (response.status === 304) {
+      return false;
+    }
+    if (equal(this.state.data, nextData)) {
+      return false;
+    }
+    return true;
+  };
+
+  private getRequestOptions = () =>
+    typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
+
+  // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
+  private isResponseOk = (response: Response) => response.ok || response.status === 304;
 
   /**
    * This thing does the actual poll.
    */
-  cycle = async () => {
+  public cycle = async () => {
     // Have we stopped?
     if (!this.keepPolling) {
       return; // stop.
@@ -156,37 +192,56 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       return;
     }
 
-    console.log("scheduling feth");
-
     // If we should keep going,
-    const { host, path, requestOptions, resolve, interval } = this.props;
-    const response = await fetch(`${host}${path}`, requestOptions);
+    const { base, path, resolve, interval, wait } = this.props;
+    const { lastPollIndex } = this.state;
+    const requestOptions = this.getRequestOptions();
 
-    const responseBody =
-      response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
+    const request = new Request(`${base}${path}`, {
+      ...requestOptions,
 
-    await this.setState(() => ({
-      loading: false,
-      lastResponse: response,
-      data: resolve ? resolve(responseBody) : responseBody,
-    }));
+      headers: {
+        Prefer: `wait=${wait};${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
 
-    await new Promise(resolve => setTimeout(resolve, interval)); // Wait for interval to pass.
+        ...requestOptions.headers,
+      },
+    });
+
+    const response = await fetch(request);
+    const data = await processResponse(response);
+
+    if (!this.isResponseOk(response)) {
+      const error = { message: `${response.status} ${response.statusText}`, data };
+      this.setState({ loading: false, lastResponse: response, data, error });
+      throw new Error(`Failed to Poll: ${error}`);
+    }
+
+    if (this.isModified(response, data)) {
+      this.setState(() => ({
+        loading: false,
+        lastResponse: response,
+        data: resolve ? resolve(data) : data,
+        lastPollIndex: response.headers.get("x-polling-index") || undefined,
+      }));
+    }
+
+    // Wait for interval to pass.
+    await new Promise(resolvePromise => setTimeout(resolvePromise, interval));
     this.cycle(); // Do it all again!
   };
 
-  start = async () => {
+  public start = async () => {
     this.keepPolling = true;
-    this.setState(() => ({ polling: true })); // let everyone know we're done here.}
+    this.setState(() => ({ polling: true })); // let everyone know we're done here.
     this.cycle();
   };
 
-  stop = async () => {
+  public stop = async () => {
     this.keepPolling = false;
-    await this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.}
+    this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.
   };
 
-  componentDidMount() {
+  public componentDidMount() {
     const { path, lazy } = this.props;
 
     if (!path) {
@@ -195,23 +250,25 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
       );
     }
 
-    !lazy && this.start();
+    if (!lazy) {
+      this.start();
+    }
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     this.stop();
   }
 
-  render() {
+  public render() {
     const { lastResponse: response, data, polling, loading, error, finished } = this.state;
-    const { children, host, path } = this.props;
+    const { children, base, path } = this.props;
 
     const meta: Meta = {
       response,
-      absolutePath: `${host}${path}`,
+      absolutePath: `${base}${path}`,
     };
 
-    const states: States<T> = {
+    const states: States<TData, TError> = {
       polling,
       loading,
       error,
@@ -227,18 +284,16 @@ class ContextlessPoll<T> extends React.Component<PollProps<T>, Readonly<PollStat
   }
 }
 
-function Poll<T>(props: PollProps<T>) {
+function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulProvider {...contextProps} host={`${contextProps.host}${props.path}`}>
-          <ContextlessPoll
-            {...contextProps}
-            {...props}
-            requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
-          />
-        </RestfulProvider>
+        <ContextlessPoll
+          {...contextProps}
+          {...props}
+          requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
+        />
       )}
     </RestfulReactConsumer>
   );

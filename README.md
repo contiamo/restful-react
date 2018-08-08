@@ -7,29 +7,36 @@ As an abstraction, this tool allows for greater consistency and maintainability 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Overview](#overview)
 - [Getting Started](#getting-started)
 - [Features](#features)
   - [Global Configuration](#global-configuration)
     - [`RestfulProvider` API](#restfulprovider-api)
   - [Composability](#composability)
+    - [`Get` Component API](#get-component-api)
   - [Loading and Error States](#loading-and-error-states)
-  - [Mutations](#mutations)
-    - [Mutations API](#mutations-api)
   - [Lazy Fetching](#lazy-fetching)
   - [Response Resolution](#response-resolution)
   - [TypeScript Integration](#typescript-integration)
-  - [Polling](#polling)
-    - [`Poll` API](#poll-api)
+  - [Mutations with `Mutate`](#mutations-with-mutate)
+    - [`Mutate` Component API](#mutate-component-api)
+  - [Polling with `Poll`](#polling-with-poll)
+    - [Long Polling](#long-polling)
+    - [`Poll` Component API](#poll-component-api)
   - [Caching](#caching)
 - [Contributing](#contributing)
+  - [Code](#code)
+  - [Dogfooding](#dogfooding)
 - [Next Steps](#next-steps)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Overview
 
-At its core, RESTful React exposes a single component, called `Get`. This component retrieves data, either on mount or later, and then handles error states, caching, loading states, and other cases for you. As such, you simply get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
+At its core, RESTful React exposes a component, called `Get`. This component retrieves data, either on mount or later, and then handles error states, caching, loading states, and other cases for you. As such, you simply get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 import React from "react";
@@ -37,7 +44,7 @@ import Get from "restful-react";
 
 const MyComponent = () => (
   <Get path="https://dog.ceo/api/breeds/image/random">
-    {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage.message} />}
+    {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />}
   </Get>
 );
 
@@ -52,9 +59,11 @@ To install and use this library, simply `yarn add restful-react`, or `npm i rest
 
 ### Global Configuration
 
-API endpoints usually sit alongside a host, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
+API endpoints usually sit alongside a base, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
 
 Consider,
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 import React from "react";
@@ -63,7 +72,7 @@ import { RestfulProvider } from "restful-react";
 import App from "./App.jsx";
 
 const MyRestfulApp = () => (
-  <RestfulProvider host="https://dog.ceo/api">
+  <RestfulProvider base="https://dog.ceo/api">
     <App />
   </RestfulProvider>
 );
@@ -96,7 +105,7 @@ Here's a full overview of the API available through the `RestfulProvider`, along
 // Interface
 interface RestfulProviderProps<T> {
   /** The backend URL where the RESTful resources live. */
-  host: string;
+  base: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -104,12 +113,17 @@ interface RestfulProviderProps<T> {
   resolve?: ResolveFunction<T>;
   /**
    * Options passed to the fetch request.
+   * This can be a function if you want dynamically computed options each time.
    */
-  requestOptions?: Partial<RequestInit>;
+  requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
 }
 
 // Usage
-<RestfulProvider host="String!" resolve={data => data} requestOptions={{}} />;
+<RestfulProvider
+  base="String!"
+  resolve={data => data}
+  requestOptions={authToken => ({ headers: { Authorization: authToken } })}
+/>;
 ```
 
 Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) type of request options.
@@ -118,37 +132,50 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
 
 `Get` components can be composed together and request URLs at an accumulation of their collective path props. Consider,
 
-```jsx
-// Assuming we're using a RestfulProvider with host={HOST} somewhere,
-<Get path="/cats">
-  {data => {
-    return (
-      <div>
-        <h1>Here are my cats!</h1>
-        {data.map(cat => <img alt={cat.name} src={cat.photoUrl} />)}
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
-        {/* Request HOST/cats/persian */}
-        <Get path="/persian">
-          {persianCats => {
-            return (
-              <div>
-                <h2>Here are my persian cats!</h2>
-                {persianCats.map(cat => <img alt={cat.name} src={cat.photoUrl} />)}
-              </div>
-            );
-          }}
-        </Get>
-      </div>
-    );
-  }}
-</Get>
+```jsx
+// Assuming we're using a RestfulProvider with base={HOST} somewhere,
+import React from "react";
+import Get from "restful-react";
+
+export default () => (
+  {/* Use the lazy prop to not send a request */}
+  <Get path="/breeds" lazy>
+    {data => {
+      return (
+        <div>
+          <h1>Random Image</h1>
+          {/* Composes path with parent: sends request to /breeds/image/random */}
+          <Get path="/image/random">
+            {image => <img alt="Random Image" src={image && image.message} />}
+          </Get>
+
+          <h1>All Breeds</h1>
+          {/* Composes path with parent: sends request to /breeds/list */}
+          <Get path="/list">
+            {list => (
+              <ul>{list && list.message.map(dogName => <li>{dogName}</li>)}</ul>
+            )}
+          </Get>
+        </div>
+      );
+    }}
+  </Get>
+);
 ```
 
-From the above example, _not only_ does the path accumulate based on the nesting of each `Get`, but each get _can_ override its parent with other props as well: including having _specific_ `requestOptions` for each `Get` if there was a valid use case.
+From the above example, _not only_ does the path accumulate based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
+
+To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
+
+#### [`Get` Component API](src/Get.tsx#L50-L87)
 
 ### Loading and Error States
 
 `Get` components pass down loading and error states to their children, to allow for state handling. Consider,
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 const MyAnimalsList = props => (
@@ -194,58 +221,11 @@ const MyAnimalsList = props => (
 );
 ```
 
-### Mutations
-
-`Get` components pass mutation functions as the third argument to their children. Consider,
-
-```jsx
-const Movies = ({ dispatch }) => (
-  <ul>
-    <Get path="/movies">
-      {(movies, states, actions) =>
-        movies.map(movie => (
-          <li>
-            {movie.name}
-
-            {/* Will send a DELETE request to HOST/movies/:movie.id */}
-            <button
-              onClick={_ =>
-                actions
-                  .delete(movie.id)
-                  .then(returnedData => dispatch({ type: "DELETED_MOVIE", payload: returnedData }))
-              }
-            >
-              Delete!
-            </button>
-          </li>
-        ))
-      }
-    </Get>
-  </ul>
-);
-```
-
-The same mutation objects exist for all HTTP verbs, including `get`, `post`, `put`, and `patch`. Methods `post`, `put`, and `patch` all expect a body as their first argument, and all mutation functions receive `requestOptions` as their optional second argument.
-
-Each mutation returns a promise, that can then be used to update local component state, or dispatch an action, or do something else depending on your use case.
-
-#### Mutations API
-
-Here are the functions passed as the second argument to children of `Get` with their signatures.
-
-```ts
-interface Mutations<T> {
-  get: (path?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
-  destroy: (id?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
-  post: (data?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
-  put: (data?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
-  patch: (data?: string, requestOptions?: Partial<RequestInit>) => Promise<T | null>;
-}
-```
-
 ### Lazy Fetching
 
 It is possible to render a `Get` component and defer the fetch to a later stage. This is done with the `lazy` boolean prop. This is great for displaying UI immediately, and then allowing parts of it to be fetched as a response to an event: like the click of a button, for instance. Consider,
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 <Get path="/unicorns" lazy>
@@ -269,6 +249,8 @@ Sometimes, your backend responses arrive in a shape that you might want to adapt
 
 At the `RestfulProvider` level, _or_ on the `Get` level, a `resolve` prop will take the data and _do stuff_ to it, providing the final resolved data to the children. Consider,
 
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+
 ```jsx
 const myNestedData = props => (
   <Get
@@ -291,7 +273,45 @@ One of the most poweful features of RESTful React, each component exported is st
 
 ![Using RESTful React in VS Code](assets/labs.gif)
 
-### Polling
+### Mutations with `Mutate`
+
+Restful React exposes an additional component called `Mutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+
+```jsx
+const Movies = ({ dispatch }) => (
+  <ul>
+    <Get path="/movies">
+      {(movies, states, actions) =>
+        movies.map(movie => (
+          <li>
+            {movie.name}
+            <Mutate verb="DELETE">
+              {(delete, {loading: isDeleting}) => (<button
+                      onClick={() => delete(movie.id).then(() => dispatch('DELETED'))}
+                      loading={isDeleting}
+                    >
+                      Delete!
+                    </button>)
+              }</Mutate>
+          </li>
+        ))
+      }
+    </Get>
+  </ul>
+);
+```
+
+`Mutate` is strongly typed, and provides intelligent autocompletion out of the box, complete with available verbs and other self-documentation.
+
+![Mutate](assets/mutate.png)
+
+Each mutation returns a promise, that can then be used to update local component state, or dispatch an action, or do something else depending on your use case.
+
+#### [`Mutate` Component API](src/Mutate.tsx#L31-L47)
+
+### Polling with `Poll`
 
 RESTful React also exports a `Poll` component that will poll a backend endpoint over a predetermined interval until a stop condition is met. Consider,
 
@@ -317,7 +337,7 @@ import { Poll } from "restful-react"
 </Poll>
 ```
 
-Note the API similarities that we have already uncovered. In essence, `Poll` and `Get` have near-identical APIs, allowing developers to quickly swap out `<Get />` for `<Poll />` calls and have the transition happen seamlessly. This is powerful in the world of an ever-changing startup that may have volatile requirements.
+Note the API similarities that we have already uncovered. In essence, `Poll`, `Get` and `Mutate` have near-identical APIs, allowing developers to quickly swap out `<Get />` for `<Poll />` calls and have the transition happen seamlessly. This is powerful in the world of an ever-changing startup that may have volatile requirements.
 
 In addition to the `Get` component API, `Poll` also supports:
 
@@ -355,113 +375,57 @@ Below is a more convoluted example that employs nearly the full power of the `Po
 
 Note from the previous example, `Poll` also exposes more states: `finished`, and `polling` that allow better flow control, as well as lazy-start polls that can also be programatically stopped at a later stage.
 
-#### `Poll` API
+#### Long Polling
 
-Below is the full `Poll` component API.
+At Contiamo, we have a [powerful Long Polling specification](docs/contiamo-long-poll.md) in place that allows us to build real-time apps over HTTP, as opposed to WebSockets. At a glance the specification can be distilled into:
 
-```ts
-interface Poll<T> {
-  /**
-   * What path are we polling on?
-   */
-  path: GetComponentProps<T>["path"];
-  /**
-   * A function that gets polled data, the current
-   * states, meta information, and various actions
-   * that can be executed at the poll-level.
-   */
-  children: (data: T | null, states: States<T>, actions: Actions, meta: Meta) => React.ReactNode;
-  /**
-   * How long do we wait between requests?
-   * Value in milliseconds.
-   * Defaults to 1000.
-   */
-  interval?: number;
-  /**
-   * A stop condition for the poll that expects
-   * a boolean.
-   *
-   * @param data - The data returned from the poll.
-   * @param response - The full response object. This could be useful in order to stop polling when !response.ok, for example.
-   */
-  until?: (data: T | null, response: Response | null) => boolean;
-  /**
-   * Are we going to wait to start the poll?
-   * Use this with { start, stop } actions.
-   */
-  lazy?: GetComponentProps<T>["lazy"];
-  /**
-   * Should the data be transformed in any way?
-   */
-  resolve?: GetComponentProps<T>["resolve"];
-  /**
-   * We can request foreign URLs with this prop.
-   */
-  host?: GetComponentProps<T>["host"];
-  /**
-   * Any options to be passed to this request.
-   */
-  requestOptions?: GetComponentProps<T>["requestOptions"];
-}
+- Web UI sends a request with a `Prefer` header that contains:
+  - a time, in seconds, to keep requests open (`60s`), and
+  - a **polling index** that is a server-sent hash `ahpiegh`.
+  - all together, the client sends a request with a header `Prefer: wait=60s;index=939192`.
+- The backend server responds, either with:
+  - an empty response with status `304 Not Modified`
+  - a successful response with data and a new **polling index**.
 
-/**
- * Actions that can be executed within the
- * component.
- */
-interface Actions {
-  start: () => void;
-  stop: () => void;
-}
+The polling index allow the client and the server to stay in sync: the client says "the last stuff I got was at this index". The server says "oh, let me get you up to speed and send you a new index".
 
-/**
- * States of the current poll
- */
-interface States<T> {
-  /**
-   * Is the component currently polling?
-   */
-  polling: boolean;
-  /**
-   * Is the initial request loading?
-   */
-  loading: boolean;
-  /**
-   * Has the poll concluded?
-   */
-  finished: boolean;
-  /**
-   * Is there an error? What is it?
-   */
-  error?: string;
-}
+Visually, this is represented as below.
 
-/**
- * Meta information returned from the poll.
- */
-interface Meta extends GetComponentMeta {
-  /**
-   * The entire response object.
-   */
-  response: Response | null;
-}
-```
+![Contiamo Poll](docs/long-poll-flow.png).
+
+To get this functionality in Restful React, it is as simple as specifying a `wait` prop on your `Poll` component, provided your server implements the specification as well.
+
+#### [`Poll` Component API](src/Poll.tsx#L53-L101)
 
 ### Caching
 
 This doesn't exist yet.
-Please contribute a solution here until something happens.
+Feel free to contribute a solution here.
 
-There's a general idea of checking if the results are a collection or a resource, and then:
-
-- If collection, cache.
-- If resource,
-
-  - Is resource in cached collection?
-    - update cached resource.
+An LRU cache would be nice.
 
 ## Contributing
 
-If you'd like to actively develop or maintain this project, clone the repo and then `yarn watch` to get into dev mode. This project works great when [dogfooded](https://www.google.com/search?q=dogfooding): I'd suggest creating a separate project somewhere (or using an existing one), and using your fork in your project. To do so, after cloning and `npm i`,
+All contributions are welcome – especially:
+
+- documentation,
+- bug reports and issues,
+- code contributions.
+
+### Code
+
+If you'd like to actively develop or maintain this project, clone the repo and then `yarn watch` to get into dev mode. There are existing tests against which you can test the library. Typically, this looks like
+
+- `git clone git@github.com:contiamo/restful-react.git`
+- `cd restful-react`
+- `yarn install`
+- `yarn test --watch`
+
+From there, you should be able to start developing without problems.
+
+### Dogfooding
+
+This project works great when [dogfooded](https://www.google.com/search?q=dogfooding): I'd suggest creating a separate project somewhere (or using an existing one), and using your fork in your project. To do so, after cloning and `npm i`,
 
 - `npm link` inside of the root folder of this project,
 - go to your consumer project,
