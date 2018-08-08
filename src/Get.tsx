@@ -1,5 +1,6 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import { processResponse } from "./util/processResponse";
 
 /**
  * A function that resolves returned data from
@@ -170,9 +171,7 @@ class ContextlessGet<TData, TError> extends React.Component<
 
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
-
-    const data =
-      response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
+    const data = await processResponse(response);
 
     if (!response.ok) {
       this.setState({
@@ -208,7 +207,7 @@ class ContextlessGet<TData, TError> extends React.Component<
  * in order to provide new `base` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Get<TData = {}, TError = {}>(props: GetProps<TData, TError>) {
+function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (

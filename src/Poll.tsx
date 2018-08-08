@@ -3,6 +3,7 @@ import equal from "react-fast-compare";
 
 import { RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import { processResponse } from "./util/processResponse";
 
 /**
  * Meta information returned from the poll.
@@ -205,22 +206,21 @@ class ContextlessPoll<TData, TError> extends React.Component<
         ...requestOptions.headers,
       },
     });
-    const response = await fetch(request);
 
-    const responseBody =
-      response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
+    const response = await fetch(request);
+    const data = await processResponse(response);
 
     if (!this.isResponseOk(response)) {
-      const error = { message: `${response.status} ${response.statusText}`, data: responseBody };
-      this.setState({ loading: false, lastResponse: response, data: responseBody, error });
+      const error = { message: `${response.status} ${response.statusText}`, data };
+      this.setState({ loading: false, lastResponse: response, data, error });
       throw new Error(`Failed to Poll: ${error}`);
     }
 
-    if (this.isModified(response, responseBody)) {
+    if (this.isModified(response, data)) {
       this.setState(() => ({
         loading: false,
         lastResponse: response,
-        data: resolve ? resolve(responseBody) : responseBody,
+        data: resolve ? resolve(data) : data,
         lastPollIndex: response.headers.get("x-polling-index") || undefined,
       }));
     }
@@ -284,7 +284,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
   }
 }
 
-function Poll<TData = {}, TError = {}>(props: PollProps<TData, TError>) {
+function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
