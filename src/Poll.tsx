@@ -3,6 +3,7 @@ import equal from "react-fast-compare";
 
 import { RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import { processResponse } from "./util/processResponse";
 
 /**
  * Meta information returned from the poll.
@@ -207,8 +208,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
     });
     const response = await fetch(request);
 
-    const responseBody =
-      response.headers.get("content-type") === "application/json" ? await response.json() : await response.text();
+    const responseBody = processResponse(response);
 
     if (!this.isResponseOk(response)) {
       const error = { message: `${response.status} ${response.statusText}`, data: responseBody };
@@ -284,7 +284,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
   }
 }
 
-function Poll<TData = {}, TError = {}>(props: PollProps<TData, TError>) {
+function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
