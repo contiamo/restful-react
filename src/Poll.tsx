@@ -2,7 +2,7 @@ import React from "react";
 import equal from "react-fast-compare";
 
 import { RestfulReactConsumer } from "./Context";
-import { GetComponentProps, GetComponentState, Meta as GetComponentMeta } from "./Get";
+import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
 
 /**
  * Meta information returned from the poll.
@@ -48,11 +48,11 @@ interface Actions {
 /**
  * Props that can control the Poll component.
  */
-interface PollProps<TData, TError> {
+export interface PollProps<TData, TError> {
   /**
    * What path are we polling on?
    */
-  path: GetComponentProps<TData, TError>["path"];
+  path: GetProps<TData, TError>["path"];
   /**
    * A function that gets polled data, the current
    * states, meta information, and various actions
@@ -85,19 +85,19 @@ interface PollProps<TData, TError> {
    * Are we going to wait to start the poll?
    * Use this with { start, stop } actions.
    */
-  lazy?: GetComponentProps<TData, TError>["lazy"];
+  lazy?: GetProps<TData, TError>["lazy"];
   /**
    * Should the data be transformed in any way?
    */
-  resolve?: GetComponentProps<TData, TError>["resolve"];
+  resolve?: GetProps<TData, TError>["resolve"];
   /**
    * We can request foreign URLs with this prop.
    */
-  base?: GetComponentProps<TData, TError>["base"];
+  base?: GetProps<TData, TError>["base"];
   /**
    * Any options to be passed to this request.
    */
-  requestOptions?: GetComponentProps<TData, TError>["requestOptions"];
+  requestOptions?: GetProps<TData, TError>["requestOptions"];
 }
 
 /**
@@ -105,7 +105,7 @@ interface PollProps<TData, TError> {
  * implementation details not necessarily exposed to
  * consumers.
  */
-interface PollState<TData, TError> {
+export interface PollState<TData, TError> {
   /**
    * Are we currently polling?
    */
@@ -121,15 +121,15 @@ interface PollState<TData, TError> {
   /**
    * What data are we holding in here?
    */
-  data: GetComponentState<TData, TError>["data"];
+  data: GetState<TData, TError>["data"];
   /**
    * Are we loading?
    */
-  loading: GetComponentState<TData, TError>["loading"];
+  loading: GetState<TData, TError>["loading"];
   /**
    * Do we currently have an error?
    */
-  error: GetComponentState<TData, TError>["error"];
+  error: GetState<TData, TError>["error"];
   /**
    * Index of the last polled response.
    */
