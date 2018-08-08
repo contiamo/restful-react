@@ -169,7 +169,7 @@ From the above example, _not only_ does the path accumulate based on the nesting
 
 To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
 
-#### [`Get` Component API](src/Get.tsx)
+#### [`Get` Component API](src/Get.tsx#L50-L87)
 
 ### Loading and Error States
 
@@ -309,7 +309,7 @@ const Movies = ({ dispatch }) => (
 
 Each mutation returns a promise, that can then be used to update local component state, or dispatch an action, or do something else depending on your use case.
 
-#### [`Mutate` Component API](src/Mutate.tsx)
+#### [`Mutate` Component API](src/Mutate.tsx#L31-L47)
 
 ### Polling with `Poll`
 
@@ -395,7 +395,7 @@ Visually, this is represented as below.
 
 To get this functionality in Restful React, it is as simple as specifying a `wait` prop on your `Poll` component, provided your server implements the specification as well.
 
-#### [`Poll` Component API](src/Poll.tsx)
+#### [`Poll` Component API](src/Poll.tsx#L53-L101)
 
 ### Caching
 
