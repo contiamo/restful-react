@@ -111,7 +111,7 @@ class ContextlessMutate<TData, TError> extends React.Component<
     const { base, path, verb, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
-    const requestPath = verb === "DELETE" ? `${base}${path || ""}/${body}` : `${base}${path || ""}`;
+    const requestPath = verb === "DELETE" ? `${base}${path || ""}${body ? "/" + body : ""}` : `${base}${path || ""}`;
     const request = new Request(requestPath, {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
