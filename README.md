@@ -36,6 +36,8 @@ As an abstraction, this tool allows for greater consistency and maintainability 
 
 At its core, RESTful React exposes a component, called `Get`. This component retrieves data, either on mount or later, and then handles error states, caching, loading states, and other cases for you. As such, you simply get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
 
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+
 ```jsx
 import React from "react";
 import Get from "restful-react";
@@ -60,6 +62,8 @@ To install and use this library, simply `yarn add restful-react`, or `npm i rest
 API endpoints usually sit alongside a base, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
 
 Consider,
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 import React from "react";
@@ -127,6 +131,8 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
 ### Composability
 
 `Get` components can be composed together and request URLs at an accumulation of their collective path props. Consider,
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 // Assuming we're using a RestfulProvider with base={HOST} somewhere,
@@ -210,6 +216,8 @@ interface Get<TData, TError> {
 
 `Get` components pass down loading and error states to their children, to allow for state handling. Consider,
 
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+
 ```jsx
 const MyAnimalsList = props => (
   <Get path={`/${props.animal}`}>
@@ -258,6 +266,8 @@ const MyAnimalsList = props => (
 
 It is possible to render a `Get` component and defer the fetch to a later stage. This is done with the `lazy` boolean prop. This is great for displaying UI immediately, and then allowing parts of it to be fetched as a response to an event: like the click of a button, for instance. Consider,
 
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+
 ```jsx
 <Get path="/unicorns" lazy>
   {(unicorns, states, { get }) => (
@@ -279,6 +289,8 @@ The above example will display your UI, and then load unicorns on demand.
 Sometimes, your backend responses arrive in a shape that you might want to adapt, validate, or reshape. Other times, maybe your data consistently arrives in a `{ data: {} }` shape, with `data` containing the stuff you want.
 
 At the `RestfulProvider` level, _or_ on the `Get` level, a `resolve` prop will take the data and _do stuff_ to it, providing the final resolved data to the children. Consider,
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 const myNestedData = props => (
@@ -305,6 +317,8 @@ One of the most poweful features of RESTful React, each component exported is st
 ### Mutations with `Mutate`
 
 Restful React exposes an additional component called `Mutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
+
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 const Movies = ({ dispatch }) => (
