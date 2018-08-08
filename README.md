@@ -42,7 +42,7 @@ import Get from "restful-react";
 
 const MyComponent = () => (
   <Get path="https://dog.ceo/api/breeds/image/random">
-    {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage.message} />}
+    {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />}
   </Get>
 );
 
@@ -130,28 +130,33 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
 
 ```jsx
 // Assuming we're using a RestfulProvider with base={HOST} somewhere,
-<Get path="/cats">
-  {data => {
-    return (
-      <div>
-        <h1>Here are my cats!</h1>
-        {data.map(cat => <img alt={cat.name} src={cat.photoUrl} />)}
+import React from "react";
+import Get from "restful-react";
 
-        {/* Request BASE/cats/persian */}
-        <Get path="/persian">
-          {persianCats => {
-            return (
-              <div>
-                <h2>Here are my persian cats!</h2>
-                {persianCats.map(cat => <img alt={cat.name} src={cat.photoUrl} />)}
-              </div>
-            );
-          }}
-        </Get>
-      </div>
-    );
-  }}
-</Get>
+export default () => (
+  {/* Use the lazy prop to not send a request */}
+  <Get path="/breeds" lazy>
+    {data => {
+      return (
+        <div>
+          <h1>Random Image</h1>
+          {/* Composes path with parent: sends request to /breeds/image/random */}
+          <Get path="/image/random">
+            {image => <img alt="Random Image" src={image && image.message} />}
+          </Get>
+
+          <h1>All Breeds</h1>
+          {/* Composes path with parent: sends request to /breeds/list */}
+          <Get path="/list">
+            {list => (
+              <ul>{list && list.message.map(dogName => <li>{dogName}</li>)}</ul>
+            )}
+          </Get>
+        </div>
+      );
+    }}
+  </Get>
+);
 ```
 
 From the above example, _not only_ does the path accumulate based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
