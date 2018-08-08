@@ -38,7 +38,9 @@
     "build": "rollup -c",
     "precommit": "lint-staged",
     "preversion": "npm run build",
-    "version": "auto-changelog -p && git add CHANGELOG.md"
+    "version": "auto-changelog -p && git add CHANGELOG.md",
+    "lint": "tslint src/**/*{ts,tsx} --project .",
+    "ci": "npm run test && npm run lint"
   },
   "lint-staged": {
     "*.md": [
