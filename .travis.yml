@@ -11,9 +11,7 @@ notifications:
 env:
   - JEST_MAX_WORKERS: 4
 
-before_script:
-  - yarn danger ci
-
-  # When Travis gets notified of a new build, do this
+# When Travis gets notified of a new build, do this
 script:
   - yarn ci
+  - yarn danger ci

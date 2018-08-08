@@ -40,7 +40,8 @@
     "preversion": "npm run build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
     "lint": "tslint src/**/*{ts,tsx} --project .",
-    "ci": "npm run test && npm run lint"
+    "ci": "npm run jest && npm run lint",
+    "jest": "jest --outputFile test-results.json --json"
   },
   "lint-staged": {
     "*.md": [
