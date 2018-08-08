@@ -14,16 +14,16 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Global Configuration](#global-configuration)
     - [`RestfulProvider` API](#restfulprovider-api)
   - [Composability](#composability)
-    - [`Get` full API](#get-full-api)
+    - [`Get` Component API](#get-component-api)
   - [Loading and Error States](#loading-and-error-states)
   - [Lazy Fetching](#lazy-fetching)
   - [Response Resolution](#response-resolution)
   - [TypeScript Integration](#typescript-integration)
   - [Mutations with `Mutate`](#mutations-with-mutate)
-    - [`Mutate` API](#mutate-api)
+    - [`Mutate` Component API](#mutate-component-api)
   - [Polling with `Poll`](#polling-with-poll)
     - [Long Polling](#long-polling)
-  - [`Poll` API](#poll-api)
+    - [`Poll` Component API](#poll-component-api)
   - [Caching](#caching)
 - [Contributing](#contributing)
   - [Code](#code)
@@ -169,48 +169,7 @@ From the above example, _not only_ does the path accumulate based on the nesting
 
 To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
 
-#### `Get` full API
-
-```ts
-interface Get<TData, TError> {
-  /**
-   * The path at which to request data,
-   * typically composed by parent Gets or the RestfulProvider.
-   */
-  path: string;
-  /** Options passed into the fetch call. */
-  requestOptions?: RestfulReactProviderProps["requestOptions"];
-  /**
-   * A function to resolve data return from the backend, most typically
-   * used when the backend response needs to be adapted in some way.
-   */
-  resolve?: (dataFromBackend: any) => TData;
-  /**
-   * Should we wait until we have data before rendering?
-   * This is useful in cases where data is available too quickly
-   * to display a spinner or some type of loading state.
-   */
-  wait?: boolean;
-  /**
-   * Should we fetch data at a later stage?
-   */
-  lazy?: boolean;
-  /**
-   * An escape hatch and an alternative to `path` when you'd like
-   * to fetch from an entirely different URL.
-   *
-   */
-  base?: string;
-  /**
-   * A function that recieves the returned, resolved
-   * data.
-   *
-   * @param data - data returned from the request.
-   * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
-   */
-  children: (data: TData | null, states: States<TData, TError>, actions: Actions<TData>, meta: Meta) => React.ReactNode;
-}
-```
+#### [`Get` Component API](src/Get.tsx)
 
 ### Loading and Error States
 
@@ -328,9 +287,9 @@ const Movies = ({ dispatch }) => (
         movies.map(movie => (
           <li>
             {movie.name}
-            <Mutate verb="DELETE" path={`/${movie.id}`}>
+            <Mutate verb="DELETE">
               {(delete, {loading: isDeleting}) => (<button
-                      onClick={() => delete().then(() => dispatch('DELETED'))}
+                      onClick={() => delete(movie.id).then(() => dispatch('DELETED'))}
                       loading={isDeleting}
                     >
                       Delete!
@@ -350,51 +309,7 @@ const Movies = ({ dispatch }) => (
 
 Each mutation returns a promise, that can then be used to update local component state, or dispatch an action, or do something else depending on your use case.
 
-#### `Mutate` API
-
-Here are the functions passed as the second argument to children of `Get` with their signatures.
-
-```ts
-interface Mutate {
-  /**
-   * The path at which to request data,
-   * typically composed by parents or the RestfulProvider.
-   */
-  path?: string;
-  /**
-   * What HTTP verb are we using?
-   */
-  verb: "POST" | "PUT" | "PATCH" | "DELETE";
-  /**
-   * An escape hatch and an alternative to `path` when you'd like
-   * to fetch from an entirely different URL.
-   *
-   */
-  base?: string;
-  /** Options passed into the fetch call. */
-  requestOptions?: RestfulReactProviderProps["requestOptions"];
-
-  children: (
-    mutate: (resourceId?: string | {}) => Promise<Response>,
-    states: States<TData, TError>,
-    meta: Meta,
-  ) => React.ReactNode;
-}
-
-export interface States<TData, TError> {
-  /** Is our view currently loading? */
-  loading: boolean;
-  /** Do we have an error in the view? */
-  error?: GetState<TData, TError>["error"];
-}
-
-export interface Meta {
-  /** The entire response object passed back from the request. */
-  response: Response | null;
-  /** The absolute path of this request. */
-  absolutePath: string;
-}
-```
+#### [`Mutate` Component API](src/Mutate.tsx)
 
 ### Polling with `Poll`
 
@@ -480,104 +395,7 @@ Visually, this is represented as below.
 
 To get this functionality in Restful React, it is as simple as specifying a `wait` prop on your `Poll` component, provided your server implements the specification as well.
 
-### `Poll` API
-
-Below is the full `Poll` component API.
-
-```ts
-interface Poll<TData, TError> {
-  /**
-   * What path are we polling on?
-   */
-  path: GetProps<TData, TError>["path"];
-  /**
-   * A function that gets polled data, the current
-   * states, meta information, and various actions
-   * that can be executed at the poll-level.
-   */
-  children: (data: TData | null, states: States<TData, TError>, actions: Actions, meta: Meta) => React.ReactNode;
-  /**
-   * How long do we wait between repeating a request?
-   * Value in milliseconds.
-   *
-   * Defaults to 1000.
-   */
-  interval?: number;
-  /**
-   * How long should a request stay open?
-   * Value in seconds.
-   *
-   * Defaults to 60.
-   */
-  wait?: number;
-  /**
-   * A stop condition for the poll that expects
-   * a boolean.
-   *
-   * @param data - The data returned from the poll.
-   * @param response - The full response object. This could be useful in order to stop polling when !response.ok, for example.
-   */
-  until?: (data: TData | null, response: Response | null) => boolean;
-  /**
-   * Are we going to wait to start the poll?
-   * Use this with { start, stop } actions.
-   */
-  lazy?: GetProps<TData, TError>["lazy"];
-  /**
-   * Should the data be transformed in any way?
-   */
-  resolve?: GetProps<TData, TError>["resolve"];
-  /**
-   * We can request foreign URLs with this prop.
-   */
-  base?: GetProps<TData, TError>["base"];
-  /**
-   * Any options to be passed to this request.
-   */
-  requestOptions?: GetProps<TData, TError>["requestOptions"];
-}
-
-/**
- * Actions that can be executed within the
- * component.
- */
-interface Actions {
-  start: () => void;
-  stop: () => void;
-}
-
-/**
- * States of the current poll
- */
-interface States<T> {
-  /**
-   * Is the component currently polling?
-   */
-  polling: boolean;
-  /**
-   * Is the initial request loading?
-   */
-  loading: boolean;
-  /**
-   * Has the poll concluded?
-   */
-  finished: boolean;
-  /**
-   * Is there an error? What is it?
-   */
-  error?: string;
-}
-
-/**
- * Meta information returned from the poll.
- */
-interface Meta extends GetComponentMeta {
-  /**
-   * The entire response object.
-   */
-  response: Response | null;
-}
-```
+#### [`Poll` Component API](src/Poll.tsx)
 
 ### Caching
 
