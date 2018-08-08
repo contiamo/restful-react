@@ -232,13 +232,13 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
   public start = async () => {
     this.keepPolling = true;
-    this.setState(() => ({ polling: true })); // let everyone know we're done here.}
+    this.setState(() => ({ polling: true })); // let everyone know we're done here.
     this.cycle();
   };
 
   public stop = async () => {
     this.keepPolling = false;
-    this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.}
+    this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.
   };
 
   public componentDidMount() {
