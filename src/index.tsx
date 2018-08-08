@@ -1,9 +1,9 @@
-import Get from "./Get";
+import Get, { GetProps } from "./Get";
 
 export { default as RestfulProvider } from "./Context";
-export { default as Poll } from "./Poll";
-export { default as Mutate } from "./Mutate";
+export { default as Poll, PollProps } from "./Poll";
+export { default as Mutate, MutateProps } from "./Mutate";
 
-export { Get };
+export { Get, GetProps };
 
 export default Get;

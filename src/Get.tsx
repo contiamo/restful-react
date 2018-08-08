@@ -20,7 +20,7 @@ export interface States<TData, TError> {
   /** Is our view currently loading? */
   loading: boolean;
   /** Do we have an error in the view? */
-  error?: GetComponentState<TData, TError>["error"];
+  error?: GetState<TData, TError>["error"];
 }
 
 /**
@@ -46,7 +46,7 @@ export interface Meta {
 /**
  * Props for the <Get /> component.
  */
-export interface GetComponentProps<TData, TError> {
+export interface GetProps<TData, TError> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -90,10 +90,10 @@ export interface GetComponentProps<TData, TError> {
  * are implementation details and should be
  * hidden from any consumers.
  */
-export interface GetComponentState<T, S> {
-  data: T | null;
+export interface GetState<TData, TError> {
+  data: TData | null;
   response: Response | null;
-  error: GetDataError<S> | null;
+  error: GetDataError<TError> | null;
   loading: boolean;
 }
 
@@ -103,10 +103,10 @@ export interface GetComponentState<T, S> {
  * debugging.
  */
 class ContextlessGet<TData, TError> extends React.Component<
-  GetComponentProps<TData, TError>,
-  Readonly<GetComponentState<TData, TError>>
+  GetProps<TData, TError>,
+  Readonly<GetState<TData, TError>>
 > {
-  public readonly state: Readonly<GetComponentState<TData, TError>> = {
+  public readonly state: Readonly<GetState<TData, TError>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
     loading: !this.props.lazy,
@@ -123,7 +123,7 @@ class ContextlessGet<TData, TError> extends React.Component<
     }
   }
 
-  public componentDidUpdate(prevProps: GetComponentProps<TData, TError>) {
+  public componentDidUpdate(prevProps: GetProps<TData, TError>) {
     // If the path or base prop changes, refetch!
     const { path, base } = this.props;
     if (prevProps.path !== path || prevProps.base !== base) {
@@ -208,7 +208,7 @@ class ContextlessGet<TData, TError> extends React.Component<
  * in order to provide new `base` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Get<TData = {}, TError = {}>(props: GetComponentProps<TData, TError>) {
+function Get<TData = {}, TError = {}>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
