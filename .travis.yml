@@ -1,0 +1,17 @@
+# This file tells Travis what's up
+language: node_js
+node_js:
+  - stable
+
+notifications:
+  email: false
+
+# This allows tests to run more efficiently without leaking memory
+# More info: https://facebook.github.io/jest/docs/en/troubleshooting.html#tests-are-extremely-slow-on-docker-and-or-continuous-integration-ci-server
+env:
+  - JEST_MAX_WORKERS: 4
+
+# When Travis gets notified of a new build, do this
+script:
+  - yarn ci
+  - yarn danger ci
