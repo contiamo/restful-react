@@ -125,9 +125,7 @@ const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceOb
           const schema = res.content["application/octet-stream"].schema!;
           return isReference(schema) ? getRef(schema.$ref) : getScalar(schema);
         } else {
-          throw new Error(
-            `The ${componentName} ${statusCode} response don't have application/json or octet-stream defined`,
-          );
+          return "void";
         }
       }
     })
@@ -205,8 +203,8 @@ ${Object.entries(schema.properties || {})
     })
     .join("\n\n");
 
-const main = () => {
-  const schema = importSpecs("./scripts/openapi.yaml");
+const main = (path: string) => {
+  const schema = importSpecs(path);
 
   if (!schema.openapi.startsWith("3.0")) {
     throw new Error("This tools can only parse open-api 3.0.x specifications");
@@ -228,11 +226,11 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
       if (verb === "get") {
         output += generateGetComponent(operation, verb, route);
       }
+      // @todo deal with `post`, `put`, `patch`, `delete` verbs
     });
   });
 
   return output;
 };
 
-// tslint:disable-next-line:no-console
-console.log(main());
+export default main;
