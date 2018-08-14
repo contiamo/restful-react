@@ -201,7 +201,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
       ...requestOptions,
 
       headers: {
-        Prefer: `wait=${wait};${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
+        Prefer: `wait=${wait}s;${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
 
         ...requestOptions.headers,
       },
