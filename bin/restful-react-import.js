@@ -5,7 +5,7 @@ const { join } = require("path");
 const importOpenApi = require("../dist/import-open-api");
 const { writeFileSync } = require("fs");
 
-program.option("-o, --output", "output file destination").parse(process.argv);
+program.option("-o, --output [value]", "output file destination").parse(process.argv);
 
 const data = importOpenApi(join(process.cwd(), program.args[0]));
 writeFileSync(join(process.cwd(), program.output), data);
