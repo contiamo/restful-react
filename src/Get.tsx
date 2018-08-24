@@ -171,12 +171,16 @@ class ContextlessGet<TData, TError> extends React.Component<
 
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
-    const data = await processResponse(response);
+    let isError = false;
+    const data = await processResponse(response).catch(e => (isError = true && e.message));
 
-    if (!response.ok) {
+    if (!response.ok || isError) {
       this.setState({
         loading: false,
-        error: { message: `Failed to fetch: ${response.status} ${response.statusText}`, data },
+        error: {
+          message: `Failed to fetch: ${response.status} ${response.statusText}${isError ? " - " + data : ""}`,
+          data,
+        },
       });
       return null;
     }
