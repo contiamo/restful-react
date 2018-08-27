@@ -10,7 +10,7 @@ export type ResolveFunction<T> = (data: any) => T;
 
 export interface GetDataError<TError> {
   message: string;
-  data: TError;
+  data: TError | string;
 }
 
 /**
