@@ -124,6 +124,30 @@ describe("Get", () => {
         message: "Failed to fetch: 401 Unauthorized",
       });
     });
+
+    it("should deal with non standard server error response (nginx style)", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, "<html>404 - this is not a json!</html>", { "content-type": "application/json" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual(null);
+      expect(children.mock.calls[1][1].error).toEqual({
+        data:
+          "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+        message:
+          "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+      });
+    });
   });
 
   describe("with custom resolver", () => {
