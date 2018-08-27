@@ -208,10 +208,10 @@ class ContextlessPoll<TData, TError> extends React.Component<
     });
 
     const response = await fetch(request);
-    const data = await processResponse(response);
+    const { data, responseError } = await processResponse(response);
 
-    if (!this.isResponseOk(response)) {
-      const error = { message: `${response.status} ${response.statusText}`, data };
+    if (!this.isResponseOk(response) || responseError) {
+      const error = { message: `${response.status} ${response.statusText}${responseError ? " - " + data : ""}`, data };
       this.setState({ loading: false, lastResponse: response, data, error });
       throw new Error(`Failed to Poll: ${error}`);
     }

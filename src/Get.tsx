@@ -10,7 +10,7 @@ export type ResolveFunction<T> = (data: any) => T;
 
 export interface GetDataError<TError> {
   message: string;
-  data: TError;
+  data: TError | string;
 }
 
 /**
@@ -171,12 +171,15 @@ class ContextlessGet<TData, TError> extends React.Component<
 
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
-    const data = await processResponse(response);
+    const { data, responseError } = await processResponse(response);
 
-    if (!response.ok) {
+    if (!response.ok || responseError) {
       this.setState({
         loading: false,
-        error: { message: `Failed to fetch: ${response.status} ${response.statusText}`, data },
+        error: {
+          message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+          data,
+        },
       });
       return null;
     }
