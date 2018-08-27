@@ -172,14 +172,7 @@ class ContextlessGet<TData, TError> extends React.Component<
     const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
 
-    let isError = false;
-    let data: any;
-    try {
-      data = await processResponse(response);
-    } catch (e) {
-      isError = true;
-      data = e.message;
-    }
+    const { data, isError } = await processResponse(response);
 
     if (!response.ok || isError) {
       this.setState({
