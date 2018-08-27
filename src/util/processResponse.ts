@@ -3,18 +3,18 @@ export const processResponse = async (response: Response) => {
     try {
       return {
         data: await response.json(),
-        isError: false,
+        responseError: false,
       };
     } catch (e) {
       return {
         data: e.message,
-        isError: true,
+        responseError: true,
       };
     }
   } else {
     return {
       data: await response.text(),
-      isError: false,
+      responseError: false,
     };
   }
 };
