@@ -109,6 +109,8 @@ Here's a full overview of the API available through the `RestfulProvider`, along
 interface RestfulProviderProps<T> {
   /** The backend URL where the RESTful resources live. */
   base: string;
+  /** The current path the request will attempt to resolve. */
+  url?: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -124,6 +126,7 @@ interface RestfulProviderProps<T> {
 // Usage
 <RestfulProvider
   base="String!"
+  url="String"
   resolve={data => data}
   requestOptions={authToken => ({ headers: { Authorization: authToken } })}
 />;
@@ -150,13 +153,19 @@ export default () => (
         <div>
           <h1>Random Image</h1>
           {/* Composes path with parent: sends request to /breeds/image/random */}
-          <Get path="/image/random">
+          <Get path="image/random">
+            {image => <img alt="Random Image" src={image && image.message} />}
+          </Get>
+
+          <h1>Random Breed</h1>
+          {/* Escapes the relative path with parent: sends request to /random */}
+          <Get path="/random">
             {image => <img alt="Random Image" src={image && image.message} />}
           </Get>
 
           <h1>All Breeds</h1>
           {/* Composes path with parent: sends request to /breeds/list */}
-          <Get path="/list">
+          <Get path="list">
             {list => (
               <ul>{list && list.message.map(dogName => <li>{dogName}</li>)}</ul>
             )}
