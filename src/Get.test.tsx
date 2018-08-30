@@ -101,7 +101,7 @@ describe("Get", () => {
     });
   });
 
-  fdescribe("composing nested urls", () => {
+  describe("composing nested urls", () => {
     it("should not compose if a absolute path is given", async () => {
       nock("https://my-awesome-api.fake")
         .get("/plop")
