@@ -109,8 +109,6 @@ Here's a full overview of the API available through the `RestfulProvider`, along
 interface RestfulProviderProps<T> {
   /** The backend URL where the RESTful resources live. */
   base: string;
-  /** The current path the request will attempt to resolve. */
-  url?: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.

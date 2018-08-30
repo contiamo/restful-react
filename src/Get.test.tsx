@@ -103,48 +103,42 @@ describe("Get", () => {
 
   describe("composing nested urls", () => {
     it("should not compose if a absolute path is given", async () => {
-      nock("https://my-awesome-api.fake")
+      const parentRoute = nock("https://my-awesome-api.fake")
         .get("/plop")
         .reply(200);
-      nock("https://my-awesome-api.fake")
+      const nestedRoute = nock("https://my-awesome-api.fake")
         .get("/boom")
         .reply(200);
 
-      const nestedGetChildren = jest.fn(() => <div />);
-      const firstGetChildren = jest.fn(() => <Get path="/boom">{nestedGetChildren}</Get>);
-
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="plop">{firstGetChildren}</Get>
+          <Get path="plop">{() => <Get path="/boom">{() => <div />}</Get>}</Get>
         </RestfulProvider>,
       );
 
       await wait(() => {
-        expect(firstGetChildren).toHaveBeenCalledTimes(2);
-        expect(nestedGetChildren).toHaveBeenCalledTimes(3);
+        parentRoute.done();
+        nestedRoute.done();
       });
     });
 
     it("should compose nested relative urls with the base", async () => {
-      nock("https://my-awesome-api.fake")
+      const parentRoute = nock("https://my-awesome-api.fake")
         .get("/plop")
         .reply(200);
-      nock("https://my-awesome-api.fake")
+      const nestedRoute = nock("https://my-awesome-api.fake")
         .get("/plop/boom")
         .reply(200);
 
-      const nestedGetChildren = jest.fn(() => <div />);
-      const firstGetChildren = jest.fn(() => <Get path="boom">{nestedGetChildren}</Get>);
-
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="plop">{firstGetChildren}</Get>
+          <Get path="plop">{() => <Get path="boom">{() => <div />}</Get>}</Get>
         </RestfulProvider>,
       );
 
       await wait(() => {
-        expect(firstGetChildren).toHaveBeenCalledTimes(2);
-        expect(nestedGetChildren).toHaveBeenCalledTimes(3);
+        parentRoute.done();
+        nestedRoute.done();
       });
     });
   });

@@ -55,10 +55,6 @@ export interface GetProps<TData, TError> {
    */
   path: string;
   /**
-   * The current relative path based on parent Get invocations.
-   */
-  url?: string;
-  /**
    * A function that recieves the returned, resolved
    * data.
    *
@@ -89,6 +85,10 @@ export interface GetProps<TData, TError> {
    *
    */
   base?: string;
+  /**
+   * The initial base path given to the parent.
+   */
+  originalBase?: string;
 }
 
 /**
@@ -169,14 +169,14 @@ class ContextlessGet<TData, TError> extends React.Component<
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, url, path, resolve } = this.props;
+    const { base, path, resolve } = this.props;
 
     if (this.state.error || !this.state.loading) {
       this.setState(() => ({ error: null, loading: true }));
     }
 
     const request = new Request(
-      this.composeUrlPath(requestPath || path, base, url),
+      this.composeUrlPath(requestPath || path, base),
       this.getRequestOptions(thisRequestOptions),
     );
     const response = await fetch(request);
@@ -211,9 +211,9 @@ class ContextlessGet<TData, TError> extends React.Component<
   /**
    * Compose relative and absolute paths with the base URL
    */
-  private composeUrlPath(path: string = "", base?: string, url?: string): string {
+  private composeUrlPath(path: string = "", base?: string): string {
     return sanitizeUrlPath(
-      `${base}/${path && sanitizeUrlPath(path.charAt(0) === "/" ? path : `${url || ""}/${path}`)}`,
+      path.charAt(0) === "/" ? `${this.props.originalBase}${path}` : `${base}/${sanitizeUrlPath(path)}`,
     );
   }
 }
@@ -232,7 +232,7 @@ function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} url={`${contextProps.url || ""}/${props.path}`}>
+        <RestfulReactProvider {...contextProps} base={`${contextProps.base}/${props.path}`}>
           <ContextlessGet {...contextProps} {...props} />
         </RestfulReactProvider>
       )}
