@@ -120,8 +120,8 @@ describe("Get", () => {
       );
 
       await wait(() => {
-        expect(firstGetChildren.mock.calls).toHaveLength(2);
-        expect(nestedGetChildren.mock.calls).toHaveLength(3);
+        expect(firstGetChildren).toHaveBeenCalledTimes(2);
+        expect(nestedGetChildren).toHaveBeenCalledTimes(3);
       });
     });
 
@@ -143,8 +143,8 @@ describe("Get", () => {
       );
 
       await wait(() => {
-        expect(firstGetChildren.mock.calls).toHaveLength(2);
-        expect(nestedGetChildren.mock.calls).toHaveLength(3);
+        expect(firstGetChildren).toHaveBeenCalledTimes(2);
+        expect(nestedGetChildren).toHaveBeenCalledTimes(3);
       });
     });
   });
