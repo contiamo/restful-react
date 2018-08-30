@@ -21,6 +21,7 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Loading and Error States](#loading-and-error-states)
   - [Lazy Fetching](#lazy-fetching)
   - [Response Resolution](#response-resolution)
+  - [Debouncing requests](#debouncing-requests)
   - [TypeScript Integration](#typescript-integration)
   - [Mutations with `Mutate`](#mutations-with-mutate)
     - [`Mutate` Component API](#mutate-component-api)
@@ -193,8 +194,15 @@ const MyAnimalsList = props => (
             "OH NO!"
           ) : (
             <>
-              <h1>Here are all my {props.animal}s!</h1>
-              <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
+              <h1>
+                Here are all my {props.animal}
+                s!
+              </h1>
+              <ul>
+                {animals.map(animal => (
+                  <li>{animal}</li>
+                ))}
+              </ul>
             </>
           )}
         </div>
@@ -215,8 +223,15 @@ const MyAnimalsList = props => (
       ) : (
         <div>
           You should only see this after things are loaded.
-          <h1>Here are all my {props.animal}s!</h1>
-          <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
+          <h1>
+            Here are all my {props.animal}
+            s!
+          </h1>
+          <ul>
+            {animals.map(animal => (
+              <li>{animal}</li>
+            ))}
+          </ul>
         </div>
       )
     }
@@ -238,7 +253,13 @@ It is possible to render a `Get` component and defer the fetch to a later stage.
       <p>Are you ready to unleash all the magic? If yes, click this button!</p>
       <button onClick={get}>GET UNICORNS!!!!!!</button>
 
-      {unicorns && <ul>{unicorns.map((unicorn, index) => <li key={index}>{unicorn}</li>)}</ul>}
+      {unicorns && (
+        <ul>
+          {unicorns.map((unicorn, index) => (
+            <li key={index}>{unicorn}</li>
+          ))}
+        </ul>
+      )}
     </div>
   )}
 </Get>
@@ -263,7 +284,75 @@ const myNestedData = props => (
     {data => (
       <div>
         <h1>Here's all the things I want</h1>
-        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </Get>
+);
+```
+
+### Debouncing requests
+
+Do you rely on a text input to sending different requests? Or even worst on a mouse event? No problem! The `Get` component have a `debounce` prop to deal with this kind of tricky cases :tada:
+
+We simply use `lodash.debounce` and you can give more or less options regarding your specific needs.
+
+```jsx
+const SearchThis = props => (
+  <Get path={`/search?q=${props.query}`} debounce>
+    {data => (
+      <div>
+        <h1>Here's all the things I search</h1>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </Get>
+);
+```
+
+or with the `wait` params
+
+```jsx
+const SearchThis = props => (
+  <Get path={`/search?q=${props.query}`} debounce={200 /*ms*/}>
+    {data => (
+      <div>
+        <h1>Here's all the things I search</h1>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </Get>
+);
+```
+
+or with more options (ref: https://lodash.com/docs/4.17.10#debounce)
+
+```jsx
+const SearchThis = props => (
+  <Get
+    path={`/search?q=${props.query}`}
+    debounce={{ wait: 200, options: { leading: true, maxWait: 300, trailing: false } }}
+  >
+    {data => (
+      <div>
+        <h1>Here's all the things I search</h1>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
       </div>
     )}
   </Get>
