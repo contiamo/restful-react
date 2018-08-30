@@ -212,7 +212,9 @@ class ContextlessGet<TData, TError> extends React.Component<
    * Compose relative and absolute paths with the base URL
    */
   private composeUrlPath(path: string = "", base?: string, url?: string): string {
-    return sanitizeUrlPath(`${base}/${path && sanitizeUrlPath(path.charAt(0) === "/" ? path : `${url}/${path}`)}`);
+    return sanitizeUrlPath(
+      `${base}/${path && sanitizeUrlPath(path.charAt(0) === "/" ? path : `${url || ""}/${path}`)}`,
+    );
   }
 }
 

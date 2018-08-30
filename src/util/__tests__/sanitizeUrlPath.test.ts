@@ -7,8 +7,14 @@ describe("sanitizeUrlPath", () => {
     expect(sanitizeUrlPath(path)).toBe("plop");
   });
 
-  it("should remove and trailing slash", () => {
+  it("should remove trailing slash", () => {
     const path = "plop/";
+
+    expect(sanitizeUrlPath(path)).toBe("plop");
+  });
+
+  it("should remove leading slash", () => {
+    const path = "/plop";
 
     expect(sanitizeUrlPath(path)).toBe("plop");
   });
