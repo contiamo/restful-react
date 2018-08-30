@@ -124,7 +124,6 @@ interface RestfulProviderProps<T> {
 // Usage
 <RestfulProvider
   base="String!"
-  url="String"
   resolve={data => data}
   requestOptions={authToken => ({ headers: { Authorization: authToken } })}
 />;
