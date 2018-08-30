@@ -1,6 +1,7 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { processResponse } from "./util/processResponse";
+import sanitizeUrlPath from "./util/sanitizeUrlPath";
 
 /**
  * A function that resolves returned data from
@@ -53,6 +54,10 @@ export interface GetProps<TData, TError> {
    * typically composed by parent Gets or the RestfulProvider.
    */
   path: string;
+  /**
+   * The current relative path based on parent Get invocations.
+   */
+  url?: string;
   /**
    * A function that recieves the returned, resolved
    * data.
@@ -164,12 +169,16 @@ class ContextlessGet<TData, TError> extends React.Component<
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, path, resolve } = this.props;
+    const { base, url, path, resolve } = this.props;
+
     if (this.state.error || !this.state.loading) {
       this.setState(() => ({ error: null, loading: true }));
     }
 
-    const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+    const request = new Request(
+      this.composeUrlPath(requestPath || path, base, url),
+      this.getRequestOptions(thisRequestOptions),
+    );
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
 
@@ -198,6 +207,13 @@ class ContextlessGet<TData, TError> extends React.Component<
 
     return children(data, { loading, error }, { refetch: this.fetch }, { response, absolutePath: `${base}${path}` });
   }
+
+  /**
+   * Compose relative and absolute paths with the base URL
+   */
+  private composeUrlPath(path: string = "", base?: string, url?: string): string {
+    return sanitizeUrlPath(`${base}/${path && sanitizeUrlPath(path.charAt(0) === "/" ? path : `${url}/${path}`)}`);
+  }
 }
 
 /**
@@ -214,7 +230,7 @@ function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
+        <RestfulReactProvider {...contextProps} url={`${contextProps.url || ""}/${props.path}`}>
           <ContextlessGet {...contextProps} {...props} />
         </RestfulReactProvider>
       )}

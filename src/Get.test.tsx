@@ -3,7 +3,6 @@ import "jest-dom/extend-expect";
 import nock from "nock";
 import React from "react";
 import { cleanup, render, wait } from "react-testing-library";
-
 import { Get, RestfulProvider } from "./index";
 
 afterEach(() => {
@@ -99,6 +98,54 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(children.mock.calls[1][0]).toEqual({ hello: "world" });
+    });
+  });
+
+  describe("composing nested urls", () => {
+    it("should not compose if a absolute path is given", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/plop")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/boom")
+        .reply(200);
+
+      const nestedGetChildren = jest.fn(() => <div />);
+      const firstGetChildren = jest.fn(() => <Get path="/boom">{nestedGetChildren}</Get>);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="plop">{firstGetChildren}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => {
+        expect(firstGetChildren.mock.calls).toHaveLength(2);
+        expect(nestedGetChildren.mock.calls).toHaveLength(3);
+      });
+    });
+
+    it("should compose nested relative urls with the base", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/plop")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/plop/boom")
+        .reply(200);
+
+      const nestedGetChildren = jest.fn(() => <div />);
+      const firstGetChildren = jest.fn(() => <Get path="boom">{nestedGetChildren}</Get>);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="plop">{firstGetChildren}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => {
+        expect(firstGetChildren.mock.calls).toHaveLength(2);
+        expect(nestedGetChildren.mock.calls).toHaveLength(3);
+      });
     });
   });
 
