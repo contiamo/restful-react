@@ -4,8 +4,6 @@ import { ResolveFunction } from "./Get";
 export interface RestfulReactProviderProps<T = any> {
   /** The backend URL where the RESTful resources live. */
   base: string;
-  /** The original backend URL where the RESTful resources live. */
-  originalBase?: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -15,28 +13,23 @@ export interface RestfulReactProviderProps<T = any> {
    * Options passed to the fetch request.
    */
   requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
+  /**
+   * The initial base path given to the parent.
+   */
+  originalBase?: string;
 }
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<RestfulReactProviderProps>({
   base: "",
+  originalBase: undefined,
   resolve: (data: any) => data,
   requestOptions: {},
 });
 
-let originalBase: string = "";
-
 export default class RestfulReactProvider<T> extends React.Component<RestfulReactProviderProps<T>> {
-  constructor(props: RestfulReactProviderProps) {
-    super(props);
-
-    if (!originalBase) {
-      originalBase = props.base;
-    }
-  }
-
   public render() {
     const { children, ...value } = this.props;
-    return <Provider value={{ ...value, originalBase }}>{children}</Provider>;
+    return <Provider value={{ ...value, originalBase: value.originalBase || value.base }}>{children}</Provider>;
   }
 }
 

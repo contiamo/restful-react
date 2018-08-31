@@ -12,6 +12,16 @@ afterEach(() => {
 
 describe("Get", () => {
   describe("classic usage", () => {
+    it("should call the path if base and originalBase are empty", async () => {
+      const route = nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200);
+
+      render(<Get path="https://my-awesome-api.fake">{() => <div />}</Get>);
+
+      await wait(() => route.done());
+    });
+
     it("should call the url set in provider", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -102,7 +112,7 @@ describe("Get", () => {
   });
 
   describe("composing nested urls", () => {
-    it("should not compose if a absolute path is given", async () => {
+    it("should not compose if a absolute is specified", async () => {
       const parentRoute = nock("https://my-awesome-api.fake")
         .get("/plop")
         .reply(200);
@@ -112,7 +122,13 @@ describe("Get", () => {
 
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="plop">{() => <Get path="/boom">{() => <div />}</Get>}</Get>
+          <Get path="plop">
+            {() => (
+              <Get absolute path="boom">
+                {() => <div />}
+              </Get>
+            )}
+          </Get>
         </RestfulProvider>,
       );
 
@@ -213,6 +229,34 @@ describe("Get", () => {
     });
   });
 
+  describe("with absolute", () => {
+    it("should compose with the originalBase url", async () => {
+      const root = nock("https://my-awesome-api.fake")
+        .get("/plop")
+        .reply(200, { id: 1 });
+      const absolute = nock("https://my-awesome-api.fake")
+        .get("/boom")
+        .reply(200, { id: 1 });
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="plop">
+            {() => (
+              <Get absolute path="boom">
+                {() => <div />}
+              </Get>
+            )}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => {
+        root.done();
+        absolute.done();
+      });
+    });
+  });
+
   describe("with lazy", () => {
     it("should not fetch on mount", async () => {
       const children = jest.fn();
@@ -233,6 +277,38 @@ describe("Get", () => {
   });
 
   describe("with base", () => {
+    it("should override the base url with absolute paths", async () => {
+      const baseOverride = nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+      const relative = nock("https://not-here.fake")
+        .get("/plop")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://not-here.fake">
+          <Get absolute path="" base="https://my-awesome-api.fake">
+            {children}
+          </Get>
+          {/* this should use the original base path supplied through context */}
+          <Get absolute path="plop">
+            {() => <div />}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => {
+        expect(children).toHaveBeenCalledTimes(2);
+        baseOverride.done();
+        relative.done();
+      });
+      expect(children.mock.calls[1][1].loading).toEqual(false);
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+    });
+
     it("should override the base url", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")

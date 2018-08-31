@@ -1,7 +1,7 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import normalizeUrlPath from "./util/normalizeUrlPath";
 import { processResponse } from "./util/processResponse";
-import sanitizeUrlPath from "./util/sanitizeUrlPath";
 
 /**
  * A function that resolves returned data from
@@ -79,6 +79,11 @@ export interface GetProps<TData, TError> {
    * Should we fetch data at a later stage?
    */
   lazy?: boolean;
+  /**
+   * Should we ignore the relative nesting and fetch
+   * the base url directly?
+   */
+  absolute?: boolean;
   /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
@@ -212,9 +217,10 @@ class ContextlessGet<TData, TError> extends React.Component<
    * Compose relative and absolute paths with the base URL
    */
   private composeUrlPath(path: string = "", base?: string): string {
-    return sanitizeUrlPath(
-      path.charAt(0) === "/" ? `${this.props.originalBase}${path}` : `${base}/${sanitizeUrlPath(path)}`,
-    );
+    const { absolute, originalBase } = this.props;
+    const normalizedPath = normalizeUrlPath(path);
+
+    return normalizeUrlPath(`${absolute ? originalBase : base}/${normalizedPath}`);
   }
 }
 
@@ -232,8 +238,17 @@ function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={`${contextProps.base}/${props.path}`}>
-          <ContextlessGet {...contextProps} {...props} />
+        <RestfulReactProvider
+          {...contextProps}
+          base={props.absolute ? contextProps.base : `${contextProps.base}/${normalizeUrlPath(props.path)}`}
+        >
+          <ContextlessGet
+            {...contextProps}
+            {...props}
+            originalBase={
+              props.base && props.base !== contextProps.originalBase ? props.base : contextProps.originalBase
+            }
+          />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>
