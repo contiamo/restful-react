@@ -87,9 +87,8 @@ export interface GetProps<TData, TError> {
    */
   base?: string;
   /**
-   * Debounce API calls.
-   *
-   * This used lodash.debounce under the hood.
+   * How long do we wait between subsequent requests?
+   * Uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) under the hood.
    */
   debounce?:
     | {
