@@ -21,7 +21,7 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Loading and Error States](#loading-and-error-states)
   - [Lazy Fetching](#lazy-fetching)
   - [Response Resolution](#response-resolution)
-  - [Debouncing requests](#debouncing-requests)
+  - [Debouncing Requests](#debouncing-requests)
   - [TypeScript Integration](#typescript-integration)
   - [Mutations with `Mutate`](#mutations-with-mutate)
     - [`Mutate` Component API](#mutate-component-api)
@@ -277,7 +277,7 @@ const myNestedData = props => (
 );
 ```
 
-### Debouncing requests
+### Debouncing Requests
 
 Some requests fire in response to a rapid succession of user events: things like autocomplete or resizing a window. For this reason, users sometimes need to wait until all the keystrokes are typed (until everything's _done_), before sending a request.
 
