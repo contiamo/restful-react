@@ -279,7 +279,7 @@ One of the most poweful features of RESTful React, each component exported is st
 
 Restful React exposes an additional component called `Mutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq) [![Greenkeeper badge](https://badges.greenkeeper.io/contiamo/restful-react.svg)](https://greenkeeper.io/)
 
 ```jsx
 const Movies = ({ dispatch }) => (
