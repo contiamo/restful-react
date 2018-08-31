@@ -300,9 +300,10 @@ const SearchThis = props => (
 
 Debounce also accepts a number, which tells `Get` how long to wait until doing the request.
 
-```jsx
+```diff
 const SearchThis = props => (
-  <Get path={`/search?q=${props.query}`} debounce={200 /*ms*/}>
+-  <Get path={`/search?q=${props.query}`} debounce>
++  <Get path={`/search?q=${props.query}`} debounce={200 /*ms*/}>
     {data => (
       <div>
         <h1>Here's all the things I search</h1>
@@ -315,11 +316,12 @@ const SearchThis = props => (
 
 It uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) function under the hood, so you get all the benefits of it out of the box like so!
 
-```jsx
+```diff
 const SearchThis = props => (
   <Get
     path={`/search?q=${props.query}`}
-    debounce={{ wait: 200, options: { leading: true, maxWait: 300, trailing: false } }}
+-   debounce={200}
++   debounce={{ wait: 200, options: { leading: true, maxWait: 300, trailing: false } }}
   >
     {data => (
       <div>
