@@ -198,11 +198,7 @@ const MyAnimalsList = props => (
                 Here are all my {props.animal}
                 s!
               </h1>
-              <ul>
-                {animals.map(animal => (
-                  <li>{animal}</li>
-                ))}
-              </ul>
+              <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
             </>
           )}
         </div>
@@ -227,11 +223,7 @@ const MyAnimalsList = props => (
             Here are all my {props.animal}
             s!
           </h1>
-          <ul>
-            {animals.map(animal => (
-              <li>{animal}</li>
-            ))}
-          </ul>
+          <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
         </div>
       )
     }
@@ -253,13 +245,7 @@ It is possible to render a `Get` component and defer the fetch to a later stage.
       <p>Are you ready to unleash all the magic? If yes, click this button!</p>
       <button onClick={get}>GET UNICORNS!!!!!!</button>
 
-      {unicorns && (
-        <ul>
-          {unicorns.map((unicorn, index) => (
-            <li key={index}>{unicorn}</li>
-          ))}
-        </ul>
-      )}
+      {unicorns && <ul>{unicorns.map((unicorn, index) => <li key={index}>{unicorn}</li>)}</ul>}
     </div>
   )}
 </Get>
@@ -284,11 +270,7 @@ const myNestedData = props => (
     {data => (
       <div>
         <h1>Here's all the things I want</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
+        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
       </div>
     )}
   </Get>
@@ -297,9 +279,11 @@ const myNestedData = props => (
 
 ### Debouncing requests
 
-Do you rely on a text input to sending different requests? Or even worst on a mouse event? No problem! The `Get` component have a `debounce` prop to deal with this kind of tricky cases :tada:
+Some requests fire in response to a rapid succession of user events: things like autocomplete or resizing a window. For this reason, users sometimes need to wait until all the keystrokes are typed (until everything's _done_), before sending a request.
 
-We simply use `lodash.debounce` and you can give more or less options regarding your specific needs.
+Restful React exposes a `debounce` prop on `Get` that does exactly this.
+
+Here's an example:
 
 ```jsx
 const SearchThis = props => (
@@ -307,18 +291,14 @@ const SearchThis = props => (
     {data => (
       <div>
         <h1>Here's all the things I search</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
+        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
       </div>
     )}
   </Get>
 );
 ```
 
-or with the `wait` params
+Debounce also accepts a number, which tells `Get` how long to wait until doing the request.
 
 ```jsx
 const SearchThis = props => (
@@ -326,18 +306,14 @@ const SearchThis = props => (
     {data => (
       <div>
         <h1>Here's all the things I search</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
+        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
       </div>
     )}
   </Get>
 );
 ```
 
-or with more options (ref: https://lodash.com/docs/4.17.10#debounce)
+It uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) function under the hood, so you get all the benefits of it out of the box like so!
 
 ```jsx
 const SearchThis = props => (
@@ -348,11 +324,7 @@ const SearchThis = props => (
     {data => (
       <div>
         <h1>Here's all the things I search</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
+        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
       </div>
     )}
   </Get>
