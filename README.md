@@ -1,4 +1,5 @@
 # RESTful React
+ [![Greenkeeper badge](https://badges.greenkeeper.io/contiamo/restful-react.svg)](https://greenkeeper.io/)
 
 [![Build Status](https://travis-ci.org/contiamo/restful-react.svg?branch=master)](https://travis-ci.org/contiamo/restful-react)
 
