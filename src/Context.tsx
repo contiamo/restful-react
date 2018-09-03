@@ -21,6 +21,9 @@ export interface RestfulReactProviderProps<T = any> {
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<RestfulReactProviderProps>({
   base: "",
+  /**
+   * This is undefined to make the existence check syntactically simpler
+   */
   originalBase: undefined,
   resolve: (data: any) => data,
   requestOptions: {},

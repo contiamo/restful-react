@@ -1,8 +1,8 @@
 import React from "react";
 import equal from "react-fast-compare";
-
 import { RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import normalizeUrlPath from "./util/normalizeUrlPath";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -197,7 +197,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
     const { lastPollIndex } = this.state;
     const requestOptions = this.getRequestOptions();
 
-    const request = new Request(`${base}${path}`, {
+    const request = new Request(`${base}/${normalizeUrlPath(path)}`, {
       ...requestOptions,
 
       headers: {
@@ -265,7 +265,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
     const meta: Meta = {
       response,
-      absolutePath: `${base}${path}`,
+      absolutePath: `${base}/${normalizeUrlPath(path)}`,
     };
 
     const states: States<TData, TError> = {

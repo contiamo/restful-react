@@ -176,7 +176,7 @@ export default () => (
 
 From the above example, _not only_ does the path accumulate based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
 
-To escape form nested path accumulation you can sepcify the `absolute` prop which will ignore all parent relative paths.
+To escape from nested path accumulation you can sepcify the `absolute` prop which will ignore all parent relative paths.
 
 To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
 

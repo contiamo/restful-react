@@ -229,6 +229,11 @@ describe("Get", () => {
     });
   });
 
+  /**
+   * This test is pretty much a duplicate
+   * of a test above for composing routes; It is more explicit
+   *
+   */
   describe("with absolute", () => {
     it("should compose with the originalBase url", async () => {
       const root = nock("https://my-awesome-api.fake")

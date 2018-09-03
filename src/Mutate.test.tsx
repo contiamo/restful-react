@@ -3,15 +3,14 @@ import "jest-dom/extend-expect";
 import nock from "nock";
 import React from "react";
 import { cleanup, render, wait } from "react-testing-library";
-
 import { Mutate, RestfulProvider } from "./index";
 
-afterEach(() => {
-  cleanup();
-  nock.cleanAll();
-});
-
 describe("Mutate", () => {
+  afterEach(() => {
+    cleanup();
+    nock.cleanAll();
+  });
+
   describe("DELETE", () => {
     it("should call the correct url with a specific id", async () => {
       nock("https://my-awesome-api.fake")
@@ -76,5 +75,25 @@ describe("Mutate", () => {
       // after delete state
       expect(children.mock.calls[2][1].loading).toEqual(false);
     });
+  });
+
+  it("should escape relative paths from parent routes", () => {
+    const baseRoute = nock("https://my-awesome-api.fake")
+      .delete("/plop")
+      .reply(200, { id: 1 });
+
+    render(
+      <RestfulProvider base="https://my-awesome-api.fake/boom" originalBase="https://my-awesome-api.fake">
+        <Mutate absolute verb="DELETE" path="plop">
+          {mutate => {
+            wait(() => mutate());
+
+            return <div />;
+          }}
+        </Mutate>
+      </RestfulProvider>,
+    );
+
+    return wait(() => expect(() => baseRoute.done()).not.toThrow());
   });
 });
