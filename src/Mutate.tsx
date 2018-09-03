@@ -152,13 +152,13 @@ class ContextlessMutate<TData, TError> extends React.Component<MutateProps<TData
   };
 
   public render() {
-    const { children, path, base } = this.props;
+    const { children, path, base, originalBase, absolute } = this.props;
     const { error, loading, response } = this.state;
 
     return children(
       this.mutate,
       { loading, error },
-      { response, absolutePath: `${base}/${normalizeUrlPath(path || "")}` },
+      { response, absolutePath: `${absolute ? originalBase : base}/${normalizeUrlPath(path || "")}` },
     );
   }
 }
