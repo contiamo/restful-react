@@ -1,8 +1,8 @@
 import React from "react";
 import equal from "react-fast-compare";
-
 import { RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import normalizeUrlPath from "./util/normalizeUrlPath";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -99,6 +99,15 @@ export interface PollProps<TData, TError> {
    * Any options to be passed to this request.
    */
   requestOptions?: GetProps<TData, TError>["requestOptions"];
+  /**
+   * The initial base path given to the parent.
+   */
+  originalBase?: string;
+  /**
+   * Should we ignore the relative nesting and fetch
+   * the base url directly?
+   */
+  absolute?: boolean;
 }
 
 /**
@@ -193,11 +202,11 @@ class ContextlessPoll<TData, TError> extends React.Component<
     }
 
     // If we should keep going,
-    const { base, path, resolve, interval, wait } = this.props;
+    const { absolute, originalBase, base, path, resolve, interval, wait } = this.props;
     const { lastPollIndex } = this.state;
     const requestOptions = this.getRequestOptions();
 
-    const request = new Request(`${base}${path}`, {
+    const request = new Request(`${absolute ? originalBase : base}/${normalizeUrlPath(path)}`, {
       ...requestOptions,
 
       headers: {
@@ -261,11 +270,11 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
   public render() {
     const { lastResponse: response, data, polling, loading, error, finished } = this.state;
-    const { children, base, path } = this.props;
+    const { children, originalBase, absolute, base, path } = this.props;
 
     const meta: Meta = {
       response,
-      absolutePath: `${base}${path}`,
+      absolutePath: `${absolute ? originalBase : base}/${normalizeUrlPath(path)}`,
     };
 
     const states: States<TData, TError> = {
@@ -293,6 +302,7 @@ function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
           {...contextProps}
           {...props}
           requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
+          originalBase={contextProps.originalBase}
         />
       )}
     </RestfulReactConsumer>

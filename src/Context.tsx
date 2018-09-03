@@ -13,10 +13,18 @@ export interface RestfulReactProviderProps<T = any> {
    * Options passed to the fetch request.
    */
   requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
+  /**
+   * The initial base path given to the parent.
+   */
+  originalBase?: string;
 }
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<RestfulReactProviderProps>({
   base: "",
+  /**
+   * This is undefined to make the existence check syntactically simpler
+   */
+  originalBase: undefined,
   resolve: (data: any) => data,
   requestOptions: {},
 });
@@ -24,7 +32,7 @@ const { Provider, Consumer: RestfulReactConsumer } = React.createContext<Restful
 export default class RestfulReactProvider<T> extends React.Component<RestfulReactProviderProps<T>> {
   public render() {
     const { children, ...value } = this.props;
-    return <Provider value={value}>{children}</Provider>;
+    return <Provider value={{ ...value, originalBase: value.originalBase || value.base }}>{children}</Provider>;
   }
 }
 

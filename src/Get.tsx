@@ -1,5 +1,6 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import normalizeUrlPath from "./util/normalizeUrlPath";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -79,11 +80,20 @@ export interface GetProps<TData, TError> {
    */
   lazy?: boolean;
   /**
+   * Should we ignore the relative nesting and fetch
+   * the base url directly?
+   */
+  absolute?: boolean;
+  /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
    *
    */
   base?: string;
+  /**
+   * The initial base path given to the parent.
+   */
+  originalBase?: string;
 }
 
 /**
@@ -165,11 +175,15 @@ class ContextlessGet<TData, TError> extends React.Component<
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
     const { base, path, resolve } = this.props;
+
     if (this.state.error || !this.state.loading) {
       this.setState(() => ({ error: null, loading: true }));
     }
 
-    const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+    const request = new Request(
+      this.composeUrlPath(requestPath || path, base),
+      this.getRequestOptions(thisRequestOptions),
+    );
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
 
@@ -198,6 +212,16 @@ class ContextlessGet<TData, TError> extends React.Component<
 
     return children(data, { loading, error }, { refetch: this.fetch }, { response, absolutePath: `${base}${path}` });
   }
+
+  /**
+   * Compose relative and absolute paths with the base URL
+   */
+  private composeUrlPath(path: string = "", base?: string): string {
+    const { absolute, originalBase } = this.props;
+    const normalizedPath = normalizeUrlPath(path);
+
+    return normalizeUrlPath(`${absolute ? originalBase : base}/${normalizedPath}`);
+  }
 }
 
 /**
@@ -214,8 +238,17 @@ function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
-          <ContextlessGet {...contextProps} {...props} />
+        <RestfulReactProvider
+          {...contextProps}
+          base={props.absolute ? contextProps.base : `${contextProps.base}/${normalizeUrlPath(props.path)}`}
+        >
+          <ContextlessGet
+            {...contextProps}
+            {...props}
+            originalBase={
+              props.base && props.base !== contextProps.originalBase ? props.base : contextProps.originalBase
+            }
+          />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>

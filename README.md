@@ -90,7 +90,7 @@ import React from "react";
 import Get from "restful-react";
 
 const MyComponent = () => (
-  <Get path="/breeds/image/random">
+  <Get path="breeds/image/random">
     {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage.message} />}
   </Get>
 );
@@ -144,19 +144,25 @@ import Get from "restful-react";
 
 export default () => (
   {/* Use the lazy prop to not send a request */}
-  <Get path="/breeds" lazy>
+  <Get path="breeds" lazy>
     {data => {
       return (
         <div>
           <h1>Random Image</h1>
           {/* Composes path with parent: sends request to /breeds/image/random */}
-          <Get path="/image/random">
+          <Get path="image/random">
+            {image => <img alt="Random Image" src={image && image.message} />}
+          </Get>
+
+          <h1>Random Breed</h1>
+          {/* Escapes the relative path with parent: sends request to /random */}
+          <Get absolute path="random">
             {image => <img alt="Random Image" src={image && image.message} />}
           </Get>
 
           <h1>All Breeds</h1>
           {/* Composes path with parent: sends request to /breeds/list */}
-          <Get path="/list">
+          <Get path="list">
             {list => (
               <ul>{list && list.message.map(dogName => <li>{dogName}</li>)}</ul>
             )}
@@ -170,6 +176,8 @@ export default () => (
 
 From the above example, _not only_ does the path accumulate based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
 
+To escape from nested path accumulation you can sepcify the `absolute` prop which will ignore all parent relative paths.
+
 To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
 
 #### [`Get` Component API](src/Get.tsx#L50-L87)
@@ -182,7 +190,7 @@ To opt-out of this behavior `Get` components can use an alternative URL as their
 
 ```jsx
 const MyAnimalsList = props => (
-  <Get path={`/${props.animal}`}>
+  <Get path={props.animal}>
     {(animals, { loading, error }) =>
       loading ? (
         <Spinner />
@@ -208,7 +216,7 @@ Within [Operational UI](https://github.com/contiamo/operational-ui), all of our 
 
 ```jsx
 const MyAnimalsList = props => (
-  <Get path={`/${props.animal}`}>
+  <Get path={props.animal}>
     {(animals, { loading, error }) =>
       loading ? (
         <Progress error={error} />
@@ -231,7 +239,7 @@ It is possible to render a `Get` component and defer the fetch to a later stage.
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
-<Get path="/unicorns" lazy>
+<Get path="unicorns" lazy>
   {(unicorns, states, { get }) => (
     <div>
       <h1>Are you ready?</h1>
@@ -257,7 +265,7 @@ At the `RestfulProvider` level, _or_ on the `Get` level, a `resolve` prop will t
 ```jsx
 const myNestedData = props => (
   <Get
-    path="/this-should-be-simpler"
+    path="this-should-be-simpler"
     resolve={response => response.data.what.omg.how.map(singleThing => singleThing.name)}
   >
     {data => (
@@ -285,7 +293,7 @@ Restful React exposes an additional component called `Mutate`. These components 
 ```jsx
 const Movies = ({ dispatch }) => (
   <ul>
-    <Get path="/movies">
+    <Get path="movies">
       {(movies, states, actions) =>
         movies.map(movie => (
           <li>
@@ -321,7 +329,7 @@ RESTful React also exports a `Poll` component that will poll a backend endpoint 
 ```jsx
 import { Poll } from "restful-react"
 
-<Poll path="/deployLogs" resolve={data => data && data.data}>
+<Poll path="deployLogs" resolve={data => data && data.data}>
   {(deployLogs: DeployLog[], { loading }) =>
     loading ? (
       <PageSpinner />
@@ -351,7 +359,7 @@ In addition to the `Get` component API, `Poll` also supports:
 Below is a more convoluted example that employs nearly the full power of the `Poll` component.
 
 ```jsx
-<Poll path="/status" until={(_, response) => response && response.ok} interval={0} lazy>
+<Poll path="status" until={(_, response) => response && response.ok} interval={0} lazy>
   {(_, { loading, error, finished, polling }, { start }) => {
     return loading ? (
       <Progress error={error} />

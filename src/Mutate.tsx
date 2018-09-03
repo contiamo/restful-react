@@ -1,6 +1,7 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
+import normalizeUrlPath from "./util/normalizeUrlPath";
 
 /**
  * An enumeration of states that a fetchable
@@ -43,8 +44,17 @@ export interface MutateCommonProps {
    *
    */
   base?: string;
+  /**
+   * Should we ignore the relative nesting and fetch
+   * the base url directly?
+   */
+  absolute?: boolean;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
+  /**
+   * The initial base path given to the parent.
+   */
+  originalBase?: string;
 }
 
 export interface MutateWithDeleteProps<TData, TError> extends MutateCommonProps {
@@ -103,10 +113,15 @@ class ContextlessMutate<TData, TError> extends React.Component<MutateProps<TData
   };
 
   public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
-    const { base, path, verb, requestOptions: providerRequestOptions } = this.props;
+    const { originalBase, absolute, base, path, verb, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
-    const requestPath = verb === "DELETE" ? `${base}${path || ""}${body ? "/" + body : ""}` : `${base}${path || ""}`;
+    const requestBase = absolute ? originalBase : base;
+    const normalizedPath = path ? `/${normalizeUrlPath(path)}` : "";
+    const requestPath =
+      verb === "DELETE"
+        ? `${requestBase}${normalizedPath}${body ? "/" + body : ""}`
+        : `${requestBase}${normalizedPath}`;
     const request = new Request(requestPath, {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
@@ -137,10 +152,14 @@ class ContextlessMutate<TData, TError> extends React.Component<MutateProps<TData
   };
 
   public render() {
-    const { children, path, base } = this.props;
+    const { children, path, base, originalBase, absolute } = this.props;
     const { error, loading, response } = this.state;
 
-    return children(this.mutate, { loading, error }, { response, absolutePath: `${base}${path}` });
+    return children(
+      this.mutate,
+      { loading, error },
+      { response, absolutePath: `${absolute ? originalBase : base}/${normalizeUrlPath(path || "")}` },
+    );
   }
 }
 
@@ -158,8 +177,11 @@ function Mutate<TError = any, TData = any>(props: MutateProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
-          <ContextlessMutate<TData, TError> {...contextProps} {...props} />
+        <RestfulReactProvider
+          {...contextProps}
+          base={props.absolute ? contextProps.base : `${contextProps.base}/${normalizeUrlPath(props.path || "")}`}
+        >
+          <ContextlessMutate<TData, TError> {...contextProps} {...props} originalBase={contextProps.originalBase} />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>
