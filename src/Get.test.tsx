@@ -1,5 +1,6 @@
 import "isomorphic-fetch";
 import "jest-dom/extend-expect";
+import times from "lodash/times";
 import nock from "nock";
 import React from "react";
 import { cleanup, render, wait } from "react-testing-library";
@@ -292,6 +293,68 @@ describe("Get", () => {
       // after refetch state
       expect(children.mock.calls[3][1].loading).toEqual(false);
       expect(children.mock.calls[3][0]).toEqual({ id: 2 });
+    });
+  });
+
+  describe("with debounce", () => {
+    it("should call the API only 1 time", async () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .filteringPath(/test=[^&]*/g, "test=XXX")
+        .get("/?test=XXX")
+        .reply(200, () => ++apiCalls)
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="?test=1" debounce>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      times(10, i =>
+        rerender(
+          <RestfulProvider base="https://my-awesome-api.fake">
+            <Get path={`?test=${i + 1}`} debounce>
+              {children}
+            </Get>
+          </RestfulProvider>,
+        ),
+      );
+
+      await wait(() => expect(apiCalls).toEqual(1));
+    });
+
+    it("should call the API only 10 times without debounce", async () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .filteringPath(/test=[^&]*/g, "test=XXX")
+        .get("/?test=XXX")
+        .reply(200, () => ++apiCalls)
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="?test=1">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      times(10, i =>
+        rerender(
+          <RestfulProvider base="https://my-awesome-api.fake">
+            <Get path={`?test=${i + 1}`}>{children}</Get>
+          </RestfulProvider>,
+        ),
+      );
+
+      expect(apiCalls).toEqual(10);
     });
   });
 });
