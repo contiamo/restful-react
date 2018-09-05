@@ -82,7 +82,7 @@
     "ts-jest": "^23.1.4",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
-    "tslint-plugin-blank-line": "^0.0.8",
+    "tslint-plugin-blank-line": "^0.0.9",
     "typescript": "^3.0.3"
   },
   "dependencies": {
