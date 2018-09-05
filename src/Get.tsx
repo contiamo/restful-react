@@ -1,3 +1,5 @@
+import { DebounceSettings } from "lodash";
+import debounce from "lodash/debounce";
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { processResponse } from "./util/processResponse";
@@ -84,6 +86,17 @@ export interface GetProps<TData, TError> {
    *
    */
   base?: string;
+  /**
+   * How long do we wait between subsequent requests?
+   * Uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) under the hood.
+   */
+  debounce?:
+    | {
+        wait?: number;
+        options: DebounceSettings;
+      }
+    | boolean
+    | number;
 }
 
 /**
@@ -107,6 +120,18 @@ class ContextlessGet<TData, TError> extends React.Component<
   GetProps<TData, TError>,
   Readonly<GetState<TData, TError>>
 > {
+  constructor(props: GetProps<TData, TError>) {
+    super(props);
+
+    if (typeof props.debounce === "object") {
+      this.fetch = debounce(this.fetch, props.debounce.wait, props.debounce.options);
+    } else if (typeof props.debounce === "number") {
+      this.fetch = debounce(this.fetch, props.debounce);
+    } else if (props.debounce) {
+      this.fetch = debounce(this.fetch);
+    }
+  }
+
   public readonly state: Readonly<GetState<TData, TError>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
