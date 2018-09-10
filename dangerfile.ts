@@ -1,6 +1,5 @@
 import * as child_process from "child_process";
 import { danger, markdown, warn } from "danger";
-import jest from "danger-plugin-jest";
 import * as fs from "fs";
 import { includes } from "lodash";
 
@@ -56,5 +55,3 @@ if (fs.existsSync("tslint-errors.json")) {
     markdown(tslintMarkdown);
   }
 }
-
-jest();
