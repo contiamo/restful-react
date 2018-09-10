@@ -2,7 +2,7 @@
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
   "version": "4.1.3",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "license": "MIT",
   "files": [
     "lib"
