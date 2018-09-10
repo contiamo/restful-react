@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "license": "MIT",
   "files": [
-    "dist"
+    "lib"
   ],
   "engines": {
     "vscode": "^1.22.0"
@@ -33,33 +33,15 @@
     "url": "https://github.com/contiamo/restful-react"
   },
   "scripts": {
-    "test": "jest",
-    "watch": "rollup -cw",
-    "build": "rollup -c",
-    "precommit": "lint-staged",
+    "start": "operational-scripts start",
+    "test": "operational-scripts test",
+    "build": "operational-scripts build --for npm",
     "preversion": "npm run build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
-    "lint": "tslint src/**/*{ts,tsx} --project .",
-    "ci": "npm run jest && npm run lint",
-    "jest": "jest --outputFile test-results.json --json"
-  },
-  "lint-staged": {
-    "*.md": [
-      "prettier --write",
-      "doctoc",
-      "git add"
-    ],
-    "*.json": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.(tsx|ts)": [
-      "tslint --fix --project .",
-      "prettier --write",
-      "git add"
-    ]
+    "prepublishOnly": "operational-scripts prepare"
   },
   "devDependencies": {
+    "@operational/scripts": "^1.1.2",
     "@types/jest": "^23.3.1",
     "@types/lodash": "^4.14.116",
     "@types/nock": "^9.3.0",
@@ -77,8 +59,6 @@
     "prettier": "^1.13.5",
     "react-dom": "^16.4.2",
     "react-testing-library": "^5.0.0",
-    "rollup": "^0.65.0",
-    "rollup-plugin-typescript2": "^0.17.0",
     "ts-jest": "^23.1.4",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
@@ -92,20 +72,5 @@
   },
   "peerDependencies": {
     "react": "^16.4.1"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ],
-    "testURL": "http://localhost"
   }
 }

@@ -90,7 +90,10 @@ typings/
 # dotenv environment variables file
 .env
 
-#!! ERROR: vscode is undefined. Use list command to see defined gitignore types !!#
+public
+lib
 
-
-# End of https://www.gitignore.io/api/node,macos,vscode
+# Files managed by operational-scripts
+tslint.json
+tsconfig.json
+.prettierrc
