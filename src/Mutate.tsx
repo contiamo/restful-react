@@ -1,6 +1,7 @@
 import * as React from "react";
 import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
+import { processResponse } from "./util/processResponse";
 
 /**
  * An enumeration of states that a fetchable
@@ -122,18 +123,17 @@ class ContextlessMutate<TData, TError> extends React.Component<MutateProps<TData
     });
 
     const response = await fetch(request);
+    const { data, responseError } = await processResponse(response);
 
-    if (!response.ok) {
-      const responseData = await response.json();
+    if (!response.ok || responseError) {
       this.setState({
         loading: false,
-        error: { data: responseData, message: `Failed to fetch: ${response.status} ${response.statusText}` },
       });
-      throw response;
+      throw { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
     }
 
     this.setState({ loading: false });
-    return response;
+    return data;
   };
 
   public render() {
