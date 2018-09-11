@@ -134,7 +134,7 @@ describe("Poll", () => {
     it("should send data on data", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;"
+          prefer: "wait=0s;"
         }
       })
         .get("/")
@@ -142,7 +142,7 @@ describe("Poll", () => {
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;index=1"
+          prefer: "wait=0s;index=1"
         }
       })
         .get("/")
@@ -153,7 +153,9 @@ describe("Poll", () => {
 
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Poll path="">{children}</Poll>
+          <Poll path="" wait={0}>
+            {children}
+          </Poll>
         </RestfulProvider>
       );
 
@@ -164,7 +166,7 @@ describe("Poll", () => {
     it("should update data if the response change", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;"
+          prefer: "wait=0s;"
         }
       })
         .get("/")
@@ -172,7 +174,7 @@ describe("Poll", () => {
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;index=1"
+          prefer: "wait=0s;index=1"
         }
       })
         .get("/")
@@ -183,7 +185,9 @@ describe("Poll", () => {
 
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Poll path="">{children}</Poll>
+          <Poll path="" wait={0}>
+            {children}
+          </Poll>
         </RestfulProvider>
       );
 
@@ -243,6 +247,27 @@ describe("Poll", () => {
   });
 
   describe("with custom resolver", () => {
+    it("should use the provider resolver", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider
+          base="https://my-awesome-api.fake"
+          resolve={data => ({ ...data, foo: "bar" })}
+        >
+          <Poll path="">{children}</Poll>
+        </RestfulProvider>
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual({ hello: "world", foo: "bar" });
+    });
+
     it("should transform data", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -261,6 +286,44 @@ describe("Poll", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(children.mock.calls[1][0]).toEqual({ hello: "world", foo: "bar" });
+    });
+
+    it("should be able to consolidate data", async () => {
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=0s;"
+        }
+      })
+        .get("/")
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=0s;index=1"
+        }
+      })
+        .get("/")
+        .reply(200, { data: " you" }, { "x-polling-index": "2" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll
+            path=""
+            wait={0}
+            resolve={(data, prevData) => ({
+              data: (prevData || { data: "" }).data + data.data
+            })}
+          >
+            {children}
+          </Poll>
+        </RestfulProvider>
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      expect(children.mock.calls[2][0]).toEqual({ data: "hello you" });
     });
   });
 

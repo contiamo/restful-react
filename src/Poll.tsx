@@ -95,7 +95,7 @@ export interface PollProps<TData, TError> {
   /**
    * Should the data be transformed in any way?
    */
-  resolve?: GetProps<TData, TError>["resolve"];
+  resolve?: (data: any, prevData: TData) => TData;
   /**
    * We can request foreign URLs with this prop.
    */
@@ -245,10 +245,10 @@ class ContextlessPoll<TData, TError> extends React.Component<
       }
 
       if (this.isModified(response, data)) {
-        this.setState(() => ({
+        this.setState(prevState => ({
           loading: false,
           lastResponse: response,
-          data: resolve ? resolve(data) : data,
+          data: resolve ? resolve(data, prevState.data) : data,
           lastPollIndex: response.headers.get("x-polling-index") || undefined
         }));
       }
