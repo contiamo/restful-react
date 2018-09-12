@@ -59,7 +59,12 @@ export interface PollProps<TData, TError> {
    * states, meta information, and various actions
    * that can be executed at the poll-level.
    */
-  children: (data: TData | null, states: States<TData, TError>, actions: Actions, meta: Meta) => React.ReactNode;
+  children: (
+    data: TData | null,
+    states: States<TData, TError>,
+    actions: Actions,
+    meta: Meta
+  ) => React.ReactNode;
   /**
    * How long do we wait between repeating a request?
    * Value in milliseconds.
@@ -90,7 +95,7 @@ export interface PollProps<TData, TError> {
   /**
    * Should the data be transformed in any way?
    */
-  resolve?: GetProps<TData, TError>["resolve"];
+  resolve?: (data: any, prevData: TData) => TData;
   /**
    * We can request foreign URLs with this prop.
    */
@@ -150,16 +155,22 @@ class ContextlessPoll<TData, TError> extends React.Component<
     lastResponse: null,
     polling: !this.props.lazy,
     finished: false,
-    error: null,
+    error: null
   };
 
   public static defaultProps = {
     interval: 1000,
     wait: 60,
-    resolve: (data: any) => data,
+    resolve: (data: any) => data
   };
 
   private keepPolling = !this.props.lazy;
+
+  /**
+   * Abort controller to cancel the current fetch query
+   */
+  private abortController = new AbortController();
+  private signal = this.abortController.signal;
 
   private isModified = (response: Response, nextData: TData) => {
     if (response.status === 304) {
@@ -172,10 +183,13 @@ class ContextlessPoll<TData, TError> extends React.Component<
   };
 
   private getRequestOptions = () =>
-    typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
+    typeof this.props.requestOptions === "function"
+      ? this.props.requestOptions()
+      : this.props.requestOptions || {};
 
   // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
-  private isResponseOk = (response: Response) => response.ok || response.status === 304;
+  private isResponseOk = (response: Response) =>
+    response.ok || response.status === 304;
 
   /**
    * This thing does the actual poll.
@@ -187,7 +201,10 @@ class ContextlessPoll<TData, TError> extends React.Component<
     }
 
     // Should we stop?
-    if (this.props.until && this.props.until(this.state.data, this.state.lastResponse)) {
+    if (
+      this.props.until &&
+      this.props.until(this.state.data, this.state.lastResponse)
+    ) {
       await this.stop(); // stop.
       return;
     }
@@ -199,44 +216,60 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
     const request = new Request(`${base}${path}`, {
       ...requestOptions,
-
       headers: {
-        Prefer: `wait=${wait}s;${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
-
-        ...requestOptions.headers,
-      },
+        Prefer: `wait=${wait}s;${
+          lastPollIndex ? `index=${lastPollIndex}` : ""
+        }`,
+        ...requestOptions.headers
+      }
     });
 
-    const response = await fetch(request);
-    const { data, responseError } = await processResponse(response);
+    try {
+      const response = await fetch(request, { signal: this.signal });
+      const { data, responseError } = await processResponse(response);
 
-    if (!this.isResponseOk(response) || responseError) {
-      const error = { message: `${response.status} ${response.statusText}${responseError ? " - " + data : ""}`, data };
-      this.setState({ loading: false, lastResponse: response, data, error });
-      throw new Error(`Failed to Poll: ${error}`);
+      if (!this.keepPolling) {
+        // Early return if we have stopped polling to avoid memory leaks
+        return;
+      }
+
+      if (!this.isResponseOk(response) || responseError) {
+        const error = {
+          message: `${response.status} ${response.statusText}${
+            responseError ? " - " + data : ""
+          }`,
+          data
+        };
+        this.setState({ loading: false, lastResponse: response, data, error });
+        throw new Error(`Failed to Poll: ${error}`);
+      }
+
+      if (this.isModified(response, data)) {
+        this.setState(prevState => ({
+          loading: false,
+          lastResponse: response,
+          data: resolve ? resolve(data, prevState.data) : data,
+          lastPollIndex: response.headers.get("x-polling-index") || undefined
+        }));
+      }
+
+      // Wait for interval to pass.
+      await new Promise(resolvePromise => setTimeout(resolvePromise, interval));
+      this.cycle(); // Do it all again!
+    } catch (e) {
+      // the only error not catched is the `fetch`, this means that we have cancelled the fetch
     }
-
-    if (this.isModified(response, data)) {
-      this.setState(() => ({
-        loading: false,
-        lastResponse: response,
-        data: resolve ? resolve(data) : data,
-        lastPollIndex: response.headers.get("x-polling-index") || undefined,
-      }));
-    }
-
-    // Wait for interval to pass.
-    await new Promise(resolvePromise => setTimeout(resolvePromise, interval));
-    this.cycle(); // Do it all again!
   };
 
-  public start = async () => {
+  public start = () => {
     this.keepPolling = true;
-    this.setState(() => ({ polling: true })); // let everyone know we're done here.
+    if (!this.state.polling) {
+      this.setState(() => ({ polling: true })); // let everyone know we're done here.
+    }
     this.cycle();
   };
 
-  public stop = async () => {
+  public stop = () => {
     this.keepPolling = false;
     this.setState(() => ({ polling: false, finished: true })); // let everyone know we're done here.
   };
@@ -244,9 +277,9 @@ class ContextlessPoll<TData, TError> extends React.Component<
   public componentDidMount() {
     const { path, lazy } = this.props;
 
-    if (!path) {
+    if (path === undefined) {
       throw new Error(
-        `[restful-react]: You're trying to poll something without a path. Please specify a "path" prop on your Poll component.`,
+        `[restful-react]: You're trying to poll something without a path. Please specify a "path" prop on your Poll component.`
       );
     }
 
@@ -256,28 +289,39 @@ class ContextlessPoll<TData, TError> extends React.Component<
   }
 
   public componentWillUnmount() {
+    // Cancel the current query
+    this.abortController.abort();
+
+    // Stop the polling cycle
     this.stop();
   }
 
   public render() {
-    const { lastResponse: response, data, polling, loading, error, finished } = this.state;
+    const {
+      lastResponse: response,
+      data,
+      polling,
+      loading,
+      error,
+      finished
+    } = this.state;
     const { children, base, path } = this.props;
 
     const meta: Meta = {
       response,
-      absolutePath: `${base}${path}`,
+      absolutePath: `${base}${path}`
     };
 
     const states: States<TData, TError> = {
       polling,
       loading,
       error,
-      finished,
+      finished
     };
 
     const actions: Actions = {
       stop: this.stop,
-      start: this.start,
+      start: this.start
     };
 
     return children(data, states, actions, meta);
@@ -292,7 +336,10 @@ function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
         <ContextlessPoll
           {...contextProps}
           {...props}
-          requestOptions={{ ...contextProps.requestOptions, ...props.requestOptions }}
+          requestOptions={{
+            ...contextProps.requestOptions,
+            ...props.requestOptions
+          }}
         />
       )}
     </RestfulReactConsumer>
