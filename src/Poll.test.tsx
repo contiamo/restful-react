@@ -196,7 +196,7 @@ describe("Poll", () => {
     });
   });
 
-  describe.skip("with error", () => {
+  describe("with error", () => {
     it("should set the `error` object properly", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -215,7 +215,7 @@ describe("Poll", () => {
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data: { message: "You shall not pass!" },
-        message: "Failed to fetch: 401 Unauthorized"
+        message: "Failed to poll: 401 Unauthorized"
       });
     });
 
@@ -241,8 +241,48 @@ describe("Poll", () => {
         data:
           "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
         message:
-          "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0"
+          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0"
       });
+    });
+
+    it("should continue polling after an error", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(504, "<html>504 Gateway Time-out</html>", {
+          "content-type": "text/html"
+        });
+
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=0s;"
+        }
+      })
+        .get("/")
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll path="" wait={0}>
+            {children}
+          </Poll>
+        </RestfulProvider>
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // first res (error)
+      expect(children.mock.calls[1][0]).toEqual(null);
+      expect(children.mock.calls[1][1].error).toEqual({
+        data: "<html>504 Gateway Time-out</html>",
+        message: "Failed to poll: 504 Gateway Timeout"
+      });
+
+      // second res (success)
+      expect(children.mock.calls[2][0]).toEqual({ data: "hello" });
+      expect(children.mock.calls[2][1].error).toEqual(null);
     });
   });
 
