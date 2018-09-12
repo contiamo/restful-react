@@ -59,12 +59,7 @@ export interface PollProps<TData, TError> {
    * states, meta information, and various actions
    * that can be executed at the poll-level.
    */
-  children: (
-    data: TData | null,
-    states: States<TData, TError>,
-    actions: Actions,
-    meta: Meta
-  ) => React.ReactNode;
+  children: (data: TData | null, states: States<TData, TError>, actions: Actions, meta: Meta) => React.ReactNode;
   /**
    * How long do we wait between repeating a request?
    * Value in milliseconds.
@@ -95,7 +90,7 @@ export interface PollProps<TData, TError> {
   /**
    * Should the data be transformed in any way?
    */
-  resolve?: (data: any, prevData: TData) => TData;
+  resolve?: (data: any, prevData: TData | null) => TData;
   /**
    * We can request foreign URLs with this prop.
    */
@@ -155,13 +150,13 @@ class ContextlessPoll<TData, TError> extends React.Component<
     lastResponse: null,
     polling: !this.props.lazy,
     finished: false,
-    error: null
+    error: null,
   };
 
   public static defaultProps = {
     interval: 1000,
     wait: 60,
-    resolve: (data: any) => data
+    resolve: (data: any) => data,
   };
 
   private keepPolling = !this.props.lazy;
@@ -183,13 +178,10 @@ class ContextlessPoll<TData, TError> extends React.Component<
   };
 
   private getRequestOptions = () =>
-    typeof this.props.requestOptions === "function"
-      ? this.props.requestOptions()
-      : this.props.requestOptions || {};
+    typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
 
   // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
-  private isResponseOk = (response: Response) =>
-    response.ok || response.status === 304;
+  private isResponseOk = (response: Response) => response.ok || response.status === 304;
 
   /**
    * This thing does the actual poll.
@@ -201,10 +193,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
     }
 
     // Should we stop?
-    if (
-      this.props.until &&
-      this.props.until(this.state.data, this.state.lastResponse)
-    ) {
+    if (this.props.until && this.props.until(this.state.data, this.state.lastResponse)) {
       await this.stop(); // stop.
       return;
     }
@@ -217,11 +206,9 @@ class ContextlessPoll<TData, TError> extends React.Component<
     const request = new Request(`${base}${path}`, {
       ...requestOptions,
       headers: {
-        Prefer: `wait=${wait}s;${
-          lastPollIndex ? `index=${lastPollIndex}` : ""
-        }`,
-        ...requestOptions.headers
-      }
+        Prefer: `wait=${wait}s;${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
+        ...requestOptions.headers,
+      },
     });
 
     try {
@@ -235,10 +222,8 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
       if (!this.isResponseOk(response) || responseError) {
         const error = {
-          message: `${response.status} ${response.statusText}${
-            responseError ? " - " + data : ""
-          }`,
-          data
+          message: `${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+          data,
         };
         this.setState({ loading: false, lastResponse: response, data, error });
         throw new Error(`Failed to Poll: ${error}`);
@@ -249,7 +234,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
           loading: false,
           lastResponse: response,
           data: resolve ? resolve(data, prevState.data) : data,
-          lastPollIndex: response.headers.get("x-polling-index") || undefined
+          lastPollIndex: response.headers.get("x-polling-index") || undefined,
         }));
       }
 
@@ -279,7 +264,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
     if (path === undefined) {
       throw new Error(
-        `[restful-react]: You're trying to poll something without a path. Please specify a "path" prop on your Poll component.`
+        `[restful-react]: You're trying to poll something without a path. Please specify a "path" prop on your Poll component.`,
       );
     }
 
@@ -297,31 +282,24 @@ class ContextlessPoll<TData, TError> extends React.Component<
   }
 
   public render() {
-    const {
-      lastResponse: response,
-      data,
-      polling,
-      loading,
-      error,
-      finished
-    } = this.state;
+    const { lastResponse: response, data, polling, loading, error, finished } = this.state;
     const { children, base, path } = this.props;
 
     const meta: Meta = {
       response,
-      absolutePath: `${base}${path}`
+      absolutePath: `${base}${path}`,
     };
 
     const states: States<TData, TError> = {
       polling,
       loading,
       error,
-      finished
+      finished,
     };
 
     const actions: Actions = {
       stop: this.stop,
-      start: this.start
+      start: this.start,
     };
 
     return children(data, states, actions, meta);
@@ -338,7 +316,7 @@ function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
           {...props}
           requestOptions={{
             ...contextProps.requestOptions,
-            ...props.requestOptions
+            ...props.requestOptions,
           }}
         />
       )}
