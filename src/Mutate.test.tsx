@@ -220,10 +220,50 @@ describe("Mutate", () => {
         /* noop */
       });
 
-      expect(onError).toBeCalledWith({
-        data: { message: "You shall not pass!" },
-        message: "Failed to fetch: 401 Unauthorized",
+      expect(onError).toBeCalledWith(
+        {
+          data: { message: "You shall not pass!" },
+          message: "Failed to fetch: 401 Unauthorized",
+        },
+        expect.any(Function),
+      );
+    });
+
+    it("should be able to retry after an error", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(401, { message: "You shall not pass!" });
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(200, { message: "You shall pass :)" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Mutate verb="POST" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      // post action
+      await children.mock.calls[0][0]().catch(() => {
+        /* noop */
       });
+
+      expect(onError).toBeCalledWith(
+        {
+          data: { message: "You shall not pass!" },
+          message: "Failed to fetch: 401 Unauthorized",
+        },
+        expect.any(Function),
+      );
+      const data = await onError.mock.calls[0][1]();
+      expect(data).toEqual({ message: "You shall pass :)" });
     });
 
     it("should not call the provider onError if localErrorOnly is true", async () => {

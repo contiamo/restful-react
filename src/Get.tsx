@@ -214,7 +214,7 @@ class ContextlessGet<TData, TError> extends React.Component<
       });
 
       if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error);
+        this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions));
       }
 
       return null;

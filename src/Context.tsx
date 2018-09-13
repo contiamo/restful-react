@@ -15,9 +15,13 @@ export interface RestfulReactProviderProps<T = any> {
    */
   requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
   /**
-   * Trigger on each error
+   * Trigger on each error.
+   * For `Get` and `Mutation` calls, you can also call `retry` to retry the exact same request.
+   * Please note that it's quite hard to retrieve the response data after a retry mutation in this case.
+   * Depending of your case, it can be easier to add a `localErrorOnly` on your `Mutate` component
+   * to deal with your retry locally instead of in the provider scope.
    */
-  onError?: (err: any) => void;
+  onError?: (err: any, retry?: () => Promise<T | null>) => void;
 }
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<Required<RestfulReactProviderProps>>({

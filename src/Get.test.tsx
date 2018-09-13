@@ -169,10 +169,45 @@ describe("Get", () => {
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
-      expect(onError).toBeCalledWith({
-        data: { message: "You shall not pass!" },
-        message: "Failed to fetch: 401 Unauthorized",
-      });
+      expect(onError).toBeCalledWith(
+        {
+          data: { message: "You shall not pass!" },
+          message: "Failed to fetch: 401 Unauthorized",
+        },
+        expect.any(Function),
+      );
+    });
+
+    it("should be able to retry after an error", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(401, { message: "You shall not pass!" });
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { message: "You shall pass :)" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onError).toBeCalledWith(
+        {
+          data: { message: "You shall not pass!" },
+          message: "Failed to fetch: 401 Unauthorized",
+        },
+        expect.any(Function),
+      );
+      onError.mock.calls[0][1]();
+      await wait(() => expect(children.mock.calls.length).toBe(4));
+      expect(children.mock.calls[3][0]).toEqual({ message: "You shall pass :)" });
     });
 
     it("should not call the provider onError if localErrorOnly is true", async () => {
