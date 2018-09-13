@@ -16,16 +16,16 @@ describe("Poll", () => {
     it("should call the url set in provider", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;"
-        }
+          prefer: "wait=60s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;index=1"
-        }
+          prefer: "wait=60s;index=1",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "2" });
@@ -36,7 +36,7 @@ describe("Poll", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Poll path="">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -45,16 +45,16 @@ describe("Poll", () => {
     it("should compose the url with the base", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;"
-        }
+          prefer: "wait=60s;",
+        },
       })
         .get("/plop")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;index=1"
-        }
+          prefer: "wait=60s;index=1",
+        },
       })
         .get("/plop")
         .reply(200, { data: "hello" }, { "x-polling-index": "2" });
@@ -65,7 +65,7 @@ describe("Poll", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Poll path="/plop">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -74,16 +74,16 @@ describe("Poll", () => {
     it("should set loading to `true` on mount", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;"
-        }
+          prefer: "wait=60s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;index=1"
-        }
+          prefer: "wait=60s;index=1",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "2" });
@@ -94,7 +94,7 @@ describe("Poll", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Poll path="">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -104,16 +104,16 @@ describe("Poll", () => {
     it("should set loading to `false` on data", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;"
-        }
+          prefer: "wait=60s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=60s;index=1"
-        }
+          prefer: "wait=60s;index=1",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "2" });
@@ -124,7 +124,7 @@ describe("Poll", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Poll path="">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -134,16 +134,16 @@ describe("Poll", () => {
     it("should send data on data", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;"
-        }
+          prefer: "wait=0s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;index=1"
-        }
+          prefer: "wait=0s;index=1",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "2" });
@@ -156,7 +156,7 @@ describe("Poll", () => {
           <Poll path="" wait={0}>
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -166,16 +166,16 @@ describe("Poll", () => {
     it("should update data if the response change", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;"
-        }
+          prefer: "wait=0s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;index=1"
-        }
+          prefer: "wait=0s;index=1",
+        },
       })
         .get("/")
         .reply(200, { data: "hello you" }, { "x-polling-index": "2" });
@@ -188,7 +188,7 @@ describe("Poll", () => {
           <Poll path="" wait={0}>
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(3));
@@ -208,14 +208,14 @@ describe("Poll", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Poll path="">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data: { message: "You shall not pass!" },
-        message: "Failed to poll: 401 Unauthorized"
+        message: "Failed to poll: 401 Unauthorized",
       });
     });
 
@@ -223,7 +223,7 @@ describe("Poll", () => {
       nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, "<html>404 - this is not a json!</html>", {
-          "content-type": "application/json"
+          "content-type": "application/json",
         });
 
       const children = jest.fn();
@@ -232,7 +232,7 @@ describe("Poll", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Poll path="">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -241,7 +241,7 @@ describe("Poll", () => {
         data:
           "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
         message:
-          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0"
+          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
       });
     });
 
@@ -249,13 +249,13 @@ describe("Poll", () => {
       nock("https://my-awesome-api.fake")
         .get("/")
         .reply(504, "<html>504 Gateway Time-out</html>", {
-          "content-type": "text/html"
+          "content-type": "text/html",
         });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;"
-        }
+          prefer: "wait=0s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
@@ -268,7 +268,7 @@ describe("Poll", () => {
           <Poll path="" wait={0}>
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(3));
@@ -277,7 +277,7 @@ describe("Poll", () => {
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data: "<html>504 Gateway Time-out</html>",
-        message: "Failed to poll: 504 Gateway Timeout"
+        message: "Failed to poll: 504 Gateway Timeout",
       });
 
       // second res (success)
@@ -296,12 +296,9 @@ describe("Poll", () => {
       children.mockReturnValue(<div />);
 
       render(
-        <RestfulProvider
-          base="https://my-awesome-api.fake"
-          resolve={data => ({ ...data, foo: "bar" })}
-        >
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={data => ({ ...data, foo: "bar" })}>
           <Poll path="">{children}</Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -321,7 +318,7 @@ describe("Poll", () => {
           <Poll path="" resolve={data => ({ ...data, foo: "bar" })}>
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -331,16 +328,16 @@ describe("Poll", () => {
     it("should be able to consolidate data", async () => {
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;"
-        }
+          prefer: "wait=0s;",
+        },
       })
         .get("/")
         .reply(200, { data: "hello" }, { "x-polling-index": "1" });
 
       nock("https://my-awesome-api.fake", {
         reqheaders: {
-          prefer: "wait=0s;index=1"
-        }
+          prefer: "wait=0s;index=1",
+        },
       })
         .get("/")
         .reply(200, { data: " you" }, { "x-polling-index": "2" });
@@ -354,12 +351,12 @@ describe("Poll", () => {
             path=""
             wait={0}
             resolve={(data, prevData) => ({
-              data: (prevData || { data: "" }).data + data.data
+              data: (prevData || { data: "" }).data + data.data,
             })}
           >
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(3));
@@ -377,7 +374,7 @@ describe("Poll", () => {
           <Poll path="" lazy>
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(1));
@@ -400,7 +397,7 @@ describe("Poll", () => {
           <Poll path="" base="https://my-awesome-api.fake">
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -421,7 +418,7 @@ describe("Poll", () => {
           <Poll path="/plop" base="https://my-awesome-api.fake">
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
@@ -444,7 +441,7 @@ describe("Poll", () => {
           <Poll path="" requestOptions={{ headers: { foo: "bar" } }}>
             {children}
           </Poll>
-        </RestfulProvider>
+        </RestfulProvider>,
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
