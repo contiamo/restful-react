@@ -222,18 +222,16 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
       if (!this.isResponseOk(response) || responseError) {
         const error = {
-          message: `${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+          message: `Failed to poll: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
           data,
         };
-        this.setState({ loading: false, lastResponse: response, data, error });
-        throw new Error(`Failed to Poll: ${error}`);
-      }
-
-      if (this.isModified(response, data)) {
+        this.setState({ loading: false, lastResponse: response, error });
+      } else if (this.isModified(response, data)) {
         this.setState(prevState => ({
           loading: false,
           lastResponse: response,
           data: resolve ? resolve(data, prevState.data) : data,
+          error: null,
           lastPollIndex: response.headers.get("x-polling-index") || undefined,
         }));
       }
