@@ -1,7 +1,7 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import * as React from "react";
-import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -66,6 +66,10 @@ export interface GetProps<TData, TError> {
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
+   * Don't send the error to the Provider
+   */
+  localErrorOnly?: boolean;
+  /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
@@ -117,10 +121,10 @@ export interface GetState<TData, TError> {
  * debugging.
  */
 class ContextlessGet<TData, TError> extends React.Component<
-  GetProps<TData, TError>,
+  GetProps<TData, TError> & InjectedProps,
   Readonly<GetState<TData, TError>>
 > {
-  constructor(props: GetProps<TData, TError>) {
+  constructor(props: GetProps<TData, TError> & InjectedProps) {
     super(props);
 
     if (typeof props.debounce === "object") {
@@ -199,13 +203,20 @@ class ContextlessGet<TData, TError> extends React.Component<
     const { data, responseError } = await processResponse(response);
 
     if (!response.ok || responseError) {
+      const error = {
+        message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+        data,
+      };
+
       this.setState({
         loading: false,
-        error: {
-          message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
-          data,
-        },
+        error,
       });
+
+      if (!this.props.localErrorOnly && this.props.onError) {
+        this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions));
+      }
+
       return null;
     }
 

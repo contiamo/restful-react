@@ -1,7 +1,7 @@
 import React from "react";
 import equal from "react-fast-compare";
 
-import { RestfulReactConsumer } from "./Context";
+import { InjectedProps, RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
 import { processResponse } from "./util/processResponse";
 
@@ -99,6 +99,10 @@ export interface PollProps<TData, TError> {
    * Any options to be passed to this request.
    */
   requestOptions?: GetProps<TData, TError>["requestOptions"];
+  /**
+   * Don't send the error to the Provider
+   */
+  localErrorOnly?: boolean;
 }
 
 /**
@@ -141,7 +145,7 @@ export interface PollState<TData, TError> {
  * The <Poll /> component without context.
  */
 class ContextlessPoll<TData, TError> extends React.Component<
-  PollProps<TData, TError>,
+  PollProps<TData, TError> & InjectedProps,
   Readonly<PollState<TData, TError>>
 > {
   public readonly state: Readonly<PollState<TData, TError>> = {
@@ -226,6 +230,10 @@ class ContextlessPoll<TData, TError> extends React.Component<
           data,
         };
         this.setState({ loading: false, lastResponse: response, error });
+
+        if (!this.props.localErrorOnly && this.props.onError) {
+          this.props.onError(error);
+        }
       } else if (this.isModified(response, data)) {
         this.setState(prevState => ({
           loading: false,

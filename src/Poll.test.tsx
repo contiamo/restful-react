@@ -284,6 +284,51 @@ describe("Poll", () => {
       expect(children.mock.calls[2][0]).toEqual({ data: "hello" });
       expect(children.mock.calls[2][1].error).toEqual(null);
     });
+
+    it("should call the provider onError", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(401, { message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Poll path="">{children}</Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onError).toBeCalledWith({
+        data: { message: "You shall not pass!" },
+        message: "Failed to poll: 401 Unauthorized",
+      });
+    });
+
+    it("should set the `error` object properly", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(401, { message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Poll path="" localErrorOnly>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onError.mock.calls.length).toEqual(0);
+    });
   });
 
   describe("with custom resolver", () => {
