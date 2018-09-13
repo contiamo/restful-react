@@ -1,5 +1,5 @@
 import * as React from "react";
-import RestfulReactProvider, { RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
 
@@ -46,6 +46,10 @@ export interface MutateCommonProps {
   base?: string;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
+  /**
+   * Don't send the error to the Provider
+   */
+  localErrorOnly?: boolean;
 }
 
 export interface MutateWithDeleteProps<TData, TError> extends MutateCommonProps {
@@ -96,7 +100,10 @@ export interface MutateState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessMutate<TData, TError> extends React.Component<MutateProps<TData, TError>, MutateState<TData, TError>> {
+class ContextlessMutate<TData, TError> extends React.Component<
+  MutateProps<TData, TError> & InjectedProps,
+  MutateState<TData, TError>
+> {
   public readonly state: Readonly<MutateState<TData, TError>> = {
     response: null,
     loading: false,
@@ -126,10 +133,17 @@ class ContextlessMutate<TData, TError> extends React.Component<MutateProps<TData
     const { data, responseError } = await processResponse(response);
 
     if (!response.ok || responseError) {
+      const error = { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
+
       this.setState({
         loading: false,
       });
-      throw { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
+
+      if (!this.props.localErrorOnly && this.props.onError) {
+        this.props.onError(error);
+      }
+
+      throw error;
     }
 
     this.setState({ loading: false });

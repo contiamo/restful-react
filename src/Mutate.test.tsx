@@ -196,5 +196,60 @@ describe("Mutate", () => {
         });
       });
     });
+
+    it("should call the provider onError", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(401, { message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Mutate verb="POST" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      // post action
+      await children.mock.calls[0][0]().catch(() => {
+        /* noop */
+      });
+
+      expect(onError).toBeCalledWith({
+        data: { message: "You shall not pass!" },
+        message: "Failed to fetch: 401 Unauthorized",
+      });
+    });
+
+    it("should not call the provider onError if localErrorOnly is true", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(401, { message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Mutate verb="POST" path="" localErrorOnly>
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      // post action
+      await children.mock.calls[0][0]().catch(() => {
+        /* noop */
+      });
+
+      expect(onError.mock.calls.length).toEqual(0);
+    });
   });
 });

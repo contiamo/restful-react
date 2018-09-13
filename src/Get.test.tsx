@@ -129,7 +129,9 @@ describe("Get", () => {
     it("should deal with non standard server error response (nginx style)", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
-        .reply(200, "<html>404 - this is not a json!</html>", { "content-type": "application/json" });
+        .reply(200, "<html>404 - this is not a json!</html>", {
+          "content-type": "application/json",
+        });
 
       const children = jest.fn();
       children.mockReturnValue(<div />);
@@ -148,6 +150,51 @@ describe("Get", () => {
         message:
           "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
       });
+    });
+
+    it("should call the provider onError", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(401, { message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onError).toBeCalledWith({
+        data: { message: "You shall not pass!" },
+        message: "Failed to fetch: 401 Unauthorized",
+      });
+    });
+
+    it("should not call the provider onError if localErrorOnly is true", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(401, { message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Get path="" localErrorOnly>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onError.mock.calls.length).toEqual(0);
     });
   });
 
