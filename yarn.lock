@@ -16,6 +16,13 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
+"@babel/polyfill@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@babel/polyfill/-/polyfill-7.0.0.tgz#c8ff65c9ec3be6a1ba10113ebd40e8750fb90bff"
+  dependencies:
+    core-js "^2.5.7"
+    regenerator-runtime "^0.11.1"
+
 "@most/multicast@^1.2.5":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@most/multicast/-/multicast-1.3.0.tgz#e01574840df634478ac3fabd164c6e830fb3b966"
@@ -25,19 +32,6 @@
 "@most/prelude@^1.4.0":
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/@most/prelude/-/prelude-1.7.2.tgz#be4ed406518d4c8c220e45c39fa7251365425b73"
-
-"@octokit/rest@^15.5.0":
-  version "15.9.5"
-  resolved "https://registry.yarnpkg.com/@octokit/rest/-/rest-15.9.5.tgz#e356d202bd0b517e381f705ad77d98ccb84e0c65"
-  dependencies:
-    before-after-hook "^1.1.0"
-    btoa-lite "^1.0.0"
-    debug "^3.1.0"
-    http-proxy-agent "^2.1.0"
-    https-proxy-agent "^2.2.0"
-    lodash "^4.17.4"
-    node-fetch "^2.1.1"
-    url-template "^2.0.8"
 
 "@octokit/rest@^15.9.5":
   version "15.11.1"
@@ -1508,7 +1502,7 @@ core-js@^1.0.0:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-1.2.7.tgz#652294c14651db28fa93bd2d5ff2983a4f08c636"
 
-core-js@^2.4.0, core-js@^2.5.0:
+core-js@^2.4.0, core-js@^2.5.0, core-js@^2.5.7:
   version "2.5.7"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.7.tgz#f972608ff0cead68b841a16a932d0b183791814e"
 
@@ -1667,11 +1661,11 @@ danger-plugin-jest@^1.1.0:
   optionalDependencies:
     serve "^5.1.5"
 
-danger@^3.8.4:
-  version "3.8.4"
-  resolved "https://registry.yarnpkg.com/danger/-/danger-3.8.4.tgz#e84b8398a3b7dd5707d7628a833f529efa4d1354"
+danger@^3.8.6:
+  version "3.9.0"
+  resolved "https://registry.yarnpkg.com/danger/-/danger-3.9.0.tgz#41e6257fcfd4b92dcde16a47c96f5731931b5108"
   dependencies:
-    "@octokit/rest" "^15.5.0"
+    "@octokit/rest" "^15.9.5"
     babel-polyfill "^6.23.0"
     chalk "^2.3.0"
     commander "^2.13.0"
@@ -1702,12 +1696,12 @@ danger@^3.8.4:
     vm2 "^3.6.0"
     voca "^1.4.0"
 
-danger@^3.8.6:
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/danger/-/danger-3.9.0.tgz#41e6257fcfd4b92dcde16a47c96f5731931b5108"
+danger@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/danger/-/danger-4.0.1.tgz#e07c213b44fe9768534392ae4f2f2b0ba6121018"
   dependencies:
+    "@babel/polyfill" "^7.0.0"
     "@octokit/rest" "^15.9.5"
-    babel-polyfill "^6.23.0"
     chalk "^2.3.0"
     commander "^2.13.0"
     debug "^3.1.0"
@@ -6068,7 +6062,7 @@ regenerator-runtime@^0.10.5:
   version "0.10.5"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz#336c3efc1220adcedda2c9fab67b5a7955a33658"
 
-regenerator-runtime@^0.11.0:
+regenerator-runtime@^0.11.0, regenerator-runtime@^0.11.1:
   version "0.11.1"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
 
@@ -7066,6 +7060,12 @@ tslint-config-prettier@^1.14.0:
 tslint-plugin-blank-line@^0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/tslint-plugin-blank-line/-/tslint-plugin-blank-line-0.0.8.tgz#be606810d455bd9e8e4198331b2bb3440d43f56f"
+  dependencies:
+    "@types/node" "^8.0.28"
+
+tslint-plugin-blank-line@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/tslint-plugin-blank-line/-/tslint-plugin-blank-line-0.0.9.tgz#926b8933c34f3fd359f3d59dc965ac5eee752faa"
   dependencies:
     "@types/node" "^8.0.28"
 
