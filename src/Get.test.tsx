@@ -146,9 +146,9 @@ describe("Get", () => {
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data:
-          "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+          "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
         message:
-          "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+          "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
       });
     });
 

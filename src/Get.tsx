@@ -1,6 +1,7 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import * as React from "react";
+import url from "url";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { processResponse } from "./util/processResponse";
 
@@ -89,7 +90,7 @@ export interface GetProps<TData, TError> {
    * to fetch from an entirely different URL.
    *
    */
-  base?: string;
+  base: string;
   /**
    * How long do we wait between subsequent requests?
    * Uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) under the hood.
@@ -144,6 +145,7 @@ class ContextlessGet<TData, TError> extends React.Component<
   };
 
   public static defaultProps = {
+    base: "",
     resolve: (unresolvedData: any) => unresolvedData,
   };
 
@@ -198,7 +200,10 @@ class ContextlessGet<TData, TError> extends React.Component<
       this.setState(() => ({ error: null, loading: true }));
     }
 
-    const request = new Request(`${base}${requestPath || path || ""}`, this.getRequestOptions(thisRequestOptions));
+    const request = new Request(
+      url.resolve(base, requestPath || path || ""),
+      this.getRequestOptions(thisRequestOptions),
+    );
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
 
@@ -232,7 +237,12 @@ class ContextlessGet<TData, TError> extends React.Component<
       return <></>; // Show nothing until we have data.
     }
 
-    return children(data, { loading, error }, { refetch: this.fetch }, { response, absolutePath: `${base}${path}` });
+    return children(
+      data,
+      { loading, error },
+      { refetch: this.fetch },
+      { response, absolutePath: url.resolve(base, path) },
+    );
   }
 }
 
@@ -250,7 +260,7 @@ function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
+        <RestfulReactProvider {...contextProps} base={url.resolve(contextProps.base, props.path)}>
           <ContextlessGet {...contextProps} {...props} />
         </RestfulReactProvider>
       )}
