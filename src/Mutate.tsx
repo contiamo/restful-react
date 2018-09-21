@@ -44,7 +44,7 @@ export interface MutateCommonProps {
    * to fetch from an entirely different URL.
    *
    */
-  base: string;
+  base?: string;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
@@ -122,8 +122,8 @@ class ContextlessMutate<TData, TError> extends React.Component<
 
     const requestPath =
       verb === "DELETE" && typeof body === "string"
-        ? url.resolve(base, url.resolve(path, body))
-        : url.resolve(base, path);
+        ? url.resolve(base!, url.resolve(path, body))
+        : url.resolve(base!, path);
     const request = new Request(requestPath, {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
