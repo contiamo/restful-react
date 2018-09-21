@@ -1,5 +1,6 @@
 import React from "react";
 import equal from "react-fast-compare";
+import url from "url";
 
 import { InjectedProps, RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
@@ -94,7 +95,7 @@ export interface PollProps<TData, TError> {
   /**
    * We can request foreign URLs with this prop.
    */
-  base?: GetProps<TData, TError>["base"];
+  base: GetProps<TData, TError>["base"];
   /**
    * Any options to be passed to this request.
    */
@@ -160,6 +161,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
   public static defaultProps = {
     interval: 1000,
     wait: 60,
+    base: "",
     resolve: (data: any) => data,
   };
 
@@ -207,7 +209,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
     const { lastPollIndex } = this.state;
     const requestOptions = this.getRequestOptions();
 
-    const request = new Request(`${base}${path}`, {
+    const request = new Request(url.resolve(base, path), {
       ...requestOptions,
       headers: {
         Prefer: `wait=${wait}s;${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
@@ -293,7 +295,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
     const meta: Meta = {
       response,
-      absolutePath: `${base}${path}`,
+      absolutePath: url.resolve(base, path),
     };
 
     const states: States<TData, TError> = {

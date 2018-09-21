@@ -239,9 +239,9 @@ describe("Poll", () => {
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data:
-          "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+          "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
         message:
-          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
       });
     });
 

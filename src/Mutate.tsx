@@ -1,4 +1,5 @@
 import * as React from "react";
+import url from "url";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
@@ -33,7 +34,7 @@ export interface MutateCommonProps {
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
    */
-  path?: string;
+  path: string;
   /**
    * What HTTP verb are we using?
    */
@@ -43,7 +44,7 @@ export interface MutateCommonProps {
    * to fetch from an entirely different URL.
    *
    */
-  base?: string;
+  base: string;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
@@ -110,11 +111,19 @@ class ContextlessMutate<TData, TError> extends React.Component<
     error: null,
   };
 
+  public static defaultProps = {
+    base: "",
+    path: "",
+  };
+
   public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
     const { base, path, verb, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
-    const requestPath = verb === "DELETE" ? `${base}${path || ""}${body ? "/" + body : ""}` : `${base}${path || ""}`;
+    const requestPath =
+      verb === "DELETE" && typeof body === "string"
+        ? url.resolve(base, url.resolve(path, body))
+        : url.resolve(base, path);
     const request = new Request(requestPath, {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
