@@ -7,9 +7,6 @@
   "files": [
     "lib"
   ],
-  "engines": {
-    "vscode": "^1.22.0"
-  },
   "keywords": [
     "rest",
     "restful",
