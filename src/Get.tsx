@@ -90,7 +90,7 @@ export interface GetProps<TData, TError> {
    * to fetch from an entirely different URL.
    *
    */
-  base: string;
+  base?: string;
   /**
    * How long do we wait between subsequent requests?
    * Uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) under the hood.
@@ -201,7 +201,7 @@ class ContextlessGet<TData, TError> extends React.Component<
     }
 
     const request = new Request(
-      url.resolve(base, requestPath || path || ""),
+      url.resolve(base!, requestPath || path || ""),
       this.getRequestOptions(thisRequestOptions),
     );
     const response = await fetch(request);
@@ -241,7 +241,7 @@ class ContextlessGet<TData, TError> extends React.Component<
       data,
       { loading, error },
       { refetch: this.fetch },
-      { response, absolutePath: url.resolve(base, path) },
+      { response, absolutePath: url.resolve(base!, path) },
     );
   }
 }
