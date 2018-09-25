@@ -228,7 +228,7 @@ class ContextlessGet<TData, TError> extends React.Component<
     const { children, wait, path, base } = this.props;
     const { data, error, loading, response } = this.state;
 
-    if (wait && data === null) {
+    if (wait && data === null && !error) {
       return <></>; // Show nothing until we have data.
     }
 

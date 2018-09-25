@@ -274,6 +274,88 @@ describe("Get", () => {
     });
   });
 
+  describe("with wait", () => {
+    it("should render nothing if until we have data", async () => {
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" wait>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(0));
+    });
+
+    it("should render if we have data", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" wait>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toBe(false);
+      expect(children.mock.calls[0][0]).toEqual({ hello: "world" });
+    });
+    it("should render if we have data", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" wait>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toBe(false);
+      expect(children.mock.calls[0][0]).toEqual({ hello: "world" });
+    });
+
+    it("should render if we have an error", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(401, "Go away!");
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" wait>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toBe(false);
+      expect(children.mock.calls[0][1].error).toEqual({
+        data: "Go away!",
+        message: "Failed to fetch: 401 Unauthorized",
+      });
+    });
+  });
+
   describe("with base", () => {
     it("should override the base url", async () => {
       nock("https://my-awesome-api.fake")
