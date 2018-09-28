@@ -19,7 +19,7 @@ import YAML from "yamljs";
  *
  * @param property
  */
-const isReference = (property: any): property is ReferenceObject => {
+export const isReference = (property: any): property is ReferenceObject => {
   return Boolean(property.$ref);
 };
 
@@ -29,7 +29,7 @@ const isReference = (property: any): property is ReferenceObject => {
  * @param item
  * @ref https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#data-types
  */
-const getScalar = (item: SchemaObject) => {
+export const getScalar = (item: SchemaObject) => {
   switch (item.type) {
     case "integer":
     case "long":
@@ -47,6 +47,9 @@ const getScalar = (item: SchemaObject) => {
       return getObject(item);
 
     case "string":
+      if (item.enum) {
+        return `"${item.enum.join(`" | "`)}"`;
+      }
     case "byte":
     case "binary":
     case "date":
@@ -64,7 +67,7 @@ const getScalar = (item: SchemaObject) => {
  *
  * @param $ref
  */
-const getRef = ($ref: ReferenceObject["$ref"]) => {
+export const getRef = ($ref: ReferenceObject["$ref"]) => {
   if ($ref.startsWith("#/components/schemas")) {
     return pascal($ref.replace("#/components/schemas/", ""));
   } else {
@@ -77,12 +80,11 @@ const getRef = ($ref: ReferenceObject["$ref"]) => {
  *
  * @param item item with type === "array"
  */
-const getArray = (item: SchemaObject): string => {
-  const items = item.items!;
-  if (isReference(items)) {
-    return `${getRef(items.$ref)}[]`;
+export const getArray = (item: SchemaObject): string => {
+  if (item.items) {
+    return `${resolveValue(item.items)}[]`;
   } else {
-    return `${getScalar(items)}[]`;
+    throw new Error("All arrays must have an `items` key define");
   }
 };
 
@@ -91,10 +93,10 @@ const getArray = (item: SchemaObject): string => {
  *
  * @param item item with type === "object"
  */
-const getObject = (item: SchemaObject): string => {
+export const getObject = (item: SchemaObject): string => {
   if (item.additionalProperties) {
     if (isReference(item.additionalProperties)) {
-      return `{[key: string]: ${getRef(item.additionalProperties.$ref)}`;
+      return `{[key: string]: ${getRef(item.additionalProperties.$ref)}}`;
     } else if (item.additionalProperties.oneOf) {
       return `{[key: string]: ${item.additionalProperties.oneOf
         .map(prop => (isReference(prop) ? getRef(prop.$ref) : getScalar(prop)))
@@ -106,24 +108,29 @@ const getObject = (item: SchemaObject): string => {
 };
 
 /**
+ * Resolve the value of a schema object to a proper type definition.
+ * @param schema
+ */
+export const resolveValue = (schema: SchemaObject) => (isReference(schema) ? getRef(schema.$ref) : getScalar(schema));
+
+/**
  * Extract responses types from open-api specs
  *
  * @todo remove potential duplicates
  * @param responses reponses object from open-api specs
- * @param componentName name of the current component
  */
-const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceObject]>, componentName: string) =>
+export const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceObject]>) =>
   responses
-    .map(([statusCode, res]) => {
+    .map(([_, res]) => {
       if (isReference(res)) {
         throw new Error("$ref are not implemented inside responses");
       } else {
         if (res.content && res.content["application/json"]) {
           const schema = res.content["application/json"].schema!;
-          return isReference(schema) ? getRef(schema.$ref) : getScalar(schema);
+          return resolveValue(schema);
         } else if (res.content && res.content["application/octet-stream"]) {
           const schema = res.content["application/octet-stream"].schema!;
-          return isReference(schema) ? getRef(schema.$ref) : getScalar(schema);
+          return resolveValue(schema);
         } else {
           return "void";
         }
@@ -139,7 +146,7 @@ const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceOb
 const importSpecs = (path: string): OpenAPIObject => {
   const data = readFileSync(path, "utf-8");
   const { ext } = parse(path);
-  return ext === ".yaml" ? YAML.parse(data) : JSON.parse(data);
+  return ext === ".yaml" || ext === ".yml" ? YAML.parse(data) : JSON.parse(data);
 };
 
 /**
@@ -147,25 +154,30 @@ const importSpecs = (path: string): OpenAPIObject => {
  *
  * @param operation
  */
-const generateGetComponent = (operation: OperationObject, verb: string, route: string) => {
+export const generateGetComponent = (operation: OperationObject, verb: string, route: string, baseUrl: string) => {
   if (!operation.operationId) {
     throw new Error(`Every path must have a operationId - No operationId set for ${verb} ${route}`);
   }
 
   const componentName = pascal(operation.operationId!);
 
-  const isOk = ([statusCode]: [string, ResponseObject | ReferenceObject]) => statusCode.toString().startsWith("2");
-  const isError = ([statusCode]: [string, ResponseObject | ReferenceObject]) => !statusCode.toString().startsWith("2");
+  const isOk = ([statusCode]: [string, ResponseObject | ReferenceObject]) =>
+    statusCode.toString().startsWith("2") || statusCode.toString().startsWith("3");
+  const isError = (responses: [string, ResponseObject | ReferenceObject]) => !isOk(responses);
 
-  const responseTypes = getResponseTypes(Object.entries(operation.responses).filter(isOk), componentName);
-  const errorTypes = getResponseTypes(Object.entries(operation.responses).filter(isError), componentName);
+  const responseTypes = getResponseTypes(Object.entries(operation.responses).filter(isOk));
+  const errorTypes = getResponseTypes(Object.entries(operation.responses).filter(isError));
 
   return `
 export type ${componentName}Props = Omit<GetProps<${responseTypes}, ${errorTypes}>, "path">
 
 ${operation.summary ? "// " + operation.summary : ""}
-export const ${componentName}: React.SFC<${componentName}Props> = (props) => (
-  <Get path="${route}" {...props} />
+export const ${componentName} = (props: ${componentName}Props) => (
+  <Get<${responseTypes}, ${errorTypes}>
+    path="${route}"
+    base="${baseUrl}"
+    {...props}
+  />
 )
 
 `;
@@ -176,34 +188,24 @@ export const ${componentName}: React.SFC<${componentName}Props> = (props) => (
  *
  * @param schemas
  */
-const generateSchemaDefinition = (schemas: ComponentsObject["schemas"] = {}) =>
-  Object.entries(schemas)
-    .map(([name, schema]) => {
-      switch (schema.type || "object") {
-        case "object":
-          return `
-export interface ${pascal(name)} {
+export const generateSchemaDefinition = (schemas: ComponentsObject["schemas"] = {}) => {
+  return (
+    Object.entries(schemas)
+      .map(
+        ([name, schema]) =>
+          !schema.type || schema.type === "object"
+            ? `export interface ${pascal(name)} {
 ${Object.entries(schema.properties || {})
-            .map(
-              ([key, properties]) =>
-                isReference(properties) ? `  ${key}: ${getRef(properties.$ref)}` : `${key}: ${getScalar(properties)}`,
-            )
-            .join("\n")}
-}
-`;
-        case "array":
-          return `export type ${pascal(name)} = ${getArray(schema)}`;
-        case "string":
-          return schema.enum
-            ? `export type ${pascal(name)} = "${schema.enum.join(`" | "`)}"`
-            : `export type ${pascal(name)} = string`;
-        default:
-          return `export type ${pascal(name)} = ${getScalar(schema)}`;
-      }
-    })
-    .join("\n\n");
+                .map(([key, properties]) => `  ${key}: ${resolveValue(properties)}`)
+                .join("\n")}
+}`
+            : `export type ${pascal(name)} = ${getScalar(schema)}`,
+      )
+      .join("\n\n") + "\n"
+  );
+};
 
-const main = (path: string) => {
+const importOpenApi = (path: string, baseUrl: string = "http://localhost") => {
   const schema = importSpecs(path);
 
   if (!schema.openapi.startsWith("3.0")) {
@@ -224,7 +226,7 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
   Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
       if (verb === "get") {
-        output += generateGetComponent(operation, verb, route);
+        output += generateGetComponent(operation, verb, route, baseUrl);
       }
       // @todo deal with `post`, `put`, `patch`, `delete` verbs
     });
@@ -233,4 +235,4 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
   return output;
 };
 
-export default main;
+export default importOpenApi;
