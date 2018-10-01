@@ -31,6 +31,23 @@ describe("Get", () => {
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
 
+    it("should deal with trailing slashs", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/">
+          <Get path="/">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+
     it("should compose the url with the base", async () => {
       nock("https://my-awesome-api.fake")
         .get("/plop")
