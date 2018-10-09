@@ -27,7 +27,13 @@
     "email": "tejas@tejas.qa",
     "url": "https://twitter.com/tejaskumar_"
   },
-  "contributors": [],
+  "contributors": [
+    {
+      "name": "Fabien Bernard",
+      "email": "fabien@contiamo.com",
+      "url": "https://fabien0102.com/en"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/contiamo/restful-react"
@@ -45,6 +51,7 @@
   },
   "devDependencies": {
     "@operational/scripts": "^1.1.2",
+    "@types/commander": "^2.12.2",
     "@types/jest": "^23.3.1",
     "@types/lodash": "^4.14.116",
     "@types/nock": "^9.3.0",
@@ -68,8 +75,6 @@
     "rollup": "^0.63.5",
     "rollup-plugin-typescript2": "^0.16.1",
     "ts-jest": "^23.1.4",
-    "ts-node": "^7.0.0",
-    "ts-node-dev": "^1.0.0-pre.26",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-blank-line": "^0.0.9",
