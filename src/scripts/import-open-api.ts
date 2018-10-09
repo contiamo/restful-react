@@ -191,29 +191,35 @@ export const generateGetComponent = (operation: OperationObject, verb: string, r
 
   const responseTypes = getResponseTypes(Object.entries(operation.responses).filter(isOk));
   const errorTypes = getResponseTypes(Object.entries(operation.responses).filter(isError));
-  const params = (operation.parameters || []).filter<ParameterObject>(
+  const queryParams = (operation.parameters || []).filter<ParameterObject>(
     (p): p is ParameterObject => {
       if (isReference(p)) {
         throw new Error("$ref are not implemented inside parameters");
       } else {
-        return p.in === "path";
+        return p.in === "query";
       }
     },
   );
 
-  const paramsTypes = params.map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`).join("; ");
+  const queryParamsTypes = queryParams
+    .map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`)
+    .join("; ");
 
   return `
 export type ${componentName}Props = Omit<GetProps<${responseTypes}, ${errorTypes}>, "path">${
-    params.length ? ` & {${paramsTypes}}` : ""
+    queryParams.length ? ` & {${queryParamsTypes}}` : ""
   };
 
 ${operation.summary ? "// " + operation.summary : ""}
 export const ${componentName} = (${
-    params.length ? `{${params.map(p => p.name).join(", ")}, ...props}` : "props"
+    queryParams.length ? `{${queryParams.map(p => p.name).join(", ")}, ...props}` : "props"
   }: ${componentName}Props) => (
   <Get<${responseTypes}, ${errorTypes}>
-    path=${params.length ? `{\`${route}?\${qs.stringify({${params.map(p => p.name).join(", ")}})}\`}` : `"${route}"`}
+    path=${
+      queryParams.length
+        ? `{\`${route}?\${qs.stringify({${queryParams.map(p => p.name).join(", ")}})}\`}`
+        : `"${route}"`
+    }
     base="${baseUrl}"
     {...props}
   />

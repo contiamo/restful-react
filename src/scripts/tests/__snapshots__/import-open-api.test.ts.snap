@@ -14,24 +14,24 @@ export interface NewPet {name: string; tag?: string}
 
 export interface Error {code: number; message: string}
 
-export type FindPetsProps = Omit<GetProps<Pet[], Error>, \\"path\\">;
+export type FindPetsProps = Omit<GetProps<Pet[], Error>, \\"path\\"> & {tags?: string[]; limit?: number};
 
 
-export const FindPets = (props: FindPetsProps) => (
+export const FindPets = ({tags, limit, ...props}: FindPetsProps) => (
   <Get<Pet[], Error>
-    path=\\"/pets\\"
+    path={\`/pets?\${qs.stringify({tags, limit})}\`}
     base=\\"http://localhost\\"
     {...props}
   />
 );
 
 
-export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\"> & {id: number};
+export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\">;
 
 
-export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
+export const FindPetById = (props: FindPetByIdProps) => (
   <Get<Pet, Error>
-    path={\`/pets/{id}?\${qs.stringify({id})}\`}
+    path=\\"/pets/{id}\\"
     base=\\"http://localhost\\"
     {...props}
   />

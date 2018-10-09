@@ -411,7 +411,7 @@ export const ListFields = (props: ListFieldsProps) => (
 `);
     });
 
-    it("should deal with parameters in path", () => {
+    it("should deal with parameters in query", () => {
       const operation: OperationObject = {
         summary: "List all fields for the use case schema",
         operationId: "listFields",
@@ -419,14 +419,14 @@ export const ListFields = (props: ListFieldsProps) => (
         parameters: [
           {
             name: "tenantId",
-            in: "path",
+            in: "query",
             required: true,
             description: "The id of the Contiamo tenant",
             schema: { type: "string" },
           },
           {
             name: "projectId",
-            in: "path",
+            in: "query",
             description: "The id of the project",
             schema: { type: "string" },
           },
