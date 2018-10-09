@@ -10,6 +10,7 @@ import {
   ParameterObject,
   PathItemObject,
   ReferenceObject,
+  RequestBodyObject,
   ResponseObject,
   SchemaObject,
 } from "openapi3-ts";
@@ -139,13 +140,19 @@ export const getObject = (item: SchemaObject): string => {
 export const resolveValue = (schema: SchemaObject) => (isReference(schema) ? getRef(schema.$ref) : getScalar(schema));
 
 /**
- * Extract responses types from open-api specs
+ * Extract responses / request types from open-api specs
  *
- * @param responses reponses object from open-api specs
+ * @param responsesOrRequests reponses or requests object from open-api specs
  */
-export const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceObject]>) =>
+export const getResReqTypes = (
+  responsesOrRequests: Array<[string, ResponseObject | ReferenceObject | RequestBodyObject]>,
+) =>
   uniq(
-    responses.map(([_, res]) => {
+    responsesOrRequests.map(([_, res]) => {
+      if (!res) {
+        return "void";
+      }
+
       if (isReference(res)) {
         throw new Error("$ref are not implemented inside responses");
       } else {
@@ -196,24 +203,26 @@ const importSpecs = (path: string): OpenAPIObject => {
 };
 
 /**
- * Generate a restful-react Get compoment from openapi operation specs
+ * Generate a restful-react compoment from openapi operation specs
  *
  * @param operation
  */
-export const generateGetComponent = (operation: OperationObject, verb: string, route: string, baseUrl: string) => {
+export const generateRestfulComponent = (operation: OperationObject, verb: string, route: string, baseUrl: string) => {
   if (!operation.operationId) {
     throw new Error(`Every path must have a operationId - No operationId set for ${verb} ${route}`);
   }
 
   route = route.replace(/\{/g, "${"); // `/pet/{id}` => `/pet/${id}`
   const componentName = pascal(operation.operationId!);
+  const Component = verb === "get" ? "Get" : "Mutate";
 
   const isOk = ([statusCode]: [string, ResponseObject | ReferenceObject]) =>
     statusCode.toString().startsWith("2") || statusCode.toString().startsWith("3");
   const isError = (responses: [string, ResponseObject | ReferenceObject]) => !isOk(responses);
 
-  const responseTypes = getResponseTypes(Object.entries(operation.responses).filter(isOk));
-  const errorTypes = getResponseTypes(Object.entries(operation.responses).filter(isError));
+  const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk));
+  const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError));
+  const requestBodyTypes = getResReqTypes([["body", operation.requestBody!]]);
 
   const paramsInPath = getParamsInPath(route);
   const { query: queryParams = [], path: pathParams = [] } = groupBy(
@@ -238,8 +247,11 @@ export const generateGetComponent = (operation: OperationObject, verb: string, r
     ...queryParams.map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`),
   ].join("; ");
 
+  const genericsTypes =
+    verb === "get" ? `${responseTypes}, ${errorTypes}` : `${errorTypes}, ${responseTypes}, ${requestBodyTypes}`;
+
   return `
-export type ${componentName}Props = Omit<GetProps<${responseTypes}, ${errorTypes}>, "path">${
+export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path">${
     params.length ? ` & {${paramsTypes}}` : ""
   };
 
@@ -247,7 +259,7 @@ ${operation.summary ? "// " + operation.summary : ""}
 export const ${componentName} = (${
     params.length ? `{${params.join(", ")}, ...props}` : "props"
   }: ${componentName}Props) => (
-  <Get<${responseTypes}, ${errorTypes}>
+  <${Component}<${genericsTypes}>
     path=${
       queryParams.length
         ? `{\`${route}?\${qs.stringify({${queryParams.map(p => p.name).join(", ")}})}\`}`
@@ -299,10 +311,7 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
   output += generateSchemaDefinition(schema.components && schema.components.schemas);
   Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
-      if (verb === "get") {
-        output += generateGetComponent(operation, verb, route, baseUrl);
-      }
-      // @todo deal with `post`, `put`, `patch`, `delete` verbs
+      output += generateRestfulComponent(operation, verb, route, baseUrl);
     });
   });
 

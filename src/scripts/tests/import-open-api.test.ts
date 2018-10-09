@@ -3,12 +3,12 @@ import { join } from "path";
 import { OperationObject, ResponseObject } from "openapi3-ts";
 
 import importOpenApi, {
-  generateGetComponent,
+  generateRestfulComponent,
   generateSchemaDefinition,
   getArray,
   getObject,
   getRef,
-  getResponseTypes,
+  getResReqTypes,
   getScalar,
   isReference,
 } from "../import-open-api";
@@ -268,7 +268,7 @@ describe("scripts/import-open-api", () => {
         ],
       ];
 
-      expect(getResponseTypes(responses)).toEqual("FieldListResponse");
+      expect(getResReqTypes(responses)).toEqual("FieldListResponse");
     });
 
     it("should return the type of application/octet-stream if we don't have application/json response", () => {
@@ -282,7 +282,7 @@ describe("scripts/import-open-api", () => {
         ],
       ];
 
-      expect(getResponseTypes(responses)).toEqual("FieldListResponse");
+      expect(getResReqTypes(responses)).toEqual("FieldListResponse");
     });
 
     it("should return a union if we have multi responses", () => {
@@ -307,7 +307,7 @@ describe("scripts/import-open-api", () => {
         ],
       ];
 
-      expect(getResponseTypes(responses)).toEqual("FieldListResponse | {id: string}");
+      expect(getResReqTypes(responses)).toEqual("FieldListResponse | {id: string}");
     });
 
     it("should not generate type duplication", () => {
@@ -328,7 +328,7 @@ describe("scripts/import-open-api", () => {
         ],
       ];
 
-      expect(getResponseTypes(responses)).toEqual("FieldListResponse");
+      expect(getResReqTypes(responses)).toEqual("FieldListResponse");
     });
   });
 
@@ -355,7 +355,7 @@ describe("scripts/import-open-api", () => {
         },
       };
 
-      expect(generateGetComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema
@@ -396,7 +396,7 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateGetComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema
@@ -452,7 +452,7 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateGetComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {tenantId: string; projectId?: string};
 
 // List all fields for the use case schema
@@ -509,13 +509,70 @@ export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => 
         },
       };
 
-      expect(generateGetComponent(operation, "get", "/fields/{id}", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields/{id}", "http://localhost")).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {id: string};
 
 // List all fields for the use case schema
 export const ListFields = ({id, ...props}: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields/\${id}\`}
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
+    });
+
+    it("should generate a Mutate type component", () => {
+      const operation: OperationObject = {
+        summary: "Update use case details",
+        operationId: "updateUseCase",
+        tags: ["use-case"],
+        parameters: [
+          {
+            name: "tenantId",
+            in: "path",
+            required: true,
+            description: "The id of the Contiamo tenant",
+            schema: { type: "string" },
+          },
+          {
+            name: "useCaseId",
+            in: "path",
+            required: true,
+            description: "The id of the use case",
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { $ref: "#/components/schemas/UseCaseInstance" } } },
+        },
+        responses: {
+          "204": {
+            description: "Use case updated",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/UseCaseResponse" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", "http://localhost")).toEqual(`
+export type UpdateUseCaseProps = Omit<MutateProps<APIError, UseCaseResponse, UseCaseInstance>, "path"> & {useCaseId: string};
+
+// Update use case details
+export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
+  <Mutate<APIError, UseCaseResponse, UseCaseInstance>
+    path={\`/use-cases/\${useCaseId}\`}
     base="http://localhost"
     {...props}
   />

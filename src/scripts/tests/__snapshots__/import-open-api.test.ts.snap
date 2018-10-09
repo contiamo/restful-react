@@ -27,11 +27,35 @@ export const FindPets = ({tags, limit, ...props}: FindPetsProps) => (
 );
 
 
+export type AddPetProps = Omit<MutateProps<Error, Pet, NewPet>, \\"path\\">;
+
+
+export const AddPet = (props: AddPetProps) => (
+  <Mutate<Error, Pet, NewPet>
+    path={\`/pets\`}
+    base=\\"http://localhost\\"
+    {...props}
+  />
+);
+
+
 export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\"> & {id: number};
 
 
 export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   <Get<Pet, Error>
+    path={\`/pets/\${id}\`}
+    base=\\"http://localhost\\"
+    {...props}
+  />
+);
+
+
+export type DeletePetProps = Omit<MutateProps<Error, void, void>, \\"path\\"> & {id: number};
+
+
+export const DeletePet = ({id, ...props}: DeletePetProps) => (
+  <Mutate<Error, void, void>
     path={\`/pets/\${id}\`}
     base=\\"http://localhost\\"
     {...props}
