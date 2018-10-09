@@ -100,6 +100,10 @@ export const getObject = (item: SchemaObject): string => {
     return getRef(item.$ref);
   }
 
+  if (item.allOf) {
+    return item.allOf.map(resolveValue).join(" & ");
+  }
+
   if (item.properties) {
     return (
       "{" +
@@ -117,9 +121,7 @@ export const getObject = (item: SchemaObject): string => {
     if (isReference(item.additionalProperties)) {
       return `{[key: string]: ${getRef(item.additionalProperties.$ref)}}`;
     } else if (item.additionalProperties.oneOf) {
-      return `{[key: string]: ${item.additionalProperties.oneOf
-        .map(prop => (isReference(prop) ? getRef(prop.$ref) : getScalar(prop)))
-        .join(" | ")}}`;
+      return `{[key: string]: ${item.additionalProperties.oneOf.map(resolveValue).join(" | ")}}`;
     } else if (item.additionalProperties.type) {
       return `{[key: string]: ${item.additionalProperties.type}}`;
     }
