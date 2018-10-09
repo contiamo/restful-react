@@ -8,7 +8,7 @@
     "lib"
   ],
   "bin": {
-    "restful-react": "bin/restful-react.js"
+    "restful-react": "lib/bin/restful-react.js"
   },
   "keywords": [
     "rest",
