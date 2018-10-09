@@ -1,5 +1,13 @@
 import { join } from "path";
-import importOpenApi, { getArray, getObject, getRef, getScalar, isReference } from "../import-open-api";
+
+import importOpenApi, {
+  generateSchemaDefinition,
+  getArray,
+  getObject,
+  getRef,
+  getScalar,
+  isReference,
+} from "../import-open-api";
 
 describe("scripts/import-open-api", () => {
   it("should parse correctly petstore-expanded.yaml", () => {
@@ -172,6 +180,57 @@ describe("scripts/import-open-api", () => {
         ],
       };
       expect(getObject(item)).toEqual(`Foo & {name: string}`);
+    });
+  });
+
+  describe("generateSchemaDefinition", () => {
+    it("should declare an interface for simple object", () => {
+      const schema = {
+        NewPet: {
+          required: ["name"],
+          properties: {
+            name: {
+              type: "string",
+            },
+            tag: {
+              type: "string",
+            },
+          },
+        },
+      };
+      expect(generateSchemaDefinition(schema)).toContain(`export interface NewPet {name: string; tag?: string}`);
+    });
+
+    it("should declare a type for union object", () => {
+      const schema = {
+        Pet: {
+          allOf: [
+            { $ref: "#/components/schemas/NewPet" },
+            { required: ["id"], properties: { id: { type: "integer", format: "int64" } } },
+          ],
+        },
+      };
+      expect(generateSchemaDefinition(schema)).toContain(`export type Pet = NewPet & {id: number};`);
+    });
+
+    it("should declare a type for all others types", () => {
+      const schema = {
+        PetName: {
+          type: "string",
+        },
+      };
+
+      expect(generateSchemaDefinition(schema)).toContain(`export type PetName = string;`);
+    });
+
+    it("should deal with aliases", () => {
+      const schema = {
+        Wolf: {
+          $ref: "#/components/schemas/Dog",
+        },
+      };
+
+      expect(generateSchemaDefinition(schema)).toContain(`export type Wolf = Dog;`);
     });
   });
 });

@@ -57,7 +57,7 @@ export const getScalar = (item: SchemaObject) => {
       return "string";
 
     default:
-      return "any";
+      return getObject(item);
   }
 };
 
@@ -213,13 +213,9 @@ export const generateSchemaDefinition = (schemas: ComponentsObject["schemas"] = 
     Object.entries(schemas)
       .map(
         ([name, schema]) =>
-          !schema.type || schema.type === "object"
-            ? `export interface ${pascal(name)} {
-${Object.entries(schema.properties || {})
-                .map(([key, properties]) => `  ${key}: ${resolveValue(properties)}`)
-                .join("\n")}
-}`
-            : `export type ${pascal(name)} = ${getScalar(schema)}`,
+          (!schema.type || schema.type === "object") && !schema.allOf && !isReference(schema)
+            ? `export interface ${pascal(name)} ${getScalar(schema)}`
+            : `export type ${pascal(name)} = ${resolveValue(schema)};`,
       )
       .join("\n\n") + "\n"
   );
