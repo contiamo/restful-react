@@ -15,7 +15,7 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
-export type MutateMethod<TData> = (data?: string | {}) => Promise<TData>;
+export type MutateMethod<TData, TBody> = (data?: string | TBody) => Promise<TData>;
 
 /**
  * Meta information returned to the fetchable
@@ -65,7 +65,7 @@ export interface MutateCommonProps {
   localErrorOnly?: boolean;
 }
 
-export interface MutateWithDeleteProps<TData, TError> extends MutateCommonProps {
+export interface MutateWithDeleteProps<TData, TError, TBody> extends MutateCommonProps {
   verb: "DELETE";
   /**
    * A function that recieves a mutation function, along with
@@ -73,10 +73,10 @@ export interface MutateWithDeleteProps<TData, TError> extends MutateCommonProps 
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (mutate: MutateMethod<TData>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
+  children: (mutate: MutateMethod<TData, TBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
 
-export interface MutateWithOtherVerbProps<TData, TError> extends MutateCommonProps {
+export interface MutateWithOtherVerbProps<TData, TError, TBody> extends MutateCommonProps {
   verb: "POST" | "PUT" | "PATCH";
   /**
    * A function that recieves a mutation function, along with
@@ -84,10 +84,12 @@ export interface MutateWithOtherVerbProps<TData, TError> extends MutateCommonPro
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (mutate: MutateMethod<TData>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
+  children: (mutate: MutateMethod<TData, TBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
 
-export type MutateProps<TData, TError> = MutateWithDeleteProps<TData, TError> | MutateWithOtherVerbProps<TData, TError>;
+export type MutateProps<TData, TError, TBody> =
+  | MutateWithDeleteProps<TData, TError, TBody>
+  | MutateWithOtherVerbProps<TData, TError, TBody>;
 
 /**
  * State for the <Mutate /> component. These
@@ -105,8 +107,8 @@ export interface MutateState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessMutate<TData, TError> extends React.Component<
-  MutateProps<TData, TError> & InjectedProps,
+class ContextlessMutate<TData, TError, TBody> extends React.Component<
+  MutateProps<TData, TError, TBody> & InjectedProps,
   MutateState<TData, TError>
 > {
   public readonly state: Readonly<MutateState<TData, TError>> = {
@@ -131,7 +133,7 @@ class ContextlessMutate<TData, TError> extends React.Component<
     this.abortController.abort();
   }
 
-  public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
+  public mutate = async (body?: string | TBody, mutateRequestOptions?: RequestInit) => {
     const {
       __internal_hasExplicitBase,
       base,
@@ -156,7 +158,7 @@ class ContextlessMutate<TData, TError> extends React.Component<
 
     const request = new Request(makeRequestPath(), {
       method: verb,
-      body: typeof body === "object" ? JSON.stringify(body) : body,
+      body: typeof body === "object" ? JSON.stringify(body) : (body as any), // Regarding the type definition, this should be a ReadableStream, this is not true
       ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
       ...mutateRequestOptions,
       headers: {
@@ -211,12 +213,12 @@ class ContextlessMutate<TData, TError> extends React.Component<
  * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Mutate<TError = any, TData = any>(props: MutateProps<TData, TError>) {
+function Mutate<TError = any, TData = any, TBody = any>(props: MutateProps<TData, TError, TBody>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path!)}>
-          <ContextlessMutate<TData, TError>
+          <ContextlessMutate<TData, TError, TBody>
             {...contextProps}
             {...props}
             __internal_hasExplicitBase={Boolean(props.base)}

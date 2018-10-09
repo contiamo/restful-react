@@ -358,6 +358,35 @@ describe("Mutate", () => {
 
       expect(onError.mock.calls.length).toEqual(0);
     });
+
+    it("should have the correct type definition", async () => {
+      interface Data {
+        id: string;
+        name: string;
+      }
+
+      interface Error {
+        message: string;
+        code: number;
+      }
+
+      interface Body {
+        id: string;
+        name?: string;
+        age?: number;
+      }
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate<Data, Error, Body> path="" verb="POST">
+            {mutate => <button onClick={() => mutate({ id: "my-id", name: "fabien" })}>test</button>}
+          </Mutate>
+          <Mutate<Data, Error> path="" verb="DELETE">
+            {mutate => <button onClick={() => mutate("my-id")}>test</button>}
+          </Mutate>
+        </RestfulProvider>,
+      );
+    });
   });
   describe("Compose paths and urls", () => {
     it("should compose absolute urls", async () => {
