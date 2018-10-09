@@ -1,5 +1,6 @@
 import { pascal } from "case";
 import { readFileSync } from "fs";
+import uniq from "lodash/uniq";
 
 import {
   ComponentsObject,
@@ -142,8 +143,8 @@ export const resolveValue = (schema: SchemaObject) => (isReference(schema) ? get
  * @param responses reponses object from open-api specs
  */
 export const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceObject]>) =>
-  responses
-    .map(([_, res]) => {
+  uniq(
+    responses.map(([_, res]) => {
       if (isReference(res)) {
         throw new Error("$ref are not implemented inside responses");
       } else {
@@ -157,8 +158,8 @@ export const getResponseTypes = (responses: Array<[string, ResponseObject | Refe
           return "void";
         }
       }
-    })
-    .join(` | `);
+    }),
+  ).join(" | ");
 
 /**
  * Import and parse the openapi spec from a yaml/json
@@ -191,7 +192,7 @@ export const generateGetComponent = (operation: OperationObject, verb: string, r
   const errorTypes = getResponseTypes(Object.entries(operation.responses).filter(isError));
 
   return `
-export type ${componentName}Props = Omit<GetProps<${responseTypes}, ${errorTypes}>, "path">
+export type ${componentName}Props = Omit<GetProps<${responseTypes}, ${errorTypes}>, "path">;
 
 ${operation.summary ? "// " + operation.summary : ""}
 export const ${componentName} = (props: ${componentName}Props) => (
@@ -200,7 +201,7 @@ export const ${componentName} = (props: ${componentName}Props) => (
     base="${baseUrl}"
     {...props}
   />
-)
+);
 
 `;
 };

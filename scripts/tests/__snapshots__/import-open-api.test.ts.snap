@@ -14,7 +14,7 @@ export interface NewPet {name: string; tag?: string}
 
 export interface Error {code: number; message: string}
 
-export type FindPetsProps = Omit<GetProps<Pet[], Error>, \\"path\\">
+export type FindPetsProps = Omit<GetProps<Pet[], Error>, \\"path\\">;
 
 
 export const FindPets = (props: FindPetsProps) => (
@@ -23,10 +23,10 @@ export const FindPets = (props: FindPetsProps) => (
     base=\\"http://localhost\\"
     {...props}
   />
-)
+);
 
 
-export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\">
+export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\">;
 
 
 export const FindPetById = (props: FindPetByIdProps) => (
@@ -35,7 +35,7 @@ export const FindPetById = (props: FindPetByIdProps) => (
     base=\\"http://localhost\\"
     {...props}
   />
-)
+);
 
 "
 `;

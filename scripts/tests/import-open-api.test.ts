@@ -1,10 +1,14 @@
 import { join } from "path";
 
+import { OperationObject, ResponseObject } from "openapi3-ts";
+
 import importOpenApi, {
+  generateGetComponent,
   generateSchemaDefinition,
   getArray,
   getObject,
   getRef,
+  getResponseTypes,
   getScalar,
   isReference,
 } from "../import-open-api";
@@ -249,6 +253,180 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateSchemaDefinition(schema)).toContain(`export type Wolf = Dog;`);
+    });
+  });
+
+  describe("getResponseTypes", () => {
+    it("should return the type of application/json", () => {
+      const responses: Array<[string, ResponseObject]> = [
+        [
+          "200",
+          {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        ],
+      ];
+
+      expect(getResponseTypes(responses)).toEqual("FieldListResponse");
+    });
+
+    it("should return the type of application/octet-stream if we don't have application/json response", () => {
+      const responses: Array<[string, ResponseObject]> = [
+        [
+          "200",
+          {
+            description: "An array of schema fields",
+            content: { "application/octet-stream": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        ],
+      ];
+
+      expect(getResponseTypes(responses)).toEqual("FieldListResponse");
+    });
+
+    it("should return a union if we have multi responses", () => {
+      const responses: Array<[string, ResponseObject]> = [
+        [
+          "200",
+          {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        ],
+        [
+          "201",
+          {
+            description: "An array of schema fields",
+            content: {
+              "application/json": {
+                schema: { type: "object", required: ["id"], properties: { id: { type: "string" } } },
+              },
+            },
+          },
+        ],
+      ];
+
+      expect(getResponseTypes(responses)).toEqual("FieldListResponse | {id: string}");
+    });
+
+    it("should not generate type duplication", () => {
+      const responses: Array<[string, ResponseObject]> = [
+        [
+          "200",
+          {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        ],
+        [
+          "201",
+          {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        ],
+      ];
+
+      expect(getResponseTypes(responses)).toEqual("FieldListResponse");
+    });
+  });
+
+  describe("generateGetComponent", () => {
+    it("should generate a fully typed component", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        parameters: [
+          {
+            name: "tenantId",
+            in: "path",
+            required: true,
+            description: "The id of the Contiamo\ntenant",
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateGetComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
+
+// List all fields for the use case schema
+export const ListFields = (props: ListFieldsProps) => (
+  <Get<FieldListResponse, APIError>
+    path="/fields"
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
+    });
+
+    it("should remove duplicate types", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        parameters: [
+          {
+            name: "tenantId",
+            in: "path",
+            required: true,
+            description: "The id of the Contiamo\ntenant",
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          "404": {
+            description: "file not found or field is not a file type",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/APIError" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateGetComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
+
+// List all fields for the use case schema
+export const ListFields = (props: ListFieldsProps) => (
+  <Get<FieldListResponse, APIError>
+    path="/fields"
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
     });
   });
 });
