@@ -26,12 +26,12 @@ export const FindPets = (props: FindPetsProps) => (
 );
 
 
-export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\">;
+export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\"> & {id: number};
 
 
-export const FindPetById = (props: FindPetByIdProps) => (
+export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   <Get<Pet, Error>
-    path=\\"/pets/{id}\\"
+    path={\`/pets/{id}?\${qs.stringify({id})}\`}
     base=\\"http://localhost\\"
     {...props}
   />

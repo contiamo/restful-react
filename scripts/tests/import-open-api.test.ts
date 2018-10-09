@@ -338,15 +338,6 @@ describe("scripts/import-open-api", () => {
         summary: "List all fields for the use case schema",
         operationId: "listFields",
         tags: ["schema"],
-        parameters: [
-          {
-            name: "tenantId",
-            in: "path",
-            required: true,
-            description: "The id of the Contiamo\ntenant",
-            schema: { type: "string" },
-          },
-        ],
         responses: {
           "200": {
             description: "An array of schema fields",
@@ -384,15 +375,6 @@ export const ListFields = (props: ListFieldsProps) => (
         summary: "List all fields for the use case schema",
         operationId: "listFields",
         tags: ["schema"],
-        parameters: [
-          {
-            name: "tenantId",
-            in: "path",
-            required: true,
-            description: "The id of the Contiamo\ntenant",
-            schema: { type: "string" },
-          },
-        ],
         responses: {
           "200": {
             description: "An array of schema fields",
@@ -421,6 +403,62 @@ export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"
 export const ListFields = (props: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path="/fields"
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
+    });
+
+    it("should deal with parameters in path", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        parameters: [
+          {
+            name: "tenantId",
+            in: "path",
+            required: true,
+            description: "The id of the Contiamo tenant",
+            schema: { type: "string" },
+          },
+          {
+            name: "projectId",
+            in: "path",
+            description: "The id of the project",
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          "404": {
+            description: "file not found or field is not a file type",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/APIError" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateGetComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {tenantId: string; projectId?: string};
+
+// List all fields for the use case schema
+export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => (
+  <Get<FieldListResponse, APIError>
+    path={\`/fields?\${qs.stringify({tenantId, projectId})}\`}
     base="http://localhost"
     {...props}
   />
