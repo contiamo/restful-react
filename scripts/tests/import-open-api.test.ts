@@ -165,6 +165,20 @@ describe("scripts/import-open-api", () => {
       expect(getObject(item)).toEqual(`{[key: string]: Foo | Bar}`);
     });
 
+    it("should deal with array as additionalProperties", () => {
+      const item = {
+        type: "object",
+        additionalProperties: {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      };
+
+      expect(getObject(item)).toEqual(`{[key: string]: string[]}`);
+    });
+
     it("should deal with allOf", () => {
       const item = {
         type: "object",
