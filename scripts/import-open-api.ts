@@ -31,6 +31,9 @@ export const isReference = (property: any): property is ReferenceObject => {
  */
 export const getScalar = (item: SchemaObject) => {
   switch (item.type) {
+    case "int32":
+    case "int64":
+    case "number":
     case "integer":
     case "long":
     case "float":
@@ -53,6 +56,7 @@ export const getScalar = (item: SchemaObject) => {
     case "binary":
     case "date":
     case "dateTime":
+    case "date-time":
     case "password":
       return "string";
 
@@ -101,6 +105,10 @@ export const getObject = (item: SchemaObject): string => {
     return item.allOf.map(resolveValue).join(" & ");
   }
 
+  if (item.oneOf) {
+    return item.oneOf.map(resolveValue).join(" | ");
+  }
+
   if (item.properties) {
     return (
       "{" +
@@ -115,13 +123,7 @@ export const getObject = (item: SchemaObject): string => {
   }
 
   if (item.additionalProperties) {
-    if (isReference(item.additionalProperties)) {
-      return `{[key: string]: ${getRef(item.additionalProperties.$ref)}}`;
-    } else if (item.additionalProperties.oneOf) {
-      return `{[key: string]: ${item.additionalProperties.oneOf.map(resolveValue).join(" | ")}}`;
-    } else if (item.additionalProperties.type) {
-      return `{[key: string]: ${item.additionalProperties.type}}`;
-    }
+    return `{[key: string]: ${resolveValue(item.additionalProperties)}}`;
   }
 
   return "any"; // fallback

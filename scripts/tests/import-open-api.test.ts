@@ -34,7 +34,10 @@ describe("scripts/import-open-api", () => {
     [
       { item: { type: "integer" }, expected: "number" },
       { item: { type: "long" }, expected: "number" },
+      { item: { type: "int32" }, expected: "number" },
+      { item: { type: "int64" }, expected: "number" },
       { item: { type: "float" }, expected: "number" },
+      { item: { type: "number" }, expected: "number" },
       { item: { type: "double" }, expected: "number" },
       { item: { type: "boolean" }, expected: "boolean" },
       { item: { type: "array", items: { type: "string" } }, expected: "string[]" },
@@ -47,6 +50,7 @@ describe("scripts/import-open-api", () => {
       { item: { type: "binary" }, expected: "string" },
       { item: { type: "date" }, expected: "string" },
       { item: { type: "dateTime" }, expected: "string" },
+      { item: { type: "date-time" }, expected: "string" },
       { item: { type: "password" }, expected: "string" },
       { item: { type: "string", enum: ["foo", "bar"] }, expected: `"foo" | "bar"` },
       { item: { type: "customType" }, expected: "any" },
