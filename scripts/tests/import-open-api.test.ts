@@ -32,8 +32,8 @@ describe("scripts/import-open-api", () => {
       { item: { type: "array", items: { type: "string" } }, expected: "string[]" },
       { item: { type: "array", items: { type: "integer" } }, expected: "number[]" },
       { item: { type: "array", items: { type: "customType" } }, expected: "any[]" },
-      { item: { type: "object", properties: { value: { type: "integer" } } }, expected: "any" }, // @todo improve this
-      { item: { type: "object", $ref: "#/components/schemas/Foo" }, expected: "any" }, // @todo improve this
+      { item: { type: "object", properties: { value: { type: "integer" } } }, expected: "{value?: number}" },
+      { item: { type: "object", $ref: "#/components/schemas/Foo" }, expected: "Foo" },
       { item: { type: "string" }, expected: "string" },
       { item: { type: "byte" }, expected: "string" },
       { item: { type: "binary" }, expected: "string" },

@@ -96,6 +96,23 @@ export const getArray = (item: SchemaObject): string => {
  * @param item item with type === "object"
  */
 export const getObject = (item: SchemaObject): string => {
+  if (isReference(item)) {
+    return getRef(item.$ref);
+  }
+
+  if (item.properties) {
+    return (
+      "{" +
+      Object.entries(item.properties)
+        .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
+          const isRequired = (item.required || []).includes(key);
+          return `${key}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
+        })
+        .join("; ") +
+      "}"
+    );
+  }
+
   if (item.additionalProperties) {
     if (isReference(item.additionalProperties)) {
       return `{[key: string]: ${getRef(item.additionalProperties.$ref)}}`;
