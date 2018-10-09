@@ -47,11 +47,8 @@ export const getScalar = (item: SchemaObject) => {
       return getObject(item);
 
     case "string":
-      if (item.enum) {
-        return `"${item.enum.join(`" | "`)}"`;
-      } else {
-        return "string";
-      }
+      return item.enum ? `"${item.enum.join(`" | "`)}"` : "string";
+
     case "byte":
     case "binary":
     case "date":
