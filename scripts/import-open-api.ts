@@ -49,6 +49,8 @@ export const getScalar = (item: SchemaObject) => {
     case "string":
       if (item.enum) {
         return `"${item.enum.join(`" | "`)}"`;
+      } else {
+        return "string";
       }
     case "byte":
     case "binary":
@@ -101,6 +103,8 @@ export const getObject = (item: SchemaObject): string => {
       return `{[key: string]: ${item.additionalProperties.oneOf
         .map(prop => (isReference(prop) ? getRef(prop.$ref) : getScalar(prop)))
         .join(" | ")}}`;
+    } else if (item.additionalProperties.type) {
+      return `{[key: string]: ${item.additionalProperties.type}}`;
     }
   }
 
