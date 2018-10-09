@@ -1,5 +1,6 @@
 import { pascal } from "case";
 import { readFileSync } from "fs";
+import groupBy from "lodash/groupBy";
 import uniq from "lodash/uniq";
 
 import {
@@ -140,7 +141,6 @@ export const resolveValue = (schema: SchemaObject) => (isReference(schema) ? get
 /**
  * Extract responses types from open-api specs
  *
- * @todo remove potential duplicates
  * @param responses reponses object from open-api specs
  */
 export const getResponseTypes = (responses: Array<[string, ResponseObject | ReferenceObject]>) =>
@@ -163,6 +163,28 @@ export const getResponseTypes = (responses: Array<[string, ResponseObject | Refe
   ).join(" | ");
 
 /**
+ * Return every params is a path
+ *
+ * @example
+ * ```
+ * getTemplatePathParams("/pet/{category}/{name}/");
+ * // => ["category", "name"]
+ * ```
+ * @param path
+ */
+export const getParamsInPath = (path: string) => {
+  let n;
+  const output = [];
+  const templatePathRegex = /\{\w+}/g;
+  // tslint:disable-next-line:no-conditional-assignment
+  while ((n = templatePathRegex.exec(path)) !== null) {
+    output.push(n[0].slice(1, -1));
+  }
+
+  return output;
+};
+
+/**
  * Import and parse the openapi spec from a yaml/json
  *
  * @param path abosulte path of the yaml/json openapi 3.0.x file
@@ -183,6 +205,7 @@ export const generateGetComponent = (operation: OperationObject, verb: string, r
     throw new Error(`Every path must have a operationId - No operationId set for ${verb} ${route}`);
   }
 
+  route = route.replace(/\{/g, "${"); // `/pet/{id}` => `/pet/${id}`
   const componentName = pascal(operation.operationId!);
 
   const isOk = ([statusCode]: [string, ResponseObject | ReferenceObject]) =>
@@ -191,34 +214,44 @@ export const generateGetComponent = (operation: OperationObject, verb: string, r
 
   const responseTypes = getResponseTypes(Object.entries(operation.responses).filter(isOk));
   const errorTypes = getResponseTypes(Object.entries(operation.responses).filter(isError));
-  const queryParams = (operation.parameters || []).filter<ParameterObject>(
-    (p): p is ParameterObject => {
-      if (isReference(p)) {
-        throw new Error("$ref are not implemented inside parameters");
-      } else {
-        return p.in === "query";
-      }
-    },
+
+  const paramsInPath = getParamsInPath(route);
+  const { query: queryParams = [], path: pathParams = [] } = groupBy(
+    (operation.parameters || []).filter<ParameterObject>(
+      (p): p is ParameterObject => {
+        if (isReference(p)) {
+          throw new Error("$ref are not implemented inside parameters");
+        } else {
+          return true;
+        }
+      },
+    ),
+    "in",
   );
 
-  const queryParamsTypes = queryParams
-    .map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`)
-    .join("; ");
+  const params = [...queryParams.map(p => p.name), ...paramsInPath];
+  const paramsTypes = [
+    ...paramsInPath.map(p => {
+      const { name, required, schema } = pathParams.find(i => i.name === p)!;
+      return `${name}${required ? "" : "?"}: ${resolveValue(schema!)}`;
+    }),
+    ...queryParams.map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`),
+  ].join("; ");
 
   return `
 export type ${componentName}Props = Omit<GetProps<${responseTypes}, ${errorTypes}>, "path">${
-    queryParams.length ? ` & {${queryParamsTypes}}` : ""
+    params.length ? ` & {${paramsTypes}}` : ""
   };
 
 ${operation.summary ? "// " + operation.summary : ""}
 export const ${componentName} = (${
-    queryParams.length ? `{${queryParams.map(p => p.name).join(", ")}, ...props}` : "props"
+    params.length ? `{${params.join(", ")}, ...props}` : "props"
   }: ${componentName}Props) => (
   <Get<${responseTypes}, ${errorTypes}>
     path=${
       queryParams.length
         ? `{\`${route}?\${qs.stringify({${queryParams.map(p => p.name).join(", ")}})}\`}`
-        : `"${route}"`
+        : `{\`${route}\`}`
     }
     base="${baseUrl}"
     {...props}
