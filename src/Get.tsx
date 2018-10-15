@@ -158,9 +158,8 @@ class ContextlessGet<TData, TError> extends React.Component<
   }
 
   public componentDidUpdate(prevProps: GetProps<TData, TError>) {
-    // If the path or base prop changes, refetch!
-    const { path, base } = this.props;
-    if (prevProps.path !== path || prevProps.base !== base) {
+    const { base, path, resolve } = prevProps;
+    if (base !== this.props.base || path !== this.props.path || resolve !== this.props.resolve) {
       if (!this.props.lazy) {
         this.fetch();
       }
