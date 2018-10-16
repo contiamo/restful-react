@@ -1,8 +1,8 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import * as React from "react";
-import url from "url";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -94,6 +94,11 @@ export interface GetProps<TData, TError> {
    */
   base?: string;
   /**
+   * The accumulated path from each level of parent GETs
+   *  taking the absolute and relative nature of each path into consideration
+   */
+  parentPath?: string;
+  /**
    * How long do we wait between subsequent requests?
    * Uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) under the hood.
    */
@@ -148,6 +153,7 @@ class ContextlessGet<TData, TError> extends React.Component<
 
   public static defaultProps = {
     base: "",
+    parentPath: "",
     resolve: (unresolvedData: any) => unresolvedData,
   };
 
@@ -158,8 +164,13 @@ class ContextlessGet<TData, TError> extends React.Component<
   }
 
   public componentDidUpdate(prevProps: GetProps<TData, TError>) {
-    const { base, path, resolve } = prevProps;
-    if (base !== this.props.base || path !== this.props.path || resolve !== this.props.resolve) {
+    const { base, parentPath, path, resolve } = prevProps;
+    if (
+      base !== this.props.base ||
+      parentPath !== this.props.parentPath ||
+      path !== this.props.path ||
+      resolve !== this.props.resolve
+    ) {
       if (!this.props.lazy) {
         this.fetch();
       }
@@ -196,13 +207,13 @@ class ContextlessGet<TData, TError> extends React.Component<
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, path, resolve } = this.props;
+    const { base, parentPath, path, resolve } = this.props;
     if (this.state.error || !this.state.loading) {
       this.setState(() => ({ error: null, loading: true }));
     }
 
     const request = new Request(
-      url.resolve(base!, requestPath || path || ""),
+      composeUrl(base!, parentPath!, requestPath || path || ""),
       this.getRequestOptions(thisRequestOptions),
     );
     const response = await fetch(request);
@@ -231,7 +242,7 @@ class ContextlessGet<TData, TError> extends React.Component<
   };
 
   public render() {
-    const { children, wait, path, base } = this.props;
+    const { children, wait, path, base, parentPath } = this.props;
     const { data, error, loading, response } = this.state;
 
     if (wait && data === null && !error) {
@@ -242,7 +253,7 @@ class ContextlessGet<TData, TError> extends React.Component<
       data,
       { loading, error },
       { refetch: this.fetch },
-      { response, absolutePath: url.resolve(base!, path) },
+      { response, absolutePath: composeUrl(base!, parentPath!, path) },
     );
   }
 }
@@ -254,14 +265,14 @@ class ContextlessGet<TData, TError> extends React.Component<
  * which all requests will be made.
  *
  * We compose Consumers immediately with providers
- * in order to provide new `base` props that contain
+ * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
 function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={url.resolve(contextProps.base, props.path)}>
+        <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path)}>
           <ContextlessGet {...contextProps} {...props} />
         </RestfulReactProvider>
       )}

@@ -239,9 +239,9 @@ describe("Poll", () => {
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data:
-          "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+          "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
         message:
-          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+          "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
       });
     });
 
@@ -494,6 +494,44 @@ describe("Poll", () => {
           <Poll path="/plop" base="https://my-awesome-api.fake">
             {children}
           </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+    });
+    
+    it("should compose urls with base subpath", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE">
+          <Poll path="/absolute">{children}</Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+    });
+
+    it("should compose urls properly when base has a trailing slash", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE/">
+          <Poll path="/absolute">{children}</Poll>
         </RestfulProvider>,
       );
 

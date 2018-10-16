@@ -292,4 +292,245 @@ describe("Mutate", () => {
       expect(onError.mock.calls.length).toEqual(0);
     });
   });
+  describe("Compose paths and urls", () => {
+    it("should compose absolute urls", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/absolute")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate verb="POST" path="/people">
+            {() => (
+              <Mutate verb="POST" path="/absolute">
+                {children}
+              </Mutate>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+
+    it("should compose relative urls", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/people/relative")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate verb="POST" path="/people">
+            {() => (
+              <Mutate verb="POST" path="relative">
+                {children}
+              </Mutate>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+
+    it("should compose with base subpath", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .post("/people/relative")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE">
+          <Mutate verb="POST" path="/people">
+            {() => (
+              <Mutate verb="POST" path="relative">
+                {children}
+              </Mutate>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+
+    it("should compose base with trailing slash", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .post("/people/relative")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE/">
+          <Mutate verb="POST" path="/people">
+            {() => (
+              <Mutate verb="POST" path="relative">
+                {children}
+              </Mutate>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+
+    it("should compose properly when one of the nested paths is empty string", async () => {
+      nock("https://my-awesome-api.fake/absolute-1")
+        .post("/absolute-2/relative-2/relative-3")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/absolute-1">
+          <Mutate verb="POST" path="">
+            {() => (
+              <Mutate verb="POST" path="relative-1">
+                {() => (
+                  <Mutate verb="POST" path="/absolute-2">
+                    {() => (
+                      <Mutate verb="POST" path="relative-2">
+                        {() => (
+                          <Mutate verb="POST" path="relative-3">
+                            {children}
+                          </Mutate>
+                        )}
+                      </Mutate>
+                    )}
+                  </Mutate>
+                )}
+              </Mutate>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+
+    it("should compose properly when one of the nested paths is lone slash and base has trailing slash", async () => {
+      nock("https://my-awesome-api.fake/absolute-1")
+        .post("/absolute-2/relative-2/relative-3")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/absolute-1/">
+          <Mutate verb="POST" path="/">
+            {() => (
+              <Mutate verb="POST" path="relative-1">
+                {() => (
+                  <Mutate verb="POST" path="/absolute-2">
+                    {() => (
+                      <Mutate verb="POST" path="relative-2">
+                        {() => (
+                          <Mutate verb="POST" path="relative-3">
+                            {children}
+                          </Mutate>
+                        )}
+                      </Mutate>
+                    )}
+                  </Mutate>
+                )}
+              </Mutate>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+  });
 });

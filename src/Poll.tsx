@@ -1,9 +1,9 @@
 import React from "react";
 import equal from "react-fast-compare";
-import url from "url";
 
 import { InjectedProps, RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import { composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -214,7 +214,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
     const { lastPollIndex } = this.state;
     const requestOptions = this.getRequestOptions();
 
-    const request = new Request(url.resolve(base!, path), {
+    const request = new Request(composeUrl(base!, "", path), {
       ...requestOptions,
       headers: {
         Prefer: `wait=${wait}s;${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
@@ -301,7 +301,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
     const meta: Meta = {
       response,
-      absolutePath: url.resolve(base!, path),
+      absolutePath: composeUrl(base!, "", path),
     };
 
     const states: States<TData, TError> = {
