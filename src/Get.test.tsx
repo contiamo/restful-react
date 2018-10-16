@@ -527,20 +527,25 @@ describe("Get", () => {
       children.mockReturnValue(<div />);
 
       const resolve = a => a;
+
+      /**
+       * A new instance of RestfulProvider is created on every rerender.
+       * This will create a new resolve function every time forcing Get to
+       * refetch.
+       * In a real app, only Get would be rerendered so resolve would be the
+       * same on every new render. To mimic that behavior, resolve is created
+       * ahead so Get will get the same instance on every rerender.
+       */
       const { rerender } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="?test=1" resolve={resolve}>
-            {children}
-          </Get>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get path="?test=1">{children}</Get>
         </RestfulProvider>,
       );
 
       times(10, i =>
         rerender(
-          <RestfulProvider base="https://my-awesome-api.fake">
-            <Get path={`?test=${i + 1}`} resolve={resolve}>
-              {children}
-            </Get>
+          <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+            <Get path={`?test=${i + 1}`}>{children}</Get>
           </RestfulProvider>,
         ),
       );
@@ -561,18 +566,14 @@ describe("Get", () => {
 
       const resolve = a => a;
       const { rerender } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="" resolve={resolve}>
-            {children}
-          </Get>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get path="">{children}</Get>
         </RestfulProvider>,
       );
 
       rerender(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="" resolve={resolve}>
-            {children}
-          </Get>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get path="">{children}</Get>
         </RestfulProvider>,
       );
 
@@ -589,10 +590,8 @@ describe("Get", () => {
 
       const resolve = a => a;
       const { rerender } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="" resolve={resolve}>
-            {children}
-          </Get>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get path="">{children}</Get>
         </RestfulProvider>,
       );
 
@@ -600,8 +599,8 @@ describe("Get", () => {
         .get("/")
         .reply(200, () => ++apiCalls);
       rerender(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get base="https://my-new-api.fake" path="" resolve={resolve}>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get base="https://my-new-api.fake" path="">
             {children}
           </Get>
         </RestfulProvider>,
@@ -622,18 +621,14 @@ describe("Get", () => {
 
       const resolve = a => a;
       const { rerender } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="/?test=0" resolve={resolve}>
-            {children}
-          </Get>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get path="/?test=0">{children}</Get>
         </RestfulProvider>,
       );
 
       rerender(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="/?test=1" resolve={resolve}>
-            {children}
-          </Get>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <Get path="/?test=1">{children}</Get>
         </RestfulProvider>,
       );
 
@@ -649,16 +644,17 @@ describe("Get", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
+      const providerResolve = a => a;
       const { rerender } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={providerResolve}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
 
-      const resolve = a => a;
+      const newResolve = a => a;
       rerender(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="" resolve={resolve}>
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={providerResolve}>
+          <Get path="" resolve={newResolve}>
             {children}
           </Get>
         </RestfulProvider>,
