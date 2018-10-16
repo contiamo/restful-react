@@ -1,9 +1,9 @@
-import Get, { GetDataError, GetProps } from "./Get";
+import Get, { GetDataError, GetMethod, GetProps } from "./Get";
 
 export { default as RestfulProvider } from "./Context";
 export { default as Poll, PollProps } from "./Poll";
-export { default as Mutate, MutateProps } from "./Mutate";
+export { default as Mutate, MutateProps, MutateMethod } from "./Mutate";
 
-export { Get, GetDataError, GetProps };
+export { Get, GetDataError, GetProps, GetMethod };
 
 export default Get;
