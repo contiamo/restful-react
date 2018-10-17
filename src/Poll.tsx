@@ -129,6 +129,10 @@ export interface PollState<TData, TError> {
    */
   data: GetState<TData, TError>["data"];
   /**
+   * What data did we had before?
+   */
+  previousData: GetState<TData, TError>["data"];
+  /**
    * Are we loading?
    */
   loading: GetState<TData, TError>["loading"];
@@ -151,6 +155,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
 > {
   public readonly state: Readonly<PollState<TData, TError>> = {
     data: null,
+    previousData: null,
     loading: !this.props.lazy,
     lastResponse: null,
     polling: !this.props.lazy,
@@ -205,7 +210,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
     }
 
     // If we should keep going,
-    const { base, path, resolve, interval, wait } = this.props;
+    const { base, path, interval, wait } = this.props;
     const { lastPollIndex } = this.state;
     const requestOptions = this.getRequestOptions();
 
@@ -240,7 +245,8 @@ class ContextlessPoll<TData, TError> extends React.Component<
         this.setState(prevState => ({
           loading: false,
           lastResponse: response,
-          data: resolve ? resolve(data, prevState.data) : data,
+          previousData: prevState.data,
+          data,
           error: null,
           lastPollIndex: response.headers.get("x-polling-index") || undefined,
         }));
@@ -290,8 +296,8 @@ class ContextlessPoll<TData, TError> extends React.Component<
   }
 
   public render() {
-    const { lastResponse: response, data, polling, loading, error, finished } = this.state;
-    const { children, base, path } = this.props;
+    const { lastResponse: response, previousData, data, polling, loading, error, finished } = this.state;
+    const { children, base, path, resolve } = this.props;
 
     const meta: Meta = {
       response,
@@ -309,8 +315,9 @@ class ContextlessPoll<TData, TError> extends React.Component<
       stop: this.stop,
       start: this.start,
     };
-
-    return children(data, states, actions, meta);
+    // data is parsed only when poll has already resolved so response is defined
+    const resolvedData = response && resolve ? resolve(data, previousData) : data;
+    return children(resolvedData, states, actions, meta);
   }
 }
 
