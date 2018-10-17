@@ -15,6 +15,8 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
+export type MutateMethod<TData> = (data?: string | {}) => Promise<TData>;
+
 /**
  * Meta information returned to the fetchable
  * view.
@@ -61,11 +63,7 @@ export interface MutateWithDeleteProps<TData, TError> extends MutateCommonProps 
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (
-    mutate: (resourceId?: string | {}) => Promise<TData>,
-    states: States<TData, TError>,
-    meta: Meta,
-  ) => React.ReactNode;
+  children: (mutate: MutateMethod<TData>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
 
 export interface MutateWithOtherVerbProps<TData, TError> extends MutateCommonProps {
@@ -76,11 +74,7 @@ export interface MutateWithOtherVerbProps<TData, TError> extends MutateCommonPro
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (
-    mutate: (body?: string | {}) => Promise<TData>,
-    states: States<TData, TError>,
-    meta: Meta,
-  ) => React.ReactNode;
+  children: (mutate: MutateMethod<TData>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
 
 export type MutateProps<TData, TError> = MutateWithDeleteProps<TData, TError> | MutateWithOtherVerbProps<TData, TError>;

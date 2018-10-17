@@ -27,13 +27,15 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
+export type GetMethod<TData> = () => Promise<TData | null>;
+
 /**
  * An interface of actions that can be performed
  * within Get
  */
 export interface Actions<TData> {
   /** Refetches the same path */
-  refetch: () => Promise<TData | null>;
+  refetch: GetMethod<TData>;
 }
 
 /**
