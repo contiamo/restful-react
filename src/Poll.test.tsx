@@ -407,6 +407,37 @@ describe("Poll", () => {
       await wait(() => expect(children.mock.calls.length).toBe(3));
       expect(children.mock.calls[2][0]).toEqual({ data: "hello you" });
     });
+
+    it("should update data when resolver changes", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const resolve = data => ({ ...data, too: "bar" });
+      const newResolve = data => ({ ...data, foo: "bar" });
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll path="" resolve={resolve}>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll path="" resolve={newResolve}>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      expect(children.mock.calls[2][0]).toEqual({ hello: "world", foo: "bar" });
+    });
   });
 
   describe("with lazy", () => {
