@@ -3,6 +3,7 @@ import debounce from "lodash/debounce";
 import * as React from "react";
 import url from "url";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
+import makeCancelable, { CancelablePromise } from "./util/makeCancelable";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -139,6 +140,8 @@ class ContextlessGet<TData, TError> extends React.Component<
     }
   }
 
+  private pendingRequests: Array<CancelablePromise<any>> = [];
+
   public readonly state: Readonly<GetState<TData, TError>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
@@ -164,6 +167,12 @@ class ContextlessGet<TData, TError> extends React.Component<
         this.fetch();
       }
     }
+  }
+
+  public componentWillUnmount() {
+    this.pendingRequests.forEach((request: CancelablePromise<any>) => {
+      request.cancel();
+    });
   }
 
   public getRequestOptions = (
@@ -195,6 +204,37 @@ class ContextlessGet<TData, TError> extends React.Component<
     };
   };
 
+  private takeRequest(request: CancelablePromise<any>) {
+    this.pendingRequests.push(request);
+  }
+
+  private dropRequest(request: CancelablePromise<any>) {
+    const index = this.pendingRequests.indexOf(request);
+    if (index >= 0) {
+      this.pendingRequests.splice(index, 1);
+    }
+  }
+
+  /**
+   * Unwrap a Cancelable Promise
+   */
+  private processRequest = async (request: CancelablePromise<any>) => {
+    try {
+      return {
+        isCancelled: request.isCancelled,
+        response: await request.promise,
+      };
+    } catch (e) {
+      if (!e.isCancelled) {
+        throw new Error(e);
+      }
+      return {
+        isCancelled: () => true,
+        response: null,
+      };
+    }
+  };
+
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
     const { base, path, resolve } = this.props;
     if (this.state.error || !this.state.loading) {
@@ -205,7 +245,14 @@ class ContextlessGet<TData, TError> extends React.Component<
       url.resolve(base!, requestPath || path || ""),
       this.getRequestOptions(thisRequestOptions),
     );
-    const response = await fetch(request);
+    const pendingRequest = makeCancelable(fetch(request));
+    this.takeRequest(pendingRequest);
+
+    const { response, isCancelled } = await this.processRequest(pendingRequest);
+
+    if (isCancelled()) {
+      return;
+    }
     const { data, responseError } = await processResponse(response);
 
     if (!response.ok || responseError) {
@@ -214,6 +261,9 @@ class ContextlessGet<TData, TError> extends React.Component<
         data,
       };
 
+      if (isCancelled()) {
+        return;
+      }
       this.setState({
         loading: false,
         error,
@@ -223,9 +273,14 @@ class ContextlessGet<TData, TError> extends React.Component<
         this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions));
       }
 
+      this.dropRequest(pendingRequest);
       return null;
     }
 
+    if (isCancelled()) {
+      return;
+    }
+    this.dropRequest(pendingRequest);
     this.setState({ loading: false, data: resolve!(data) });
     return data;
   };
