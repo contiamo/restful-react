@@ -4,6 +4,7 @@ import url from "url";
 
 import { InjectedProps, RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
+import makeCancelable, { CancelablePromise } from "./util/makeCancelable";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -172,11 +173,8 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
   private keepPolling = !this.props.lazy;
 
-  /**
-   * Abort controller to cancel the current fetch query
-   */
-  private abortController = new AbortController();
-  private signal = this.abortController.signal;
+  // List of requests to be cancelled when component unmounts
+  private pendingRequests: Array<CancelablePromise<any>> = [];
 
   private isModified = (response: Response, nextData: TData) => {
     if (response.status === 304) {
@@ -193,6 +191,15 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
   // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
   private isResponseOk = (response: Response) => response.ok || response.status === 304;
+
+  private takeRequest = (request: CancelablePromise<any>) => this.pendingRequests.push(request);
+
+  private dropRequest(request: CancelablePromise<any>) {
+    const index = this.pendingRequests.indexOf(request);
+    if (index >= 0) {
+      this.pendingRequests.splice(index, 1);
+    }
+  }
 
   /**
    * This thing does the actual poll.
@@ -222,12 +229,19 @@ class ContextlessPoll<TData, TError> extends React.Component<
       },
     });
 
+    const pendingRequest = makeCancelable(fetch(request));
+    this.takeRequest(pendingRequest);
     try {
-      const response = await fetch(request, { signal: this.signal });
+      const response = await pendingRequest.promise;
       const { data, responseError } = await processResponse(response);
 
       if (!this.keepPolling) {
         // Early return if we have stopped polling to avoid memory leaks
+        return;
+      }
+
+      if (pendingRequest.isCancelled()) {
+        this.dropRequest(pendingRequest);
         return;
       }
 
@@ -256,7 +270,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
       await new Promise(resolvePromise => setTimeout(resolvePromise, interval));
       this.cycle(); // Do it all again!
     } catch (e) {
-      // the only error not catched is the `fetch`, this means that we have cancelled the fetch
+      this.dropRequest(pendingRequest);
     }
   };
 
@@ -289,7 +303,9 @@ class ContextlessPoll<TData, TError> extends React.Component<
 
   public componentWillUnmount() {
     // Cancel the current query
-    this.abortController.abort();
+    this.pendingRequests.forEach((request: CancelablePromise<any>) => {
+      request.cancel();
+    });
 
     // Stop the polling cycle
     this.stop();
