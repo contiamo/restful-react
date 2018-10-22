@@ -102,6 +102,34 @@ describe("Get", () => {
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(children.mock.calls[1][0]).toEqual({ hello: "world" });
     });
+
+    it("shouldn't resolve after component unmounts", async () => {
+      let requestResolves;
+      const pendingRequestFinishes = new Promise(resolvePromise => {
+        requestResolves = resolvePromise;
+      });
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, async () => {
+          await pendingRequestFinishes;
+        });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      const resolve = jest.fn((a: any) => a);
+
+      const { unmount } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" resolve={resolve}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      unmount();
+      requestResolves();
+      await wait(() => expect(resolve).not.toHaveBeenCalled());
+    });
   });
 
   describe("with error", () => {

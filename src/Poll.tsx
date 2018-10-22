@@ -226,8 +226,9 @@ class ContextlessPoll<TData, TError> extends React.Component<
       const response = await fetch(request, { signal: this.signal });
       const { data, responseError } = await processResponse(response);
 
-      if (!this.keepPolling) {
-        // Early return if we have stopped polling to avoid memory leaks
+      if (!this.keepPolling || this.signal.aborted) {
+        // Early return if we have stopped polling or component was unmounted
+        // to avoid memory leaks
         return;
       }
 
