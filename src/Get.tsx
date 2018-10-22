@@ -144,6 +144,12 @@ class ContextlessGet<TData, TError> extends React.Component<
     }
   }
 
+  /**
+   * Abort controller to cancel the current fetch query
+   */
+  private abortController = new AbortController();
+  private signal = this.abortController.signal;
+
   public readonly state: Readonly<GetState<TData, TError>> = {
     data: null, // Means we don't _yet_ have data.
     response: null,
@@ -175,6 +181,10 @@ class ContextlessGet<TData, TError> extends React.Component<
         this.fetch();
       }
     }
+  }
+
+  public componentWillUnmount() {
+    this.abortController.abort();
   }
 
   public getRequestOptions = (
@@ -216,8 +226,13 @@ class ContextlessGet<TData, TError> extends React.Component<
       composeUrl(base!, parentPath!, requestPath || path || ""),
       this.getRequestOptions(thisRequestOptions),
     );
-    const response = await fetch(request);
+    const response = await fetch(request, { signal: this.signal });
     const { data, responseError } = await processResponse(response);
+
+    // avoid state updates when component has been unmounted
+    if (this.signal.aborted) {
+      return;
+    }
 
     if (!response.ok || responseError) {
       const error = {
