@@ -48,23 +48,6 @@ describe("Get", () => {
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
 
-    it("should compose the url with the base", async () => {
-      nock("https://my-awesome-api.fake")
-        .get("/plop")
-        .reply(200);
-
-      const children = jest.fn();
-      children.mockReturnValue(<div />);
-
-      render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="/plop">{children}</Get>
-        </RestfulProvider>,
-      );
-
-      await wait(() => expect(children.mock.calls.length).toBe(2));
-    });
-
     it("should set loading to `true` on mount", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -163,9 +146,9 @@ describe("Get", () => {
       expect(children.mock.calls[1][0]).toEqual(null);
       expect(children.mock.calls[1][1].error).toEqual({
         data:
-          "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+          "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
         message:
-          "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+          "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
       });
     });
 
@@ -661,6 +644,213 @@ describe("Get", () => {
       );
 
       expect(apiCalls).toEqual(2);
+    });
+  });
+  describe("Compose paths and urls", () => {
+    it("should compose the url with the base", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/plop")
+        .reply(200);
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="/plop">{children}</Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+    it("should compose absolute urls", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/people")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute")
+        .reply(200);
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="/people">{() => <Get path="/absolute">{children}</Get>}</Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+    });
+    it("should compose relative urls", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/people")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/people/relative")
+        .reply(200, { path: "/people/relative" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="/people">{() => <Get path="relative">{children}</Get>}</Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      expect(children.mock.calls[2][0]).toEqual({ path: "/people/relative" });
+    });
+    it("should compose absolute urls with base subpath", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/people")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute")
+        .reply(200, { path: "/absolute" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE">
+          <Get path="/people">{() => <Get path="/absolute">{children}</Get>}</Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      expect(children.mock.calls[2][0]).toEqual({ path: "/absolute" });
+    });
+    it("should compose relative urls with base subpath", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/people")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/people/relative")
+        .reply(200, { path: "/people/relative" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE">
+          <Get path="/people">{() => <Get path="relative">{children}</Get>}</Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      expect(children.mock.calls[2][0]).toEqual({ path: "/people/relative" });
+    });
+    it("should compose properly when base contains a trailing slash", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/people")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/people/relative")
+        .reply(200, { path: "/people/relative" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE/">
+          <Get path="/people">{() => <Get path="relative">{children}</Get>}</Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      expect(children.mock.calls[2][0]).toEqual({ path: "/people/relative" });
+    });
+    it("should compose more nested absolute and relative urls", async () => {
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute-1")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute-1/relative-1")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute-2")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute-2/relative-2")
+        .reply(200);
+      nock("https://my-awesome-api.fake/MY_SUBROUTE")
+        .get("/absolute-2/relative-2/relative-3")
+        .reply(200, { path: "/absolute-2/relative-2/relative-3" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE/">
+          <Get path="/absolute-1">
+            {() => (
+              <Get path="relative-1">
+                {() => (
+                  <Get path="/absolute-2">
+                    {() => <Get path="relative-2">{() => <Get path="relative-3">{children}</Get>}</Get>}
+                  </Get>
+                )}
+              </Get>
+            )}
+          </Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(6));
+      expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-2/relative-2/relative-3" });
+    });
+    it("should compose properly when one of the paths is empty string", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/relative-1")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/absolute-2")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/absolute-2/relative-2")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/absolute-2/relative-2/relative-3")
+        .reply(200, { path: "/absolute-1/absolute-2/relative-2/relative-3" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/absolute-1">
+          <Get path="">
+            {() => (
+              <Get path="relative-1">
+                {() => (
+                  <Get path="/absolute-2">
+                    {() => <Get path="relative-2">{() => <Get path="relative-3">{children}</Get>}</Get>}
+                  </Get>
+                )}
+              </Get>
+            )}
+          </Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(6));
+      expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-1/absolute-2/relative-2/relative-3" });
+    });
+    it("should compose properly when one of the paths is lone slash and base has trailing slash", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/relative-1")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/absolute-2")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/absolute-2/relative-2")
+        .reply(200);
+      nock("https://my-awesome-api.fake")
+        .get("/absolute-1/absolute-2/relative-2/relative-3")
+        .reply(200, { path: "/absolute-1/absolute-2/relative-2/relative-3" });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/absolute-1/">
+          <Get path="/">
+            {() => (
+              <Get path="relative-1">
+                {() => (
+                  <Get path="/absolute-2">
+                    {() => <Get path="relative-2">{() => <Get path="relative-3">{children}</Get>}</Get>}
+                  </Get>
+                )}
+              </Get>
+            )}
+          </Get>
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children.mock.calls.length).toBe(6));
+      expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-1/absolute-2/relative-2/relative-3" });
     });
   });
 });

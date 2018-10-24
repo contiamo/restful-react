@@ -6,6 +6,11 @@ export interface RestfulReactProviderProps<T = any> {
   /** The backend URL where the RESTful resources live. */
   base: string;
   /**
+   * The path that gets accumulated from each level of nesting
+   * taking the absolute and relative nature of each path into consideration
+   */
+  parentPath?: string;
+  /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
@@ -26,6 +31,7 @@ export interface RestfulReactProviderProps<T = any> {
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<Required<RestfulReactProviderProps>>({
   base: "",
+  parentPath: "",
   resolve: (data: any) => data,
   requestOptions: {},
   onError: noop,
@@ -44,6 +50,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           onError: noop,
           resolve: (data: any) => data,
           requestOptions: {},
+          parentPath: "",
           ...value,
         }}
       >

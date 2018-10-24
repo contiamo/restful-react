@@ -1,7 +1,7 @@
 import * as React from "react";
-import url from "url";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
+import { composePath, composePathWithBody, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -47,6 +47,11 @@ export interface MutateCommonProps {
    *
    */
   base?: string;
+  /**
+   * The accumulated path from each level of parent GETs
+   *  taking the absolute and relative nature of each path into consideration
+   */
+  parentPath?: string;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
@@ -107,17 +112,18 @@ class ContextlessMutate<TData, TError> extends React.Component<
 
   public static defaultProps = {
     base: "",
+    parentPath: "",
     path: "",
   };
 
   public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
-    const { base, path, verb, requestOptions: providerRequestOptions } = this.props;
+    const { base, parentPath, path, verb, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
     const requestPath =
       verb === "DELETE" && typeof body === "string"
-        ? url.resolve(base!, url.resolve(path, body))
-        : url.resolve(base!, path);
+        ? composeUrl(base!, parentPath!, composePathWithBody(path, body))
+        : composeUrl(base!, parentPath!, path);
     const request = new Request(requestPath, {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
@@ -154,10 +160,10 @@ class ContextlessMutate<TData, TError> extends React.Component<
   };
 
   public render() {
-    const { children, path, base } = this.props;
+    const { children, path, base, parentPath } = this.props;
     const { error, loading, response } = this.state;
 
-    return children(this.mutate, { loading, error }, { response, absolutePath: `${base}${path}` });
+    return children(this.mutate, { loading, error }, { response, absolutePath: composeUrl(base!, parentPath!, path) });
   }
 }
 
@@ -168,14 +174,14 @@ class ContextlessMutate<TData, TError> extends React.Component<
  * which all requests will be made.
  *
  * We compose Consumers immediately with providers
- * in order to provide new `base` props that contain
+ * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
 function Mutate<TError = any, TData = any>(props: MutateProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} base={`${contextProps.base}${props.path}`}>
+        <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path)}>
           <ContextlessMutate<TData, TError> {...contextProps} {...props} />
         </RestfulReactProvider>
       )}
