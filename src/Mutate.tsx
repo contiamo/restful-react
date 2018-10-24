@@ -116,6 +116,16 @@ class ContextlessMutate<TData, TError> extends React.Component<
     path: "",
   };
 
+  /**
+   * Abort controller to cancel the current fetch query
+   */
+  private abortController = new AbortController();
+  private signal = this.abortController.signal;
+
+  public componentWillUnmount() {
+    this.abortController.abort();
+  }
+
   public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
     const { base, parentPath, path, verb, requestOptions: providerRequestOptions } = this.props;
     this.setState(() => ({ error: null, loading: true }));
@@ -138,9 +148,13 @@ class ContextlessMutate<TData, TError> extends React.Component<
       },
     });
 
-    const response = await fetch(request);
+    const response = await fetch(request, { signal: this.signal });
     const { data, responseError } = await processResponse(response);
 
+    // avoid state updates when component has been unmounted
+    if (this.signal.aborted) {
+      return;
+    }
     if (!response.ok || responseError) {
       const error = { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
 
