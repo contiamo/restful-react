@@ -5834,7 +5834,7 @@ prompts@^0.1.9:
     clorox "^1.0.3"
     sisteransi "^0.1.1"
 
-prop-types@^15.6.0:
+prop-types@^15.6.0, prop-types@^15.6.2:
   version "15.6.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.2.tgz#05d5ca77b4453e985d60fc7ff8c859094a497102"
   dependencies:
@@ -5972,14 +5972,14 @@ react-testing-library@^5.0.0:
     dom-testing-library "^3.1.0"
     wait-for-expect "^1.0.0"
 
-react@^16.4.1:
-  version "16.4.1"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.4.1.tgz#de51ba5764b5dbcd1f9079037b862bd26b82fe32"
+react@^16.7.0-alpha.0:
+  version "16.7.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.7.0-alpha.0.tgz#e2ed4abe6f268c9b092a1d1e572953684d1783a9"
   dependencies:
-    fbjs "^0.8.16"
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    prop-types "^15.6.0"
+    prop-types "^15.6.2"
+    scheduler "^0.11.0-alpha.0"
 
 read-pkg-up@^1.0.1:
   version "1.0.1"
@@ -6340,6 +6340,13 @@ sane@^2.0.0:
 sax@^1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
+
+scheduler@^0.11.0-alpha.0:
+  version "0.11.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.11.0-alpha.0.tgz#7b132c726608993471db07866f2d59a52b9e190b"
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
 
 schema-utils@^0.4.4, schema-utils@^0.4.5:
   version "0.4.7"
