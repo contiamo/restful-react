@@ -1,32 +1,18 @@
-import * as React from "react";
+import React from "react";
 import { render } from "react-dom";
 
-import { Get, RestfulProvider } from "../src";
+import { RestfulProvider, useGet } from "../src";
 
-const wait = timeout =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve();
-    }, timeout);
-  });
+const ShowMeADog = () => {
+  const { data, loading } = useGet<{ message: string }>({ path: "" });
 
-const App: React.SFC<{}> = props => (
-  <RestfulProvider base="https://dog.ceo">
-    <Get path="/api/breeds/list/all" resolve={res => wait(1500).then(() => Promise.resolve(Object.keys(res.message)))}>
-      {(breeds, { loading, error }) => {
-        if (loading) {
-          return "loading..";
-        }
-        if (error) {
-          return <code>{JSON.stringify(error)}</code>;
-        }
-        if (breeds) {
-          return <ul>{breeds.map((breed, breedIndex) => <li key={breedIndex}>{breed}</li>)}</ul>;
-        }
-        return null;
-      }}
-    </Get>
+  return loading ? <div>Loading…</div> : <img src={data ? data.message : ""} />;
+};
+
+const App = () => (
+  <RestfulProvider base="https://dog.ceo/api/breeds/image/random">
+    <ShowMeADog />
   </RestfulProvider>
 );
 
-render(<App />, document.querySelector("#app"));
+render(<App />, document.getElementById("app"));
