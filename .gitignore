@@ -92,6 +92,7 @@ typings/
 
 public
 lib
+.cache
 
 # Files managed by operational-scripts
 tslint.json
