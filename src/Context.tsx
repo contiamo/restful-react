@@ -29,7 +29,7 @@ export interface RestfulReactProviderProps<T = any> {
   onError?: (err: any, retry: () => Promise<T | null>, response: Response) => void;
 }
 
-const { Provider, Consumer: RestfulReactConsumer } = React.createContext<Required<RestfulReactProviderProps>>({
+export const Context = React.createContext<Required<RestfulReactProviderProps>>({
   base: "",
   parentPath: "",
   resolve: (data: any) => data,
@@ -45,7 +45,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
   public render() {
     const { children, ...value } = this.props;
     return (
-      <Provider
+      <Context.Provider
         value={{
           onError: noop,
           resolve: (data: any) => data,
@@ -55,9 +55,11 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
         }}
       >
         {children}
-      </Provider>
+      </Context.Provider>
     );
   }
 }
+
+const RestfulReactConsumer = Context.Consumer;
 
 export { RestfulReactConsumer };
