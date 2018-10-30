@@ -36,7 +36,8 @@
     "preversion": "npm run build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
     "lint": "tslint src/**/*{ts,tsx} --project .",
-    "prepublishOnly": "operational-scripts prepare"
+    "prepublishOnly": "operational-scripts prepare",
+    "ci": "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\""
   },
   "devDependencies": {
     "@operational/scripts": "^1.1.2",
