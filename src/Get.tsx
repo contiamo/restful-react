@@ -216,29 +216,42 @@ class ContextlessGet<TData, TError> extends React.Component<
       composeUrl(base!, parentPath!, requestPath || path || ""),
       this.getRequestOptions(thisRequestOptions),
     );
-    const response = await fetch(request);
-    const { data, responseError } = await processResponse(response);
 
-    if (!response.ok || responseError) {
-      const error = {
-        message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
-        data,
-      };
+    return await fetch(request)
+      .catch(error => {
+        throw {
+          message: `Failed to fetch: ${error}`,
+          data: "",
+        };
+      })
+      .then(response => processResponse(response))
+      .then(processedResponse => {
+        const { response, data, responseError } = processedResponse;
 
-      this.setState({
-        loading: false,
-        error,
+        if (!response.ok || responseError) {
+          const error = {
+            message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+            data,
+          };
+
+          throw error;
+        }
+
+        this.setState({ loading: false, data: resolve!(data) });
+        return data;
+      })
+      .catch(error => {
+        this.setState({
+          loading: false,
+          error,
+        });
+
+        if (!this.props.localErrorOnly && this.props.onError) {
+          this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions));
+        }
+
+        return null;
       });
-
-      if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions));
-      }
-
-      return null;
-    }
-
-    this.setState({ loading: false, data: resolve!(data) });
-    return data;
   };
 
   public render() {

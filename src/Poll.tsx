@@ -222,42 +222,46 @@ class ContextlessPoll<TData, TError> extends React.Component<
       },
     });
 
-    try {
-      const response = await fetch(request, { signal: this.signal });
-      const { data, responseError } = await processResponse(response);
-
-      if (!this.keepPolling) {
-        // Early return if we have stopped polling to avoid memory leaks
-        return;
-      }
-
-      if (!this.isResponseOk(response) || responseError) {
-        const error = {
-          message: `Failed to poll: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
-          data,
+    fetch(request, { signal: this.signal })
+      .catch(error => {
+        throw {
+          message: `Failed to poll: ${error}`,
+          data: "",
         };
-        this.setState({ loading: false, lastResponse: response, error });
+      })
+      .then(response => processResponse(response))
+      .then(processedResponse => {
+        const { response, data, responseError } = processedResponse;
 
+        if (!this.keepPolling) {
+          // Early return if we have stopped polling to avoid memory leaks
+          return;
+        }
+
+        if (!this.isResponseOk(response) || responseError) {
+          const error = {
+            message: `Failed to poll: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+            data,
+          };
+          this.setState({ loading: false, lastResponse: response, error });
+          throw error;
+        } else if (this.isModified(response, data)) {
+          this.setState(prevState => ({
+            loading: false,
+            lastResponse: response,
+            previousData: prevState.data,
+            data,
+            error: null,
+            lastPollIndex: response.headers.get("x-polling-index") || undefined,
+          }));
+        }
+      })
+      .catch(error => {
         if (!this.props.localErrorOnly && this.props.onError) {
           this.props.onError(error);
         }
-      } else if (this.isModified(response, data)) {
-        this.setState(prevState => ({
-          loading: false,
-          lastResponse: response,
-          previousData: prevState.data,
-          data,
-          error: null,
-          lastPollIndex: response.headers.get("x-polling-index") || undefined,
-        }));
-      }
-
-      // Wait for interval to pass.
-      await new Promise(resolvePromise => setTimeout(resolvePromise, interval));
-      this.cycle(); // Do it all again!
-    } catch (e) {
-      // the only error not catched is the `fetch`, this means that we have cancelled the fetch
-    }
+      })
+      .then(() => setTimeout(this.cycle, interval));
   };
 
   public start = () => {

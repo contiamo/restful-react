@@ -138,25 +138,35 @@ class ContextlessMutate<TData, TError> extends React.Component<
       },
     });
 
-    const response = await fetch(request);
-    const { data, responseError } = await processResponse(response);
+    return fetch(request)
+      .catch(error => {
+        throw {
+          message: `Failed to fetch: ${error}`,
+          data: "",
+        };
+      })
+      .then(response => processResponse(response))
+      .then(processedResponse => {
+        const { response, data, responseError } = processedResponse;
 
-    if (!response.ok || responseError) {
-      const error = { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
+        if (!response.ok || responseError) {
+          throw { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
+        }
 
-      this.setState({
-        loading: false,
+        this.setState({ loading: false });
+        return data;
+      })
+      .catch(error => {
+        this.setState({
+          loading: false,
+        });
+
+        if (!this.props.localErrorOnly && this.props.onError) {
+          this.props.onError(error, () => this.mutate(body, mutateRequestOptions));
+        }
+
+        throw error;
       });
-
-      if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error, () => this.mutate(body, mutateRequestOptions));
-      }
-
-      throw error;
-    }
-
-    this.setState({ loading: false });
-    return data;
   };
 
   public render() {

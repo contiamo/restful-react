@@ -291,6 +291,31 @@ describe("Mutate", () => {
 
       expect(onError.mock.calls.length).toEqual(0);
     });
+
+    it("should call onError when fetch throws an exception", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .replyWithError("FAKE CERTIFICATE ERROR");
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onError = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onError={onError}>
+          <Mutate verb="POST" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await children.mock.calls[0][0]().catch(() => {
+        /* noop */
+      });
+
+      expect(onError.mock.calls.length).toEqual(1);
+    });
   });
   describe("Compose paths and urls", () => {
     it("should compose absolute urls", async () => {
