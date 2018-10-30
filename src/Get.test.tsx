@@ -253,6 +253,68 @@ describe("Get", () => {
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(children.mock.calls[1][0]).toEqual({ hello: "world", foo: "bar" });
     });
+
+    it("should transform data with a promise", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" resolve={data => Promise.resolve({ ...data, foo: "bar" })}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual({ hello: "world", foo: "bar" });
+    });
+
+    it("should pass an error when the resolver throws a runtime error", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" resolve={data => data.apples.oranges}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].error.message).toEqual("RESOLVE_ERROR");
+      expect(children.mock.calls[1][0]).toEqual(null);
+    });
+
+    it("should pass an error when the resolver is a promise that rejects", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" resolve={data => Promise.reject("nogood")}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].error).toEqual({ message: "RESOLVE_ERROR", data: JSON.stringify("nogood") });
+      expect(children.mock.calls[1][0]).toEqual(null);
+    });
   });
 
   describe("with lazy", () => {
@@ -494,10 +556,8 @@ describe("Get", () => {
           </RestfulProvider>,
         ),
       );
-
       await wait(() => expect(apiCalls).toEqual(1));
     });
-
     it("should call the API only 10 times without debounce", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
@@ -505,12 +565,9 @@ describe("Get", () => {
         .get("/?test=XXX")
         .reply(200, () => ++apiCalls)
         .persist();
-
       const children = jest.fn();
       children.mockReturnValue(<div />);
-
       const resolve = a => a;
-
       /**
        * A new instance of RestfulProvider is created on every rerender.
        * This will create a new resolve function every time forcing Get to
@@ -524,7 +581,6 @@ describe("Get", () => {
           <Get path="?test=1">{children}</Get>
         </RestfulProvider>,
       );
-
       times(10, i =>
         rerender(
           <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
@@ -532,7 +588,6 @@ describe("Get", () => {
           </RestfulProvider>,
         ),
       );
-
       expect(apiCalls).toEqual(10);
     });
   });
@@ -543,23 +598,19 @@ describe("Get", () => {
         .get("/")
         .reply(200, () => ++apiCalls)
         .persist();
-
       const children = jest.fn();
       children.mockReturnValue(<div />);
-
       const resolve = a => a;
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
-
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
-
       expect(apiCalls).toEqual(1);
     });
     it("should refetch when base changes", () => {
@@ -567,17 +618,14 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, () => ++apiCalls);
-
       const children = jest.fn();
       children.mockReturnValue(<div />);
-
       const resolve = a => a;
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
-
       nock("https://my-new-api.fake")
         .get("/")
         .reply(200, () => ++apiCalls);
@@ -588,7 +636,6 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
-
       expect(apiCalls).toEqual(2);
     });
     it("should refetch when path changes", () => {
@@ -598,23 +645,19 @@ describe("Get", () => {
         .get("/?test=XXX")
         .reply(200, () => ++apiCalls)
         .persist();
-
       const children = jest.fn();
       children.mockReturnValue(<div />);
-
       const resolve = a => a;
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
           <Get path="/?test=0">{children}</Get>
         </RestfulProvider>,
       );
-
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
           <Get path="/?test=1">{children}</Get>
         </RestfulProvider>,
       );
-
       expect(apiCalls).toEqual(2);
     });
     it("should refetch when resolve changes", () => {
@@ -623,17 +666,14 @@ describe("Get", () => {
         .get("/")
         .reply(200, () => ++apiCalls)
         .persist();
-
       const children = jest.fn();
       children.mockReturnValue(<div />);
-
       const providerResolve = a => a;
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={providerResolve}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
-
       const newResolve = a => a;
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={providerResolve}>
@@ -642,7 +682,6 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
-
       expect(apiCalls).toEqual(2);
     });
   });

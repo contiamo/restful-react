@@ -93,6 +93,9 @@ typings/
 public
 lib
 
+# Cache for parcel serverl in example
+.cache
+
 # Files managed by operational-scripts
 tslint.json
 tsconfig.json
