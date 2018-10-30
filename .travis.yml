@@ -14,4 +14,4 @@ env:
 # When Travis gets notified of a new build, do this
 script:
   - yarn test
-  - [ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\"
+  - "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci" || echo \"Skipping Danger for External Contributor\"
