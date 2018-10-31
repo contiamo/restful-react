@@ -4,12 +4,13 @@ import * as React from "react";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
+import { resolveData } from "./util/resolveData";
 
 /**
  * A function that resolves returned data from
  * a fetch call.
  */
-export type ResolveFunction<T> = (data: any) => T;
+export type ResolveFunction<T> = ((data: any) => T) | ((data: any) => Promise<T>);
 
 export interface GetDataError<TError> {
   message: string;
@@ -237,7 +238,9 @@ class ContextlessGet<TData, TError> extends React.Component<
       return null;
     }
 
-    this.setState({ loading: false, data: resolve!(data) });
+    const resolved = await resolveData<TData, TError>({ data, resolve });
+
+    this.setState({ loading: false, data: resolved.data, error: resolved.error });
     return data;
   };
 
