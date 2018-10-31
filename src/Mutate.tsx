@@ -36,7 +36,12 @@ export interface MutateCommonProps {
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
    */
-  path: string;
+  path?: string;
+  /**
+   * @private This is an internal implementation detail in restful-react, not meant to be used externally.
+   * This helps restful-react correctly override `path`s when a new `base` property is provided.
+   */
+  __internal_hasExplicitBase?: boolean;
   /**
    * What HTTP verb are we using?
    */
@@ -117,14 +122,27 @@ class ContextlessMutate<TData, TError> extends React.Component<
   };
 
   public mutate = async (body?: string | {}, mutateRequestOptions?: RequestInit) => {
-    const { base, parentPath, path, verb, requestOptions: providerRequestOptions } = this.props;
+    const {
+      __internal_hasExplicitBase,
+      base,
+      parentPath,
+      path,
+      verb,
+      requestOptions: providerRequestOptions,
+    } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
-    const requestPath =
-      verb === "DELETE" && typeof body === "string"
-        ? composeUrl(base!, parentPath!, composePathWithBody(path, body))
-        : composeUrl(base!, parentPath!, path);
-    const request = new Request(requestPath, {
+    const makeRequestPath = () => {
+      if (__internal_hasExplicitBase) {
+        return composeUrl(base!, "", path || "");
+      } else {
+        return verb === "DELETE" && typeof body === "string"
+          ? composeUrl(base!, parentPath!, composePathWithBody(path!, body))
+          : composeUrl(base!, parentPath!, path!);
+      }
+    };
+
+    const request = new Request(makeRequestPath(), {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
@@ -136,7 +154,7 @@ class ContextlessMutate<TData, TError> extends React.Component<
           : (providerRequestOptions || {}).headers),
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
-    });
+    } as RequestInit); // Type assertion for version of TypeScript that can't yet discriminate.
 
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
@@ -163,7 +181,7 @@ class ContextlessMutate<TData, TError> extends React.Component<
     const { children, path, base, parentPath } = this.props;
     const { error, loading, response } = this.state;
 
-    return children(this.mutate, { loading, error }, { response, absolutePath: composeUrl(base!, parentPath!, path) });
+    return children(this.mutate, { loading, error }, { response, absolutePath: composeUrl(base!, parentPath!, path!) });
   }
 }
 
@@ -181,8 +199,12 @@ function Mutate<TError = any, TData = any>(props: MutateProps<TData, TError>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
-        <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path)}>
-          <ContextlessMutate<TData, TError> {...contextProps} {...props} />
+        <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path!)}>
+          <ContextlessMutate<TData, TError>
+            {...contextProps}
+            {...props}
+            __internal_hasExplicitBase={Boolean(props.base)}
+          />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>
