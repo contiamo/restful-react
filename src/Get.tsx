@@ -60,6 +60,11 @@ export interface GetProps<TData, TError> {
    */
   path: string;
   /**
+   * @private This is an internal implementation detail in restful-react, not meant to be used externally.
+   * This helps restful-react correctly override `path`s when a new `base` property is provided.
+   */
+  __internal_hasExplicitBase?: boolean;
+  /**
    * A function that recieves the returned, resolved
    * data.
    *
@@ -209,15 +214,20 @@ class ContextlessGet<TData, TError> extends React.Component<
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, parentPath, path, resolve } = this.props;
+    const { base, __internal_hasExplicitBase, parentPath, path, resolve } = this.props;
     if (this.state.error || !this.state.loading) {
       this.setState(() => ({ error: null, loading: true }));
     }
 
-    const request = new Request(
-      composeUrl(base!, parentPath!, requestPath || path || ""),
-      this.getRequestOptions(thisRequestOptions),
-    );
+    const makeRequestPath = () => {
+      if (__internal_hasExplicitBase) {
+        return composeUrl(base!, "", path || "");
+      } else {
+        return composeUrl(base!, parentPath!, requestPath || path || "");
+      }
+    };
+
+    const request = new Request(makeRequestPath(), this.getRequestOptions(thisRequestOptions));
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
 
@@ -277,7 +287,7 @@ function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path)}>
-          <ContextlessGet {...contextProps} {...props} />
+          <ContextlessGet {...contextProps} {...props} __internal_hasExplicitBase={Boolean(props.base)} />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>

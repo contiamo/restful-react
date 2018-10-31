@@ -4,6 +4,7 @@ import nock from "nock";
 import React from "react";
 import { cleanup, render, wait } from "react-testing-library";
 
+import Get from "./Get";
 import { Mutate, RestfulProvider } from "./index";
 
 afterEach(() => {
@@ -399,6 +400,36 @@ describe("Mutate", () => {
       // after post state
       expect(children.mock.calls[2][1].loading).toEqual(false);
       expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+
+    it("should rewrite the base and handle path accordingly", async () => {
+      nock("https://my-other-api.fake")
+        .post("/")
+        .reply(200, { id: 1 });
+
+      nock("https://my-awesome-api.fake/eaegae")
+        .get("/LOL")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/eaegae">
+          <Get path="/LOL">
+            {() => (
+              <Mutate verb="POST" base="https://my-other-api.fake" path="">
+                {children}
+              </Mutate>
+            )}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      const response = await children.mock.calls[0][0]();
+      expect(children.mock.calls.length).toBe(4);
+      expect(response).toEqual({ id: 1 });
     });
 
     it("should compose base with trailing slash", async () => {

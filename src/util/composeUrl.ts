@@ -1,6 +1,6 @@
 import url from "url";
 
-export const composeUrl = (base: string, parentPath: string, path: string): string => {
+export const composeUrl = (base: string = "", parentPath: string = "", path: string = ""): string => {
   const composedPath = composePath(parentPath, path);
   /* If the base contains a trailing slash, it will be trimmed during composition */
   return base!.endsWith("/") ? `${base!.slice(0, -1)}${composedPath}` : `${base}${composedPath}`;
@@ -14,7 +14,7 @@ export const composeUrl = (base: string, parentPath: string, path: string): stri
  * whereas,
  * parentPath = "/someBasePath" and path = "relative" resolves to "/someBasePath/relative"
  */
-export const composePath = (parentPath: string, path: string): string => {
+export const composePath = (parentPath: string = "", path: string = ""): string => {
   if (path.startsWith("/") && path.length > 1) {
     return url.resolve(parentPath, path);
   } else if (path !== "" && path !== "/") {

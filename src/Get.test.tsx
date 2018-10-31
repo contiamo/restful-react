@@ -6,6 +6,7 @@ import React from "react";
 import { cleanup, render, wait } from "react-testing-library";
 
 import { Get, RestfulProvider } from "./index";
+import Mutate from "./Mutate";
 
 afterEach(() => {
   cleanup();
@@ -602,6 +603,33 @@ describe("Get", () => {
         </RestfulProvider>,
       );
       expect(apiCalls).toEqual(1);
+    });
+
+    it("should rewrite the base and handle path accordingly", async () => {
+      nock("https://my-other-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+
+      nock("https://my-awesome-api.fake/eaegae")
+        .post("/LOL")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake/eaegae">
+          <Mutate verb="POST" path="/LOL">
+            {() => (
+              <Get base="https://my-other-api.fake" path="">
+                {children}
+              </Get>
+            )}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
     });
     it("should refetch when base changes", () => {
       let apiCalls = 0;
