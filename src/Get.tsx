@@ -170,7 +170,8 @@ class ContextlessGet<TData, TError> extends React.Component<
       base !== this.props.base ||
       parentPath !== this.props.parentPath ||
       path !== this.props.path ||
-      resolve !== this.props.resolve
+      // both `resolve` props need to _exist_ first, and then be equivalent.
+      (resolve && this.props.resolve && resolve.toString() !== this.props.resolve.toString())
     ) {
       if (!this.props.lazy) {
         this.fetch();
