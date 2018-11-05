@@ -194,6 +194,58 @@ describe("Poll", () => {
       await wait(() => expect(children.mock.calls.length).toBe(3));
       expect(children.mock.calls[2][0]).toEqual({ data: "hello you" });
     });
+
+    it("should stop polling if no polling index returned", async () => {
+      // render 1: loading
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=1s;",
+        },
+      })
+        .get("/")
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+      // render 2: data (hello)
+
+      const lastResponseWithoutIndex = { data: "new data" };
+
+      // render 3 data (new data)
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=1s;index=1",
+        },
+      })
+        .get("/")
+        .reply(200, lastResponseWithoutIndex);
+
+      // render 4 (shouldn't happen)
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=1s;",
+        },
+      })
+        .get("/")
+        .reply(
+          200,
+          { data: "You shouldn't get here because the previous one had no polling index." },
+          { "x-polling-index": "3" },
+        );
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll wait={1} path="">
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+      await wait(() =>
+        expect(children.mock.calls[children.mock.calls.length - 1][0]).toEqual(lastResponseWithoutIndex),
+      );
+    });
   });
 
   describe("with error", () => {
@@ -501,7 +553,7 @@ describe("Poll", () => {
       expect(children.mock.calls[1][1].loading).toEqual(false);
       expect(children.mock.calls[1][0]).toEqual({ id: 1 });
     });
-    
+
     it("should compose urls with base subpath", async () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/absolute")
