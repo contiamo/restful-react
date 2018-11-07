@@ -144,7 +144,9 @@ class ContextlessMutate<TData, TError> extends React.Component<
 
     const makeRequestPath = () => {
       if (__internal_hasExplicitBase) {
-        return composeUrl(base!, "", path || "");
+        return verb === "DELETE" && typeof body === "string"
+          ? composeUrl(base!, "", composePathWithBody(path!, body))
+          : composeUrl(base!, "", path || "");
       } else {
         return verb === "DELETE" && typeof body === "string"
           ? composeUrl(base!, parentPath!, composePathWithBody(path!, body))
