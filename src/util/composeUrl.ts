@@ -23,5 +23,3 @@ export const composePath = (parentPath: string = "", path: string = ""): string 
     return parentPath;
   }
 };
-
-export const composePathWithBody = (path: string, body: string): string => url.resolve(path, body);

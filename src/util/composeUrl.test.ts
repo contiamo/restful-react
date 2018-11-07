@@ -1,4 +1,4 @@
-import { composePath, composePathWithBody, composeUrl } from "./composeUrl";
+import { composePath, composeUrl } from "./composeUrl";
 
 describe("compose paths and urls", () => {
   it("should handle empty parentPath with absolute path", () => {
@@ -73,21 +73,5 @@ describe("compose paths and urls", () => {
     expect(composeUrl(baseWithSubpath, parentPath, path)).toBe(
       "https://my-awesome-api.fake/MY_SUBROUTE/someBasePath/relative",
     );
-  });
-});
-
-describe("compose path with body", () => {
-  it("should compose body with absolute path", () => {
-    const path = "/absolute";
-    const body = "?somebody";
-
-    expect(composePathWithBody(path, body)).toBe("/absolute?somebody");
-  });
-
-  it("should compose body with relative path", () => {
-    const path = "relative";
-    const body = "?somebody";
-
-    expect(composePathWithBody(path, body)).toBe("relative?somebody");
   });
 });

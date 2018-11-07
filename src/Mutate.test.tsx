@@ -78,8 +78,8 @@ describe("Mutate", () => {
       expect(children.mock.calls[2][1].loading).toEqual(false);
     });
 
-    it("should call the correct url with a specific id (with base in Mutate)", async () => {
-      nock("https://my-awesome-api.fake")
+    it("should call the correct url with a specific id (with base and path in Mutate)", async () => {
+      nock("https://my-awesome-api.fake/user")
         .delete("/plop")
         .reply(200, { id: 1 });
 
@@ -89,7 +89,7 @@ describe("Mutate", () => {
       // setup - first render
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Mutate verb="DELETE" path="user">
+          <Mutate verb="DELETE" base="https://my-awesome-api.fake" path="user">
             {children}
           </Mutate>
         </RestfulProvider>,

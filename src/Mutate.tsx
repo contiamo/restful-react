@@ -1,7 +1,7 @@
 import * as React from "react";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
-import { composePath, composePathWithBody, composeUrl } from "./util/composeUrl";
+import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 
 /**
@@ -145,11 +145,11 @@ class ContextlessMutate<TData, TError> extends React.Component<
     const makeRequestPath = () => {
       if (__internal_hasExplicitBase) {
         return verb === "DELETE" && typeof body === "string"
-          ? composeUrl(base!, "", composePathWithBody(path!, body))
+          ? composeUrl(base!, "", composePath(path!, body))
           : composeUrl(base!, "", path || "");
       } else {
         return verb === "DELETE" && typeof body === "string"
-          ? composeUrl(base!, parentPath!, composePathWithBody(path!, body))
+          ? composeUrl(base!, parentPath!, composePath(path!, body))
           : composeUrl(base!, parentPath!, path!);
       }
     };
