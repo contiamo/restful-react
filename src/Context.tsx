@@ -26,7 +26,7 @@ export interface RestfulReactProviderProps<T = any> {
    * Depending of your case, it can be easier to add a `localErrorOnly` on your `Mutate` component
    * to deal with your retry locally instead of in the provider scope.
    */
-  onError?: (err: any, retry?: () => Promise<T | null>) => void;
+  onError?: (err: any, retry: () => Promise<T | null>, response: Response) => void;
 }
 
 const { Provider, Consumer: RestfulReactConsumer } = React.createContext<Required<RestfulReactProviderProps>>({

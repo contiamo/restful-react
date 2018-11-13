@@ -354,10 +354,14 @@ describe("Poll", () => {
       );
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
-      expect(onError).toBeCalledWith({
-        data: { message: "You shall not pass!" },
-        message: "Failed to poll: 401 Unauthorized",
-      });
+      expect(onError).toBeCalledWith(
+        {
+          data: { message: "You shall not pass!" },
+          message: "Failed to poll: 401 Unauthorized",
+        },
+        expect.any(Function), // retry
+        expect.any(Object), // response
+      );
     });
 
     it("should set the `error` object properly", async () => {

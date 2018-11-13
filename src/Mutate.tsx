@@ -183,7 +183,7 @@ class ContextlessMutate<TData, TError> extends React.Component<
       });
 
       if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error, () => this.mutate(body, mutateRequestOptions));
+        this.props.onError(error, () => this.mutate(body, mutateRequestOptions), response);
       }
 
       throw error;

@@ -240,7 +240,7 @@ class ContextlessPoll<TData, TError> extends React.Component<
         this.setState({ loading: false, lastResponse: response, error });
 
         if (!this.props.localErrorOnly && this.props.onError) {
-          this.props.onError(error);
+          this.props.onError(error, () => Promise.resolve(), response);
         }
       } else if (this.isModified(response, data)) {
         this.setState(prevState => ({
