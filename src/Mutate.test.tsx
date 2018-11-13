@@ -290,7 +290,8 @@ describe("Mutate", () => {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
         },
-        expect.any(Function),
+        expect.any(Function), // retry
+        expect.any(Object), // response
       );
     });
 
@@ -325,7 +326,8 @@ describe("Mutate", () => {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
         },
-        expect.any(Function),
+        expect.any(Function), // retry
+        expect.any(Object), // response
       );
       const data = await onError.mock.calls[0][1]();
       expect(data).toEqual({ message: "You shall pass :)" });

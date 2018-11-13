@@ -203,7 +203,8 @@ describe("Get", () => {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
         },
-        expect.any(Function),
+        expect.any(Function), // retry
+        expect.any(Object), // response
       );
     });
 
@@ -232,7 +233,8 @@ describe("Get", () => {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
         },
-        expect.any(Function),
+        expect.any(Function), // retry
+        expect.any(Object), // response
       );
       onError.mock.calls[0][1]();
       await wait(() => expect(children.mock.calls.length).toBe(4));
