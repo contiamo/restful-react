@@ -158,7 +158,7 @@ class ContextlessMutate<TData, TError, TBody> extends React.Component<
 
     const request = new Request(makeRequestPath(), {
       method: verb,
-      body: typeof body === "object" ? JSON.stringify(body) : (body as any), // Regarding the type definition, this should be a ReadableStream, this is not true
+      body: typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
       ...mutateRequestOptions,
       headers: {
