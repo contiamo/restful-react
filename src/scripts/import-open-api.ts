@@ -130,7 +130,7 @@ export const getObject = (item: SchemaObject): string => {
     return `{[key: string]: ${resolveValue(item.additionalProperties)}}`;
   }
 
-  return "any"; // fallback
+  return item.type === "object" ? "{}" : "any";
 };
 
 /**
