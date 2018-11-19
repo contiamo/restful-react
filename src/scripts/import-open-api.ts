@@ -206,11 +206,25 @@ const importSpecs = (path: string): OpenAPIObject => {
  * Generate a restful-react compoment from openapi operation specs
  *
  * @param operation
+ * @param verb
+ * @param route
+ * @param baseUrl
+ * @param operationIds - List of `operationId` to check duplication
  */
-export const generateRestfulComponent = (operation: OperationObject, verb: string, route: string, baseUrl: string) => {
+export const generateRestfulComponent = (
+  operation: OperationObject,
+  verb: string,
+  route: string,
+  baseUrl: string,
+  operationIds: string[],
+) => {
   if (!operation.operationId) {
     throw new Error(`Every path must have a operationId - No operationId set for ${verb} ${route}`);
   }
+  if (operationIds.includes(operation.operationId)) {
+    throw new Error(`"${operation.operationId}" is duplicated in your schema definition!`);
+  }
+  operationIds.push(operation.operationId);
 
   route = route.replace(/\{/g, "${"); // `/pet/{id}` => `/pet/${id}`
   const componentName = pascal(operation.operationId!);
@@ -292,6 +306,7 @@ export const generateSchemaDefinition = (schemas: ComponentsObject["schemas"] = 
 };
 
 const importOpenApi = (path: string, baseUrl: string = "http://localhost") => {
+  const operationIds: string[] = [];
   const schema = importSpecs(path);
 
   if (!schema.openapi.startsWith("3.0")) {
@@ -311,7 +326,7 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
   output += generateSchemaDefinition(schema.components && schema.components.schemas);
   Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
-      output += generateRestfulComponent(operation, verb, route, baseUrl);
+      output += generateRestfulComponent(operation, verb, route, baseUrl, operationIds);
     });
   });
 

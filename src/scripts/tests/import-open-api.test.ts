@@ -356,7 +356,7 @@ describe("scripts/import-open-api", () => {
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema
@@ -397,7 +397,7 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema
@@ -453,7 +453,7 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {tenantId: string; projectId?: string};
 
 // List all fields for the use case schema
@@ -510,7 +510,7 @@ export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => 
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields/{id}", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields/{id}", "http://localhost", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {id: string};
 
 // List all fields for the use case schema
@@ -567,7 +567,7 @@ export const ListFields = ({id, ...props}: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", "http://localhost")).toEqual(`
+      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", "http://localhost", [])).toEqual(`
 export type UpdateUseCaseProps = Omit<MutateProps<APIError, UseCaseResponse, UseCaseInstance>, "path"> & {useCaseId: string};
 
 // Update use case details
