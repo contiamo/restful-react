@@ -265,15 +265,20 @@ export const generateRestfulComponent = (
     verb === "get" ? `${responseTypes}, ${errorTypes}` : `${errorTypes}, ${responseTypes}, ${requestBodyTypes}`;
 
   return `
-export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path">${
-    params.length ? ` & {${paramsTypes}}` : ""
-  };
+export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
+    verb === "get" ? "" : ` | "verb"`
+  }>${params.length ? ` & {${paramsTypes}}` : ""};
 
 ${operation.summary ? "// " + operation.summary : ""}
 export const ${componentName} = (${
     params.length ? `{${params.join(", ")}, ...props}` : "props"
   }: ${componentName}Props) => (
-  <${Component}<${genericsTypes}>
+  <${Component}<${genericsTypes}>${
+    verb === "get"
+      ? ""
+      : `
+    verb="${verb.toUpperCase()}"`
+  }
     path=${
       queryParams.length
         ? `{\`${route}?\${qs.stringify({${queryParams.map(p => p.name).join(", ")}})}\`}`
