@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import program from "commander";
 import { readFileSync } from "fs";
 import { join } from "path";
