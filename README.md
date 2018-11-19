@@ -1,5 +1,6 @@
 # RESTful React
- [![Greenkeeper badge](https://badges.greenkeeper.io/contiamo/restful-react.svg)](https://greenkeeper.io/)
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/contiamo/restful-react.svg)](https://greenkeeper.io/)
 
 [![Build Status](https://travis-ci.org/contiamo/restful-react.svg?branch=master)](https://travis-ci.org/contiamo/restful-react)
 
@@ -9,7 +10,6 @@ As an abstraction, this tool allows for greater consistency and maintainability 
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [Overview](#overview)
 - [Getting Started](#getting-started)
@@ -28,6 +28,7 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Polling with `Poll`](#polling-with-poll)
     - [Long Polling](#long-polling)
     - [`Poll` Component API](#poll-component-api)
+  - [CLI tool - Code generation](#cli-tool---code-generation)
   - [Caching](#caching)
 - [Contributing](#contributing)
   - [Code](#code)
@@ -198,7 +199,11 @@ const MyAnimalsList = props => (
                 Here are all my {props.animal}
                 s!
               </h1>
-              <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
+              <ul>
+                {animals.map(animal => (
+                  <li>{animal}</li>
+                ))}
+              </ul>
             </>
           )}
         </div>
@@ -223,7 +228,11 @@ const MyAnimalsList = props => (
             Here are all my {props.animal}
             s!
           </h1>
-          <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
+          <ul>
+            {animals.map(animal => (
+              <li>{animal}</li>
+            ))}
+          </ul>
         </div>
       )
     }
@@ -245,7 +254,13 @@ It is possible to render a `Get` component and defer the fetch to a later stage.
       <p>Are you ready to unleash all the magic? If yes, click this button!</p>
       <button onClick={get}>GET UNICORNS!!!!!!</button>
 
-      {unicorns && <ul>{unicorns.map((unicorn, index) => <li key={index}>{unicorn}</li>)}</ul>}
+      {unicorns && (
+        <ul>
+          {unicorns.map((unicorn, index) => (
+            <li key={index}>{unicorn}</li>
+          ))}
+        </ul>
+      )}
     </div>
   )}
 </Get>
@@ -270,7 +285,11 @@ const myNestedData = props => (
     {data => (
       <div>
         <h1>Here's all the things I want</h1>
-        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
       </div>
     )}
   </Get>
@@ -291,7 +310,11 @@ const SearchThis = props => (
     {data => (
       <div>
         <h1>Here's all the things I search</h1>
-        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
       </div>
     )}
   </Get>
@@ -462,6 +485,16 @@ Visually, this is represented as below.
 To get this functionality in Restful React, it is as simple as specifying a `wait` prop on your `Poll` component, provided your server implements the specification as well.
 
 #### [`Poll` Component API](src/Poll.tsx#L53-L101)
+
+### CLI tool - Code generation
+
+Typing are awesome, nobody will complain about this (exept if you really don't like autocompletion of course). But, manual typing is boring, long, and error prone… Luckily for you, we are lazy and really believe that OpenAPI specs should be only read by a computer (not really, who else want to read 10000+ lines of json or yaml :thinking:).
+
+Bref, `restful-react import my-open-api-spec-3-x.yaml -o my-awesome-generated-types.d.tsx` :tada:
+
+Now you need to add `qs` as dependency to your project, and you can import from this file any component with the types generated from the specs! Say welcome to the autocompletion and say goodbye to swagger :smile:
+
+Note: This is totally experimental for now, so if you have any issue with the generated types -> just open an issue (with the open-api extract and the restful-react component generated/wanted please).
 
 ### Caching
 
