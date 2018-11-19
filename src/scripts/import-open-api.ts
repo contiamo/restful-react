@@ -199,7 +199,7 @@ export const getParamsInPath = (path: string) => {
 const importSpecs = (path: string): OpenAPIObject => {
   const data = readFileSync(path, "utf-8");
   const { ext } = parse(path);
-  return ext === ".yaml" || ext === ".yml" ? YAML.parse(data) : JSON.parse(data);
+  return [".yaml", ".yml"].includes(ext.toLowerCase()) ? YAML.parse(data) : JSON.parse(data);
 };
 
 /**
