@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import equal from "react-fast-compare";
 
 import { InjectedProps, RestfulReactConsumer } from "./Context";
