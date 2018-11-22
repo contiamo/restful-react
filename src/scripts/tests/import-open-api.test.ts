@@ -14,8 +14,8 @@ import importOpenApi, {
 } from "../import-open-api";
 
 describe("scripts/import-open-api", () => {
-  it("should parse correctly petstore-expanded.yaml", () => {
-    const data = importOpenApi(join(__dirname, "./petstore-expanded.yaml"));
+  it("should parse correctly petstore-expanded.yaml", async () => {
+    const data = await importOpenApi(join(__dirname, "./petstore-expanded.yaml"));
     expect(data).toMatchSnapshot();
   });
 
