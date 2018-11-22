@@ -1,10 +1,11 @@
 import { join } from "path";
 
-import { OperationObject, ResponseObject } from "openapi3-ts";
+import { ComponentsObject, OperationObject, ResponseObject } from "openapi3-ts";
 
 import importOpenApi, {
+  generateResponsesDefinition,
   generateRestfulComponent,
-  generateSchemaDefinition,
+  generateSchemasDefinition,
   getArray,
   getObject,
   getRef,
@@ -70,9 +71,18 @@ describe("scripts/import-open-api", () => {
     it("should return the name from `#/components/schemas`", () => {
       expect(getRef("#/components/schemas/foo")).toEqual("Foo");
     });
+    it("should return the name from `#/components/responses`", () => {
+      expect(getRef("#/components/responses/foo")).toEqual("FooResponse");
+    });
+    it("should return the name from `#/components/parameters`", () => {
+      expect(getRef("#/components/parameters/foo")).toEqual("FooParameter");
+    });
+    it("should return the name from `#/components/requestBodies`", () => {
+      expect(getRef("#/components/requestBodies/foo")).toEqual("FooRequestBody");
+    });
     it("should throw if the ref is not in `#/components/schemas`", () => {
       expect(() => getRef("#/somewhere/schemas/foo")).toThrowError(
-        "This library only resolve $ref that are include into `#/components/schemas` for now",
+        "This library only resolve $ref that are include into `#/components/*` for now",
       );
     });
   });
@@ -206,7 +216,7 @@ describe("scripts/import-open-api", () => {
     });
   });
 
-  describe("generateSchemaDefinition", () => {
+  describe("generateSchemasDefinition", () => {
     it("should declare an interface for simple object", () => {
       const schema = {
         NewPet: {
@@ -221,7 +231,7 @@ describe("scripts/import-open-api", () => {
           },
         },
       };
-      expect(generateSchemaDefinition(schema)).toContain(`export interface NewPet {name: string; tag?: string}`);
+      expect(generateSchemasDefinition(schema)).toContain(`export interface NewPet {name: string; tag?: string}`);
     });
 
     it("should declare a type for union object", () => {
@@ -233,7 +243,7 @@ describe("scripts/import-open-api", () => {
           ],
         },
       };
-      expect(generateSchemaDefinition(schema)).toContain(`export type Pet = NewPet & {id: number};`);
+      expect(generateSchemasDefinition(schema)).toContain(`export type Pet = NewPet & {id: number};`);
     });
 
     it("should declare a type for all others types", () => {
@@ -243,7 +253,7 @@ describe("scripts/import-open-api", () => {
         },
       };
 
-      expect(generateSchemaDefinition(schema)).toContain(`export type PetName = string;`);
+      expect(generateSchemasDefinition(schema)).toContain(`export type PetName = string;`);
     });
 
     it("should deal with aliases", () => {
@@ -253,7 +263,94 @@ describe("scripts/import-open-api", () => {
         },
       };
 
-      expect(generateSchemaDefinition(schema)).toContain(`export type Wolf = Dog;`);
+      expect(generateSchemasDefinition(schema)).toContain(`export type Wolf = Dog;`);
+    });
+  });
+
+  describe("generateResponsesDefinition", () => {
+    it("should declare an interface for simple object", () => {
+      const responses: ComponentsObject["responses"] = {
+        JobRun: {
+          description: "Job is starting",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  executionID: {
+                    description: "ID of the job execution",
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateResponsesDefinition(responses)).toContain(
+        "export interface JobRunResponse {executionID?: string}",
+      );
+    });
+
+    it("should declare a a type for composed object", () => {
+      const responses: ComponentsObject["responses"] = {
+        JobRun: {
+          description: "Job is starting",
+          content: {
+            "application/json": {
+              schema: {
+                allOf: [
+                  {
+                    type: "object",
+                    properties: {
+                      executionID: {
+                        description: "ID of the job execution",
+                        type: "string",
+                      },
+                    },
+                  },
+                  { $ref: "#/components/schemas/ExecutionID" },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateResponsesDefinition(responses)).toContain(
+        "export type JobRunResponse = {executionID?: string} & ExecutionID",
+      );
+    });
+
+    it("should declare a a type for union object", () => {
+      const responses: ComponentsObject["responses"] = {
+        JobRun: {
+          description: "Job is starting",
+          content: {
+            "application/json": {
+              schema: {
+                oneOf: [
+                  {
+                    type: "object",
+                    properties: {
+                      executionID: {
+                        description: "ID of the job execution",
+                        type: "string",
+                      },
+                    },
+                  },
+                  { $ref: "#/components/schemas/ExecutionID" },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateResponsesDefinition(responses)).toContain(
+        "export type JobRunResponse = {executionID?: string} | ExecutionID",
+      );
     });
   });
 

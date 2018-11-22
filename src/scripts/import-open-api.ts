@@ -1,6 +1,7 @@
 import { pascal } from "case";
 import { readFileSync } from "fs";
 import groupBy from "lodash/groupBy";
+import isEmpty from "lodash/isEmpty";
 import uniq from "lodash/uniq";
 
 import {
@@ -80,8 +81,14 @@ export const getScalar = (item: SchemaObject) => {
 export const getRef = ($ref: ReferenceObject["$ref"]) => {
   if ($ref.startsWith("#/components/schemas")) {
     return pascal($ref.replace("#/components/schemas/", ""));
+  } else if ($ref.startsWith("#/components/responses")) {
+    return pascal($ref.replace("#/components/responses/", "")) + "Response";
+  } else if ($ref.startsWith("#/components/parameters")) {
+    return pascal($ref.replace("#/components/parameters/", "")) + "Parameter";
+  } else if ($ref.startsWith("#/components/requestBodies")) {
+    return pascal($ref.replace("#/components/requestBodies/", "")) + "RequestBody";
   } else {
-    throw new Error("This library only resolve $ref that are include into `#/components/schemas` for now");
+    throw new Error("This library only resolve $ref that are include into `#/components/*` for now");
   }
 };
 
@@ -157,7 +164,7 @@ export const getResReqTypes = (
       }
 
       if (isReference(res)) {
-        throw new Error("$ref are not implemented inside responses");
+        return getRef(res.$ref);
       } else {
         if (res.content && res.content["application/json"]) {
           const schema = res.content["application/json"].schema!;
@@ -315,7 +322,11 @@ export const ${componentName} = (${
  *
  * @param schemas
  */
-export const generateSchemaDefinition = (schemas: ComponentsObject["schemas"] = {}) => {
+export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] = {}) => {
+  if (isEmpty(schemas)) {
+    return "";
+  }
+
   return (
     Object.entries(schemas)
       .map(
@@ -324,6 +335,28 @@ export const generateSchemaDefinition = (schemas: ComponentsObject["schemas"] = 
             ? `export interface ${pascal(name)} ${getScalar(schema)}`
             : `export type ${pascal(name)} = ${resolveValue(schema)};`,
       )
+      .join("\n\n") + "\n"
+  );
+};
+
+/**
+ * Extract all types from #/components/responses
+ *
+ * @param responses
+ */
+export const generateResponsesDefinition = (responses: ComponentsObject["responses"] = {}) => {
+  if (isEmpty(responses)) {
+    return "";
+  }
+
+  return (
+    Object.entries(responses)
+      .map(([name, response]) => {
+        const type = getResReqTypes([["", response]]);
+        return type.includes("{") && !type.includes("|") && !type.includes("&")
+          ? `export interface ${pascal(name)}Response ${getResReqTypes([["", response]])}`
+          : `export type ${pascal(name)}Response = ${getResReqTypes([["", response]])};`;
+      })
       .join("\n\n") + "\n"
   );
 };
@@ -342,7 +375,8 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 `;
 
-  output += generateSchemaDefinition(schema.components && schema.components.schemas);
+  output += generateSchemasDefinition(schema.components && schema.components.schemas);
+  output += generateResponsesDefinition(schema.components && schema.components.responses);
   Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
       output += generateRestfulComponent(operation, verb, route, baseUrl, operationIds);
