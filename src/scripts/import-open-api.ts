@@ -263,7 +263,7 @@ export const generateRestfulComponent = (
   const isError = (responses: [string, ResponseObject | ReferenceObject]) => !isOk(responses);
 
   const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk));
-  const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError));
+  const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError)) || "unknown";
   const requestBodyTypes = getResReqTypes([["body", operation.requestBody!]]);
 
   const paramsInPath = getParamsInPath(route);

@@ -475,6 +475,34 @@ export const ListFields = (props: ListFieldsProps) => (
 `);
     });
 
+    it("should add a fallback if the error is not defined", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown>, "path">;
+
+// List all fields for the use case schema
+export const ListFields = (props: ListFieldsProps) => (
+  <Get<FieldListResponse, unknown>
+    path={\`/fields\`}
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
+    });
+
     it("should remove duplicate types", () => {
       const operation: OperationObject = {
         summary: "List all fields for the use case schema",
