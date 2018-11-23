@@ -490,9 +490,13 @@ To get this functionality in Restful React, it is as simple as specifying a `wai
 
 Typing are awesome, nobody will complain about this (exept if you really don't like autocompletion of course). But, manual typing is boring, long, and error prone… Luckily for you, we are lazy and really believe that OpenAPI specs should be only read by a computer (not really, who else want to read 10000+ lines of json or yaml :thinking:).
 
-Bref, `restful-react import my-open-api-spec-3-x.yaml -o my-awesome-generated-types.d.tsx` :tada:
+Bref, `restful-react --file import my-open-api-spec-3-x.yaml --output my-awesome-generated-types.d.tsx` :tada:
 
 Now you need to add `qs` as dependency to your project, and you can import from this file any component with the types generated from the specs! Say welcome to the autocompletion and say goodbye to swagger :smile:
+
+If you don't want to rely on a local file to generate your components, you can use the `--github` options to specify a github file instead of a local `--file`
+
+Example: `restful-react --github owner:repo:branch:docs/openapi.yaml --output my-awesome-generated-types-from-github.d.tsx`
 
 Note: This is totally experimental for now, so if you have any issue with the generated types -> just open an issue (with the open-api extract and the restful-react component generated/wanted please).
 

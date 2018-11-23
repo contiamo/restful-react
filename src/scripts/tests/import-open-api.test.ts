@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import { join } from "path";
 
 import { ComponentsObject, OperationObject, ResponseObject } from "openapi3-ts";
@@ -17,7 +18,8 @@ import importOpenApi, {
 
 describe("scripts/import-open-api", () => {
   it("should parse correctly petstore-expanded.yaml", async () => {
-    const data = await importOpenApi(join(__dirname, "./petstore-expanded.yaml"));
+    const input = readFileSync(join(__dirname, "./petstore-expanded.yaml"), "utf-8");
+    const data = await importOpenApi(input, "yaml");
     expect(data).toMatchSnapshot();
   });
 

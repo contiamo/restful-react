@@ -1,12 +1,86 @@
 import program from "commander";
-import { writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import inquirer from "inquirer";
+import { join, parse } from "path";
+import request from "request";
 import importOpenApi from "../scripts/import-open-api";
 
 program.option("-o, --output [value]", "output file destination");
+program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
+program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.parse(process.argv);
 
-importOpenApi(join(process.cwd(), program.args[0]))
+(async () => {
+  if (program.file) {
+    const data = readFileSync(join(process.cwd(), program.file), "utf-8");
+    const { ext } = parse(program.file);
+    const format = [".yaml", ".yml"].includes(ext.toLowerCase()) ? "yaml" : "json";
+
+    return importOpenApi(data, format);
+  } else if (program.github) {
+    let accessToken: string;
+    const githubTokenPath = join(__dirname, ".githubToken");
+    if (existsSync(githubTokenPath)) {
+      accessToken = readFileSync(githubTokenPath, "utf-8");
+    } else {
+      const answers = await inquirer.prompt<{ githubToken: string; saveToken: boolean }>([
+        {
+          type: "input",
+          name: "githubToken",
+          message:
+            "Please provide a github token with `repo` rules checked (https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)",
+        },
+        {
+          type: "confirm",
+          name: "saveToken",
+          message: "Do you want to store your token for the next time? (store in your node_modules)",
+        },
+      ]);
+      if (answers.saveToken) {
+        writeFileSync(githubTokenPath, answers.githubToken);
+      }
+      accessToken = answers.githubToken;
+    }
+    const [owner, repo, branch, path] = program.github.split(":");
+
+    const options = {
+      method: "POST",
+      url: "https://api.github.com/graphql",
+      headers: {
+        "content-type": "application/json",
+        "user-agent": "restful-react-importer",
+        authorization: `bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        query: `query {
+          repository(name: "${repo}", owner: "${owner}") {
+            object(expression: "${branch}:${path}") {
+              ... on Blob {
+                text
+              }
+            }
+          }
+        }`,
+      }),
+    };
+
+    return new Promise((resolve, reject) => {
+      request(options, (error, _, body) => {
+        if (error) {
+          return reject(error);
+        }
+
+        const format =
+          program.github.toLowerCase().includes(".yaml") || program.github.toLowerCase().includes(".yml")
+            ? "yaml"
+            : "json";
+        resolve(importOpenApi(JSON.parse(body).data.repository.object.text, format));
+      });
+    });
+  } else {
+    return Promise.reject("You need to provide a file (--file) or a github (--github) input");
+  }
+})()
   .then(data => {
     writeFileSync(join(process.cwd(), program.output), data);
 
