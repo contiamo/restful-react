@@ -241,7 +241,6 @@ export const generateRestfulComponent = (
   operation: OperationObject,
   verb: string,
   route: string,
-  baseUrl: string,
   operationIds: string[],
   parameters: Array<ReferenceObject | ParameterObject> = [],
   schemasComponents?: ComponentsObject,
@@ -314,7 +313,6 @@ export const ${componentName} = (${
         ? `{\`${route}?\${qs.stringify({${queryParams.map(p => p.name).join(", ")}})}\`}`
         : `{\`${route}\`}`
     }
-    base="${baseUrl}"
     {...props}
   />
 );
@@ -368,7 +366,7 @@ export const generateResponsesDefinition = (responses: ComponentsObject["respons
   );
 };
 
-const importOpenApi = async (path: string, baseUrl: string = "http://localhost") => {
+const importOpenApi = async (path: string) => {
   const operationIds: string[] = [];
   const schema = await importSpecs(path);
 
@@ -387,15 +385,7 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
   Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
       if (["get", "post", "patch", "put", "delete"].includes(verb)) {
-        output += generateRestfulComponent(
-          operation,
-          verb,
-          route,
-          baseUrl,
-          operationIds,
-          verbs.parameters,
-          schema.components,
-        );
+        output += generateRestfulComponent(operation, verb, route, operationIds, verbs.parameters, schema.components);
       }
     });
   });

@@ -21,7 +21,6 @@ export type FindPetsProps = Omit<GetProps<Pet[], Error>, \\"path\\"> & {tags?: s
 export const FindPets = ({tags, limit, ...props}: FindPetsProps) => (
   <Get<Pet[], Error>
     path={\`/pets?\${qs.stringify({tags, limit})}\`}
-    base=\\"http://localhost\\"
     {...props}
   />
 );
@@ -34,7 +33,6 @@ export const AddPet = (props: AddPetProps) => (
   <Mutate<Pet, Error, NewPet>
     verb=\\"POST\\"
     path={\`/pets\`}
-    base=\\"http://localhost\\"
     {...props}
   />
 );
@@ -46,7 +44,6 @@ export type FindPetByIdProps = Omit<GetProps<Pet, Error>, \\"path\\"> & {id: num
 export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   <Get<Pet, Error>
     path={\`/pets/\${id}\`}
-    base=\\"http://localhost\\"
     {...props}
   />
 );
@@ -59,7 +56,6 @@ export const DeletePet = ({id, ...props}: DeletePetProps) => (
   <Mutate<void, Error, void>
     verb=\\"DELETE\\"
     path={\`/pets/\${id}\`}
-    base=\\"http://localhost\\"
     {...props}
   />
 );

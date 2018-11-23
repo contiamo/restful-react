@@ -460,14 +460,13 @@ describe("scripts/import-open-api", () => {
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema
 export const ListFields = (props: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -488,14 +487,13 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown>, "path">;
 
 // List all fields for the use case schema
 export const ListFields = (props: ListFieldsProps) => (
   <Get<FieldListResponse, unknown>
     path={\`/fields\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -529,14 +527,13 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema
 export const ListFields = (props: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -585,14 +582,13 @@ export const ListFields = (props: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields", "http://localhost", [])).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {tenantId: string; projectId?: string};
 
 // List all fields for the use case schema
 export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields?\${qs.stringify({tenantId, projectId})}\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -630,7 +626,6 @@ export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => 
           operation,
           "get",
           "/fields",
-          "http://localhost",
           [],
           [
             {
@@ -655,7 +650,6 @@ export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"
 export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields?\${qs.stringify({tenantId, projectId})}\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -705,14 +699,13 @@ export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => 
         },
       };
 
-      expect(generateRestfulComponent(operation, "get", "/fields/{id}", "http://localhost", [])).toEqual(`
+      expect(generateRestfulComponent(operation, "get", "/fields/{id}", [])).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {id: string};
 
 // List all fields for the use case schema
 export const ListFields = ({id, ...props}: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields/\${id}\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -751,7 +744,6 @@ export const ListFields = ({id, ...props}: ListFieldsProps) => (
           operation,
           "get",
           "/fields/{id}",
-          "http://localhost",
           [],
           [
             {
@@ -777,7 +769,6 @@ export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"
 export const ListFields = ({id, ...props}: ListFieldsProps) => (
   <Get<FieldListResponse, APIError>
     path={\`/fields/\${id}\`}
-    base="http://localhost"
     {...props}
   />
 );
@@ -827,7 +818,7 @@ export const ListFields = ({id, ...props}: ListFieldsProps) => (
         },
       };
 
-      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", "http://localhost", [])).toEqual(`
+      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toEqual(`
 export type UpdateUseCaseProps = Omit<MutateProps<UseCaseResponse, APIError, UseCaseInstance>, "path" | "verb"> & {useCaseId: string};
 
 // Update use case details
@@ -835,7 +826,6 @@ export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
   <Mutate<UseCaseResponse, APIError, UseCaseInstance>
     verb="PUT"
     path={\`/use-cases/\${useCaseId}\`}
-    base="http://localhost"
     {...props}
   />
 );

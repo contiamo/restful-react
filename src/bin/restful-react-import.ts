@@ -4,10 +4,9 @@ import { join } from "path";
 import importOpenApi from "../scripts/import-open-api";
 
 program.option("-o, --output [value]", "output file destination");
-program.option("-u, --url [value]", "base url of the server");
 program.parse(process.argv);
 
-importOpenApi(join(process.cwd(), program.args[0]), program.url)
+importOpenApi(join(process.cwd(), program.args[0]))
   .then(data => {
     writeFileSync(join(process.cwd(), program.output), data);
 
