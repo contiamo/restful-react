@@ -355,6 +355,7 @@ export const generateResponsesDefinition = (responses: ComponentsObject["respons
   }
 
   return (
+    "\n" +
     Object.entries(responses)
       .map(([name, response]) => {
         const type = getResReqTypes([["", response]]);
@@ -362,7 +363,8 @@ export const generateResponsesDefinition = (responses: ComponentsObject["respons
           ? `export interface ${pascal(name)}Response ${getResReqTypes([["", response]])}`
           : `export type ${pascal(name)}Response = ${getResReqTypes([["", response]])};`;
       })
-      .join("\n\n") + "\n"
+      .join("\n\n") +
+    "\n"
   );
 };
 
