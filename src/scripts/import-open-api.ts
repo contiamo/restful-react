@@ -1,5 +1,6 @@
 import { pascal } from "case";
 import { readFileSync } from "fs";
+import get from "lodash/get";
 import groupBy from "lodash/groupBy";
 import isEmpty from "lodash/isEmpty";
 import uniq from "lodash/uniq";
@@ -180,11 +181,11 @@ export const getResReqTypes = (
   ).join(" | ");
 
 /**
- * Return every params is a path
+ * Return every params in a path
  *
  * @example
  * ```
- * getTemplatePathParams("/pet/{category}/{name}/");
+ * getParamsInPath("/pet/{category}/{name}/");
  * // => ["category", "name"]
  * ```
  * @param path
@@ -192,10 +193,10 @@ export const getResReqTypes = (
 export const getParamsInPath = (path: string) => {
   let n;
   const output = [];
-  const templatePathRegex = /\{\w+}/g;
+  const templatePathRegex = /\{(\w+)}/g;
   // tslint:disable-next-line:no-conditional-assignment
   while ((n = templatePathRegex.exec(path)) !== null) {
-    output.push(n[0].slice(1, -1));
+    output.push(n[1]);
   }
 
   return output;
@@ -242,6 +243,8 @@ export const generateRestfulComponent = (
   route: string,
   baseUrl: string,
   operationIds: string[],
+  parameters: Array<ReferenceObject | ParameterObject> = [],
+  schemasComponents?: ComponentsObject,
 ) => {
   if (!operation.operationId) {
     throw new Error(`Every path must have a operationId - No operationId set for ${verb} ${route}`);
@@ -265,23 +268,25 @@ export const generateRestfulComponent = (
 
   const paramsInPath = getParamsInPath(route);
   const { query: queryParams = [], path: pathParams = [] } = groupBy(
-    (operation.parameters || []).filter<ParameterObject>(
-      (p): p is ParameterObject => {
-        if (isReference(p)) {
-          throw new Error("$ref are not implemented inside parameters");
-        } else {
-          return true;
-        }
-      },
-    ),
+    [...parameters, ...(operation.parameters || [])].map<ParameterObject>(p => {
+      if (isReference(p)) {
+        return get(schemasComponents, p.$ref.replace("#/components/", "").replace("/", "."));
+      } else {
+        return p;
+      }
+    }),
     "in",
   );
 
   const params = [...queryParams.map(p => p.name), ...paramsInPath];
   const paramsTypes = [
     ...paramsInPath.map(p => {
-      const { name, required, schema } = pathParams.find(i => i.name === p)!;
-      return `${name}${required ? "" : "?"}: ${resolveValue(schema!)}`;
+      try {
+        const { name, required, schema } = pathParams.find(i => i.name === p)!;
+        return `${name}${required ? "" : "?"}: ${resolveValue(schema!)}`;
+      } catch (err) {
+        throw new Error(`The path params ${p} can't be found in parameters (${operation.operationId})`);
+      }
     }),
     ...queryParams.map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`),
   ].join("; ");
@@ -379,7 +384,17 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
   output += generateResponsesDefinition(schema.components && schema.components.responses);
   Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
-      output += generateRestfulComponent(operation, verb, route, baseUrl, operationIds);
+      if (["get", "post", "patch", "put", "delete"].includes(verb)) {
+        output += generateRestfulComponent(
+          operation,
+          verb,
+          route,
+          baseUrl,
+          operationIds,
+          verbs.parameters,
+          schema.components,
+        );
+      }
     });
   });
 

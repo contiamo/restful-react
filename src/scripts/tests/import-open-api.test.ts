@@ -8,6 +8,7 @@ import importOpenApi, {
   generateSchemasDefinition,
   getArray,
   getObject,
+  getParamsInPath,
   getRef,
   getResReqTypes,
   getScalar,
@@ -32,6 +33,12 @@ describe("scripts/import-open-api", () => {
         type: "string",
       };
       expect(isReference(property)).toBe(false);
+    });
+  });
+
+  describe("getParamsInPath", () => {
+    it("should return all params in the path", () => {
+      expect(getParamsInPath("/pet/{category}/{name}/")).toEqual(["category", "name"]);
     });
   });
 
@@ -564,6 +571,69 @@ export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => 
 
 `);
     });
+    it("should deal with parameters in query (root level)", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          "404": {
+            description: "file not found or field is not a file type",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/APIError" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(
+        generateRestfulComponent(
+          operation,
+          "get",
+          "/fields",
+          "http://localhost",
+          [],
+          [
+            {
+              name: "tenantId",
+              in: "query",
+              required: true,
+              description: "The id of the Contiamo tenant",
+              schema: { type: "string" },
+            },
+            {
+              name: "projectId",
+              in: "query",
+              description: "The id of the project",
+              schema: { type: "string" },
+            },
+          ],
+        ),
+      ).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {tenantId: string; projectId?: string};
+
+// List all fields for the use case schema
+export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => (
+  <Get<FieldListResponse, APIError>
+    path={\`/fields?\${qs.stringify({tenantId, projectId})}\`}
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
+    });
 
     it("should deal with parameters in path", () => {
       const operation: OperationObject = {
@@ -608,6 +678,71 @@ export const ListFields = ({tenantId, projectId, ...props}: ListFieldsProps) => 
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields/{id}", "http://localhost", [])).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {id: string};
+
+// List all fields for the use case schema
+export const ListFields = ({id, ...props}: ListFieldsProps) => (
+  <Get<FieldListResponse, APIError>
+    path={\`/fields/\${id}\`}
+    base="http://localhost"
+    {...props}
+  />
+);
+
+`);
+    });
+
+    it("should deal with parameters in path (root level)", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          "404": {
+            description: "file not found or field is not a file type",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/APIError" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(
+        generateRestfulComponent(
+          operation,
+          "get",
+          "/fields/{id}",
+          "http://localhost",
+          [],
+          [
+            {
+              name: "tenantId",
+              in: "path",
+              required: true,
+              description: "The id of the Contiamo tenant",
+              schema: { type: "string" },
+            },
+            {
+              name: "id",
+              required: true,
+              in: "path",
+              description: "The id of the project",
+              schema: { type: "string" },
+            },
+          ],
+        ),
+      ).toEqual(`
 export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path"> & {id: string};
 
 // List all fields for the use case schema
