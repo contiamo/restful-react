@@ -213,7 +213,7 @@ class ContextlessMutate<TData, TError, TBody> extends React.Component<
  * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Mutate<TError = any, TData = any, TBody = any>(props: MutateProps<TData, TError, TBody>) {
+function Mutate<TData = any, TError = any, TBody = any>(props: MutateProps<TData, TError, TBody>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (

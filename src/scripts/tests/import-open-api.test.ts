@@ -828,11 +828,11 @@ export const ListFields = ({id, ...props}: ListFieldsProps) => (
       };
 
       expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", "http://localhost", [])).toEqual(`
-export type UpdateUseCaseProps = Omit<MutateProps<APIError, UseCaseResponse, UseCaseInstance>, "path" | "verb"> & {useCaseId: string};
+export type UpdateUseCaseProps = Omit<MutateProps<UseCaseResponse, APIError, UseCaseInstance>, "path" | "verb"> & {useCaseId: string};
 
 // Update use case details
 export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
-  <Mutate<APIError, UseCaseResponse, UseCaseInstance>
+  <Mutate<UseCaseResponse, APIError, UseCaseInstance>
     verb="PUT"
     path={\`/use-cases/\${useCaseId}\`}
     base="http://localhost"

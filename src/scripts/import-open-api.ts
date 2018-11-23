@@ -292,7 +292,7 @@ export const generateRestfulComponent = (
   ].join("; ");
 
   const genericsTypes =
-    verb === "get" ? `${responseTypes}, ${errorTypes}` : `${errorTypes}, ${responseTypes}, ${requestBodyTypes}`;
+    verb === "get" ? `${responseTypes}, ${errorTypes}` : `${responseTypes}, ${errorTypes}, ${requestBodyTypes}`;
 
   return `
 export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
