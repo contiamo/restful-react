@@ -261,6 +261,7 @@ export const generateRestfulComponent = (
   const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk));
   const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError)) || "unknown";
   const requestBodyTypes = getResReqTypes([["body", operation.requestBody!]]);
+  const needAResponseComponent = responseTypes.includes("{");
 
   const paramsInPath = getParamsInPath(route);
   const { query: queryParams = [], path: pathParams = [] } = groupBy(
@@ -288,9 +289,17 @@ export const generateRestfulComponent = (
   ].join("; ");
 
   const genericsTypes =
-    verb === "get" ? `${responseTypes}, ${errorTypes}` : `${responseTypes}, ${errorTypes}, ${requestBodyTypes}`;
+    verb === "get"
+      ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}`
+      : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${requestBodyTypes}`;
 
-  return `
+  return `${
+    needAResponseComponent
+      ? `
+export interface ${componentName}Response ${responseTypes}
+`
+      : ""
+  }
 export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
     verb === "get" ? "" : ` | "verb"`
   }>${params.length ? ` & {${paramsTypes}}` : ""};
