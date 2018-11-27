@@ -266,7 +266,7 @@ export const generateRestfulComponent = (
   const isError = ([statusCode]: [string, ResponseObject | ReferenceObject]) =>
     statusCode.toString().startsWith("4") || statusCode.toString().startsWith("5") || statusCode === "default";
 
-  const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk));
+  const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk)) || "void";
   const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError)) || "unknown";
   const requestBodyTypes = getResReqTypes([["body", operation.requestBody!]]);
   const needAResponseComponent = responseTypes.includes("{");
@@ -344,7 +344,7 @@ export const ${componentName} = (${
 ${operation.summary ? "// " + `${operation.summary} (long polling)` : ""}
 export const Poll${componentName} = (${
       params.length ? `{${params.join(", ")}, ...props}` : "props"
-    }: ${componentName}Props) => (
+    }: Poll${componentName}Props) => (
   <Poll<${genericsTypes}>
     path=${
       queryParams.length

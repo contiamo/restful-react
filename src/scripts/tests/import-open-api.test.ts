@@ -1133,7 +1133,7 @@ export const ListFields = (props: ListFieldsProps) => (
 export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema (long polling)
-export const PollListFields = (props: ListFieldsProps) => (
+export const PollListFields = (props: PollListFieldsProps) => (
   <Poll<FieldListResponse, APIError>
     path={\`/fields\`}
     {...props}
@@ -1142,5 +1142,38 @@ export const PollListFields = (props: ListFieldsProps) => (
 
 `);
     });
+  });
+  it("should deal with no 2xx response case", () => {
+    const operation: OperationObject = {
+      summary: "List all fields for the use case schema",
+      operationId: "listFields",
+      responses: {
+        "302": {
+          description: "Just redirect",
+        },
+        default: {
+          description: "unexpected error",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/APIError" },
+              example: { errors: ["msg1", "msg2"] },
+            },
+          },
+        },
+      },
+    };
+
+    expect(generateRestfulComponent(operation, "get", "/fields", [])).toEqual(`
+export type ListFieldsProps = Omit<GetProps<void, APIError>, "path">;
+
+// List all fields for the use case schema
+export const ListFields = (props: ListFieldsProps) => (
+  <Get<void, APIError>
+    path={\`/fields\`}
+    {...props}
+  />
+);
+
+`);
   });
 });
