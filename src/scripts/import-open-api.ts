@@ -251,8 +251,13 @@ export const generateRestfulComponent = (
   operationIds.push(operation.operationId);
 
   route = route.replace(/\{/g, "${"); // `/pet/{id}` => `/pet/${id}`
+
+  // Remove the last param of the route if we are in the DELETE case
+  let lastParamInTheRoute: string;
   if (verb === "delete") {
-    route = route.replace(/\/\$\{\w+\}$/, ""); // `/pet/${id}` => `/pet` if it's a delete
+    const lastParamInTheRouteRegExp = /\/\$\{(\w+)\}$/;
+    lastParamInTheRoute = (route.match(lastParamInTheRouteRegExp) || [])[1];
+    route = route.replace(lastParamInTheRouteRegExp, ""); // `/pet/${id}` => `/pet`
   }
   const componentName = pascal(operation.operationId!);
   const Component = verb === "get" ? "Get" : "Mutate";
@@ -267,7 +272,7 @@ export const generateRestfulComponent = (
   const needAResponseComponent = responseTypes.includes("{");
 
   // We ignore last param of DELETE action, the last params should be the `id` and it's given after in restful-react
-  const paramsInPath = getParamsInPath(route).filter((_, i, { length }) => !(verb === "delete" && i === length - 1));
+  const paramsInPath = getParamsInPath(route).filter(param => !(verb === "delete" && param === lastParamInTheRoute));
   const { query: queryParams = [], path: pathParams = [] } = groupBy(
     [...parameters, ...(operation.parameters || [])].map<ParameterObject>(p => {
       if (isReference(p)) {
