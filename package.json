@@ -1,7 +1,7 @@
 {
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
-  "version": "6.1.1",
+  "version": "6.2.0-openapi-6",
   "main": "lib/index.js",
   "license": "MIT",
   "files": [
@@ -46,7 +46,7 @@
     "preversion": "npm run build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
     "lint": "tslint src/**/*{ts,tsx} --project .",
-    "prepublishOnly": "operational-scripts prepare",
+    "prepublishOnly": "operational-scripts prepare && rollup -c rollup.config.js",
     "ci": "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\""
   },
   "devDependencies": {
@@ -64,7 +64,6 @@
     "danger": "^4.0.1",
     "doctoc": "^1.3.1",
     "husky": "^0.14.3",
-    "inquirer": "^6.2.0",
     "isomorphic-fetch": "^2.2.1",
     "jest": "^23.4.2",
     "jest-dom": "^1.12.0",
@@ -87,6 +86,7 @@
   "dependencies": {
     "case": "^1.5.5",
     "commander": "^2.17.1",
+    "inquirer": "^6.2.0",
     "lodash": "^4.17.10",
     "openapi3-ts": "^0.12.0",
     "react": "^16.4.1",
