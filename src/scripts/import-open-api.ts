@@ -273,7 +273,7 @@ export const generateRestfulComponent = (
 
   // We ignore last param of DELETE action, the last params should be the `id` and it's given after in restful-react
   const paramsInPath = getParamsInPath(route).filter(param => !(verb === "delete" && param === lastParamInTheRoute));
-  const { query: queryParams = [], path: pathParams = [] } = groupBy(
+  const { query: queryParams = [], path: pathParams = [], header: headerParams = [] } = groupBy(
     [...parameters, ...(operation.parameters || [])].map<ParameterObject>(p => {
       if (isReference(p)) {
         return get(schemasComponents, p.$ref.replace("#/components/", "").replace("/", "."));
@@ -302,7 +302,7 @@ export const generateRestfulComponent = (
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${requestBodyTypes}`;
 
-  return `${
+  let output = `${
     needAResponseComponent
       ? `
 export interface ${componentName}Response ${responseTypes}
@@ -333,6 +333,26 @@ export const ${componentName} = (${
 );
 
 `;
+
+  if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
+    output += `${operation.summary ? "// " + `${operation.summary} (long polling)` : ""}
+export const Poll${componentName} = (${
+      params.length ? `{${params.join(", ")}, ...props}` : "props"
+    }: ${componentName}Props) => (
+  <Poll<${genericsTypes}>
+    path=${
+      queryParams.length
+        ? `{\`${route}?\${qs.stringify({${queryParams.map(p => p.name).join(", ")}})}\`}`
+        : `{\`${route}\`}`
+    }
+    {...props}
+  />
+);
+
+`;
+  }
+
+  return output;
 };
 
 /**

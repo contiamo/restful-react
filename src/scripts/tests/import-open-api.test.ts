@@ -1010,5 +1010,58 @@ export const DeleteUseCase = ({useCaseId, ...props}: DeleteUseCaseProps) => (
 
 `);
     });
+
+    it("should generate a Poll compoment if the `prefer` token is present", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        parameters: [
+          {
+            name: "prefer",
+            in: "header",
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toEqual(`
+export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError>, "path">;
+
+// List all fields for the use case schema
+export const ListFields = (props: ListFieldsProps) => (
+  <Get<FieldListResponse, APIError>
+    path={\`/fields\`}
+    {...props}
+  />
+);
+
+// List all fields for the use case schema (long polling)
+export const PollListFields = (props: ListFieldsProps) => (
+  <Poll<FieldListResponse, APIError>
+    path={\`/fields\`}
+    {...props}
+  />
+);
+
+`);
+    });
   });
 });
