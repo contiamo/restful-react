@@ -262,9 +262,9 @@ export const generateRestfulComponent = (
   const componentName = pascal(operation.operationId!);
   const Component = verb === "get" ? "Get" : "Mutate";
 
-  const isOk = ([statusCode]: [string, ResponseObject | ReferenceObject]) =>
-    statusCode.toString().startsWith("2") || statusCode.toString().startsWith("3");
-  const isError = (responses: [string, ResponseObject | ReferenceObject]) => !isOk(responses);
+  const isOk = ([statusCode]: [string, ResponseObject | ReferenceObject]) => statusCode.toString().startsWith("2");
+  const isError = ([statusCode]: [string, ResponseObject | ReferenceObject]) =>
+    statusCode.toString().startsWith("4") || statusCode.toString().startsWith("5") || statusCode === "default";
 
   const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk));
   const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError)) || "unknown";
@@ -305,7 +305,9 @@ export const generateRestfulComponent = (
   let output = `${
     needAResponseComponent
       ? `
-export interface ${componentName}Response ${responseTypes}
+export ${
+          responseTypes.includes("|") ? `type ${componentName}Response =` : `interface ${componentName}Response`
+        } ${responseTypes}
 `
       : ""
   }
@@ -335,7 +337,11 @@ export const ${componentName} = (${
 `;
 
   if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
-    output += `${operation.summary ? "// " + `${operation.summary} (long polling)` : ""}
+    output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
+      params.length ? ` & {${paramsTypes}}` : ""
+    };
+
+${operation.summary ? "// " + `${operation.summary} (long polling)` : ""}
 export const Poll${componentName} = (${
       params.length ? `{${params.join(", ")}, ...props}` : "props"
     }: ${componentName}Props) => (
@@ -415,7 +421,7 @@ const importOpenApi = async (data: string, format: "yaml" | "json") => {
 
 import qs from "qs";
 import React from "react";
-import { Get, GetProps, Mutate, MutateProps } from "restful-react";
+import { Get, GetProps, Mutate, MutateProps, Poll, PollProps } from "restful-react";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 

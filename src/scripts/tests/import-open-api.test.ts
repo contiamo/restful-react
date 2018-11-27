@@ -908,6 +908,83 @@ export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
 `);
     });
 
+    it("should ignore 3xx responses", () => {
+      const operation: OperationObject = {
+        summary: "Update use case details",
+        operationId: "updateUseCase",
+        tags: ["use-case"],
+        parameters: [
+          {
+            name: "tenantId",
+            in: "path",
+            required: true,
+            description: "The id of the Contiamo tenant",
+            schema: { type: "string" },
+          },
+          {
+            name: "useCaseId",
+            in: "path",
+            required: true,
+            description: "The id of the use case",
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { $ref: "#/components/schemas/UseCaseInstance" } } },
+        },
+        responses: {
+          "204": {
+            description: "Use case updated",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["id"],
+                  properties: {
+                    id: {
+                      type: "string",
+                    },
+                    name: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "302": {
+            $ref: "#/components/responses/LongPollingTimeout",
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toEqual(`
+export interface UpdateUseCaseResponse {id: string; name?: string}
+
+export type UpdateUseCaseProps = Omit<MutateProps<UpdateUseCaseResponse, APIError, UseCaseInstance>, "path" | "verb"> & {useCaseId: string};
+
+// Update use case details
+export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
+  <Mutate<UpdateUseCaseResponse, APIError, UseCaseInstance>
+    verb="PUT"
+    path={\`/use-cases/\${useCaseId}\`}
+    {...props}
+  />
+);
+
+`);
+    });
+
     it("should ignore the last param of a delete call (the id is give after)", () => {
       const operation: OperationObject = {
         summary: "Delete use case",
@@ -1052,6 +1129,8 @@ export const ListFields = (props: ListFieldsProps) => (
     {...props}
   />
 );
+
+export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError>, "path">;
 
 // List all fields for the use case schema (long polling)
 export const PollListFields = (props: ListFieldsProps) => (
