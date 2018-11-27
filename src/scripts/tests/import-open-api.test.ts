@@ -907,5 +907,57 @@ export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
 
 `);
     });
+
+    it("should ignore the last param of a delete call (the id is give after)", () => {
+      const operation: OperationObject = {
+        summary: "Delete use case",
+        operationId: "deleteUseCase",
+        tags: ["use-case"],
+        parameters: [
+          {
+            name: "tenantId",
+            in: "path",
+            required: true,
+            description: "The id of the Contiamo tenant",
+            schema: { type: "string" },
+          },
+          {
+            name: "useCaseId",
+            in: "path",
+            required: true,
+            description: "The id of the use case",
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          "204": {
+            description: "Empty response",
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}", [])).toEqual(`
+export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void>, "path" | "verb">;
+
+// Delete use case
+export const DeleteUseCase = (props: DeleteUseCaseProps) => (
+  <Mutate<void, APIError, void>
+    verb="DELETE"
+    path={\`/use-cases\`}
+    {...props}
+  />
+);
+
+`);
+    });
   });
 });

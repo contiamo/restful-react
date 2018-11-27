@@ -49,13 +49,13 @@ export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
 );
 
 
-export type DeletePetProps = Omit<MutateProps<void, Error, void>, \\"path\\" | \\"verb\\"> & {id: number};
+export type DeletePetProps = Omit<MutateProps<void, Error, void>, \\"path\\" | \\"verb\\">;
 
 
-export const DeletePet = ({id, ...props}: DeletePetProps) => (
+export const DeletePet = (props: DeletePetProps) => (
   <Mutate<void, Error, void>
     verb=\\"DELETE\\"
-    path={\`/pets/\${id}\`}
+    path={\`/pets\`}
     {...props}
   />
 );
