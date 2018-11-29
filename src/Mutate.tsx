@@ -32,7 +32,7 @@ export interface Meta {
 /**
  * Props for the <Mutate /> component.
  */
-export interface MutateCommonProps<TQueryParams> {
+export interface MutateProps<TData, TError, TQueryParams, TRequestBody> {
   /**
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
@@ -68,11 +68,6 @@ export interface MutateCommonProps<TQueryParams> {
    * Don't send the error to the Provider
    */
   localErrorOnly?: boolean;
-}
-
-export interface MutateWithDeleteProps<TData, TError, TQueryParams, TRequestBody>
-  extends MutateCommonProps<TQueryParams> {
-  verb: "DELETE";
   /**
    * A function that recieves a mutation function, along with
    * some metadata.
@@ -81,22 +76,6 @@ export interface MutateWithDeleteProps<TData, TError, TQueryParams, TRequestBody
    */
   children: (mutate: MutateMethod<TData, TRequestBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
-
-export interface MutateWithOtherVerbProps<TData, TError, TQueryParams, TRequestBody>
-  extends MutateCommonProps<TQueryParams> {
-  verb: "POST" | "PUT" | "PATCH";
-  /**
-   * A function that recieves a mutation function, along with
-   * some metadata.
-   *
-   * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
-   */
-  children: (mutate: MutateMethod<TData, TRequestBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
-}
-
-export type MutateProps<TData, TError, TQueryParams, TRequestBody> =
-  | MutateWithDeleteProps<TData, TError, TQueryParams, TRequestBody>
-  | MutateWithOtherVerbProps<TData, TError, TQueryParams, TRequestBody>;
 
 /**
  * State for the <Mutate /> component. These
