@@ -226,7 +226,7 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
 };
 
 /**
- * Generate a restful-react compoment from openapi operation specs
+ * Generate a restful-react component from openapi operation specs
  *
  * @param operation
  * @param verb

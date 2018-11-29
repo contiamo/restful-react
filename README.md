@@ -1,7 +1,5 @@
 # RESTful React
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/contiamo/restful-react.svg)](https://greenkeeper.io/)
-
 [![Build Status](https://travis-ci.org/contiamo/restful-react.svg?branch=master)](https://travis-ci.org/contiamo/restful-react)
 
 Building React apps that interact with a backend API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of a React component.
