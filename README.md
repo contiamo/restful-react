@@ -490,7 +490,7 @@ Typing are awesome, nobody will complain about this (exept if you really don't l
 
 Bref, `restful-react --file import my-open-api-spec-3-x.yaml --output my-awesome-generated-types.d.tsx` :tada:
 
-Now you need to add `qs` as dependency to your project, and you can import from this file any component with the types generated from the specs! Say welcome to the autocompletion and say goodbye to swagger :smile:
+Now you can import from this file any component with the types generated from the specs! Say welcome to the autocompletion and say goodbye to swagger :smile:
 
 If you don't want to rely on a local file to generate your components, you can use the `--github` options to specify a github file instead of a local `--file`
 
