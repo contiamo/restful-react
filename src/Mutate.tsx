@@ -1,3 +1,4 @@
+import * as qs from "qs";
 import * as React from "react";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
@@ -31,7 +32,7 @@ export interface Meta {
 /**
  * Props for the <Mutate /> component.
  */
-export interface MutateCommonProps {
+export interface MutateCommonProps<TQueryParams> {
   /**
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
@@ -46,6 +47,10 @@ export interface MutateCommonProps {
    * What HTTP verb are we using?
    */
   verb: "POST" | "PUT" | "PATCH" | "DELETE";
+  /**
+   * Query parameters
+   */
+  queryParams?: TQueryParams;
   /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
@@ -65,7 +70,7 @@ export interface MutateCommonProps {
   localErrorOnly?: boolean;
 }
 
-export interface MutateWithDeleteProps<TData, TError, TBody> extends MutateCommonProps {
+export interface MutateWithDeleteProps<TData, TError, TQueryParams, TBody> extends MutateCommonProps<TQueryParams> {
   verb: "DELETE";
   /**
    * A function that recieves a mutation function, along with
@@ -76,7 +81,7 @@ export interface MutateWithDeleteProps<TData, TError, TBody> extends MutateCommo
   children: (mutate: MutateMethod<TData, TBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
 
-export interface MutateWithOtherVerbProps<TData, TError, TBody> extends MutateCommonProps {
+export interface MutateWithOtherVerbProps<TData, TError, TQueryParams, TBody> extends MutateCommonProps<TQueryParams> {
   verb: "POST" | "PUT" | "PATCH";
   /**
    * A function that recieves a mutation function, along with
@@ -87,9 +92,9 @@ export interface MutateWithOtherVerbProps<TData, TError, TBody> extends MutateCo
   children: (mutate: MutateMethod<TData, TBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
 }
 
-export type MutateProps<TData, TError, TBody> =
-  | MutateWithDeleteProps<TData, TError, TBody>
-  | MutateWithOtherVerbProps<TData, TError, TBody>;
+export type MutateProps<TData, TError, TQueryParams, TBody> =
+  | MutateWithDeleteProps<TData, TError, TQueryParams, TBody>
+  | MutateWithOtherVerbProps<TData, TError, TQueryParams, TBody>;
 
 /**
  * State for the <Mutate /> component. These
@@ -107,8 +112,8 @@ export interface MutateState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessMutate<TData, TError, TBody> extends React.Component<
-  MutateProps<TData, TError, TBody> & InjectedProps,
+class ContextlessMutate<TData, TError, TQueryParams, TBody> extends React.Component<
+  MutateProps<TData, TError, TQueryParams, TBody> & InjectedProps,
   MutateState<TData, TError>
 > {
   public readonly state: Readonly<MutateState<TData, TError>> = {
@@ -145,15 +150,22 @@ class ContextlessMutate<TData, TError, TBody> extends React.Component<
     this.setState(() => ({ error: null, loading: true }));
 
     const makeRequestPath = () => {
+      let url: string;
       if (__internal_hasExplicitBase) {
-        return verb === "DELETE" && typeof body === "string"
-          ? composeUrl(base!, "", composePath(path!, body))
-          : composeUrl(base!, "", path || "");
+        url =
+          verb === "DELETE" && typeof body === "string"
+            ? composeUrl(base!, "", composePath(path!, body))
+            : composeUrl(base!, "", path || "");
       } else {
-        return verb === "DELETE" && typeof body === "string"
-          ? composeUrl(base!, parentPath!, composePath(path!, body))
-          : composeUrl(base!, parentPath!, path!);
+        url =
+          verb === "DELETE" && typeof body === "string"
+            ? composeUrl(base!, parentPath!, composePath(path!, body))
+            : composeUrl(base!, parentPath!, path!);
       }
+      if (this.props.queryParams) {
+        url += `?${qs.stringify(this.props.queryParams)}`;
+      }
+      return url;
     };
 
     const request = new Request(makeRequestPath(), {
@@ -213,12 +225,14 @@ class ContextlessMutate<TData, TError, TBody> extends React.Component<
  * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Mutate<TData = any, TError = any, TBody = any>(props: MutateProps<TData, TError, TBody>) {
+function Mutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TBody = any>(
+  props: MutateProps<TData, TError, TQueryParams, TBody>,
+) {
   return (
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path!)}>
-          <ContextlessMutate<TData, TError, TBody>
+          <ContextlessMutate<TData, TError, TQueryParams, TBody>
             {...contextProps}
             {...props}
             __internal_hasExplicitBase={Boolean(props.base)}

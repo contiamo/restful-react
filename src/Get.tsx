@@ -1,5 +1,6 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
+import * as qs from "qs";
 import * as React from "react";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { composePath, composeUrl } from "./util/composeUrl";
@@ -53,7 +54,7 @@ export interface Meta {
 /**
  * Props for the <Get /> component.
  */
-export interface GetProps<TData, TError> {
+export interface GetProps<TData, TError, TQueryParams> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -74,6 +75,10 @@ export interface GetProps<TData, TError> {
   children: (data: TData | null, states: States<TData, TError>, actions: Actions<TData>, meta: Meta) => React.ReactNode;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
+  /**
+   * Query parameters
+   */
+  queryParams?: TQueryParams;
   /**
    * Don't send the error to the Provider
    */
@@ -134,11 +139,11 @@ export interface GetState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessGet<TData, TError> extends React.Component<
-  GetProps<TData, TError> & InjectedProps,
+class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
+  GetProps<TData, TError, TQueryParams> & InjectedProps,
   Readonly<GetState<TData, TError>>
 > {
-  constructor(props: GetProps<TData, TError> & InjectedProps) {
+  constructor(props: GetProps<TData, TError, TQueryParams> & InjectedProps) {
     super(props);
 
     if (typeof props.debounce === "object") {
@@ -175,7 +180,7 @@ class ContextlessGet<TData, TError> extends React.Component<
     }
   }
 
-  public componentDidUpdate(prevProps: GetProps<TData, TError>) {
+  public componentDidUpdate(prevProps: GetProps<TData, TError, TQueryParams>) {
     const { base, parentPath, path, resolve } = prevProps;
     if (
       base !== this.props.base ||
@@ -230,11 +235,16 @@ class ContextlessGet<TData, TError> extends React.Component<
     }
 
     const makeRequestPath = () => {
+      let url: string;
       if (__internal_hasExplicitBase) {
-        return composeUrl(base!, "", path || "");
+        url = composeUrl(base!, "", path || "");
       } else {
-        return composeUrl(base!, parentPath!, requestPath || path || "");
+        url = composeUrl(base!, parentPath!, requestPath || path || "");
       }
+      if (this.props.queryParams) {
+        url += `?${qs.stringify(this.props.queryParams)}`;
+      }
+      return url;
     };
 
     const request = new Request(makeRequestPath(), this.getRequestOptions(thisRequestOptions));
@@ -297,7 +307,9 @@ class ContextlessGet<TData, TError> extends React.Component<
  * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Get<TData = any, TError = any>(props: GetProps<TData, TError>) {
+function Get<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
+  props: GetProps<TData, TError, TQueryParams>,
+) {
   return (
     <RestfulReactConsumer>
       {contextProps => (

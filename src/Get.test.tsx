@@ -938,4 +938,28 @@ describe("Get", () => {
       expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-1/absolute-2/relative-2/relative-3" });
     });
   });
+
+  describe("with query params", () => {
+    it("should add the correct query params in the url", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get<void, void, { myParam: boolean }> path="" queryParams={{ myParam: true }}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+  });
 });

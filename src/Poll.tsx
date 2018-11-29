@@ -1,3 +1,4 @@
+import * as qs from "qs";
 import * as React from "react";
 import equal from "react-fast-compare";
 
@@ -50,11 +51,11 @@ interface Actions {
 /**
  * Props that can control the Poll component.
  */
-export interface PollProps<TData, TError> {
+export interface PollProps<TData, TError, TQueryParams> {
   /**
    * What path are we polling on?
    */
-  path: GetProps<TData, TError>["path"];
+  path: GetProps<TData, TError, TQueryParams>["path"];
   /**
    * A function that gets polled data, the current
    * states, meta information, and various actions
@@ -87,7 +88,7 @@ export interface PollProps<TData, TError> {
    * Are we going to wait to start the poll?
    * Use this with { start, stop } actions.
    */
-  lazy?: GetProps<TData, TError>["lazy"];
+  lazy?: GetProps<TData, TError, TQueryParams>["lazy"];
   /**
    * Should the data be transformed in any way?
    */
@@ -95,11 +96,15 @@ export interface PollProps<TData, TError> {
   /**
    * We can request foreign URLs with this prop.
    */
-  base?: GetProps<TData, TError>["base"];
+  base?: GetProps<TData, TError, TQueryParams>["base"];
   /**
    * Any options to be passed to this request.
    */
-  requestOptions?: GetProps<TData, TError>["requestOptions"];
+  requestOptions?: GetProps<TData, TError, TQueryParams>["requestOptions"];
+  /**
+   * Query parameters
+   */
+  queryParams?: TQueryParams;
   /**
    * Don't send the error to the Provider
    */
@@ -149,8 +154,8 @@ export interface PollState<TData, TError> {
 /**
  * The <Poll /> component without context.
  */
-class ContextlessPoll<TData, TError> extends React.Component<
-  PollProps<TData, TError> & InjectedProps,
+class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
+  PollProps<TData, TError, TQueryParams> & InjectedProps,
   Readonly<PollState<TData, TError>>
 > {
   public readonly state: Readonly<PollState<TData, TError>> = {
@@ -214,7 +219,12 @@ class ContextlessPoll<TData, TError> extends React.Component<
     const { lastPollIndex } = this.state;
     const requestOptions = this.getRequestOptions();
 
-    const request = new Request(composeUrl(base!, "", path), {
+    let url = composeUrl(base!, "", path);
+    if (this.props.queryParams) {
+      url += `?${qs.stringify(this.props.queryParams)}`;
+    }
+
+    const request = new Request(url, {
       ...requestOptions,
       headers: {
         Prefer: `wait=${wait}s;${lastPollIndex ? `index=${lastPollIndex}` : ""}`,
@@ -322,7 +332,9 @@ class ContextlessPoll<TData, TError> extends React.Component<
   }
 }
 
-function Poll<TData = any, TError = any>(props: PollProps<TData, TError>) {
+function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
+  props: PollProps<TData, TError, TQueryParams>,
+) {
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
