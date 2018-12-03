@@ -16,7 +16,6 @@ import {
   SchemaObject,
 } from "openapi3-ts";
 
-// @ts-ignore - no type definition here
 import swagger2openapi from "swagger2openapi";
 
 import YAML from "yamljs";
@@ -211,7 +210,6 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
 
   return new Promise((resolve, reject) => {
     if (!schema.openapi || !schema.openapi.startsWith("3.0")) {
-      // @ts-ignore - no type definition here
       swagger2openapi.convertObj(schema, {}, (err, { openapi }) => {
         if (err) {
           reject(err);
