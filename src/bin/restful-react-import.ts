@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import inquirer from "inquirer";
 import { join, parse } from "path";
 import request from "request";
+
 import importOpenApi from "../scripts/import-open-api";
 
 program.option("-o, --output [value]", "output file destination");

@@ -421,6 +421,8 @@ describe("Mutate", () => {
           </Mutate>
         </RestfulProvider>,
       );
+
+      // No `expect` here, it's just to test if the types are correct 😉
     });
   });
   describe("Compose paths and urls", () => {
