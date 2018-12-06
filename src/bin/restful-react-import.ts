@@ -9,15 +9,18 @@ import importOpenApi from "../scripts/import-open-api";
 program.option("-o, --output [value]", "output file destination");
 program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
+program.option("-t, --transformer [value]", "transformer function path");
 program.parse(process.argv);
 
 (async () => {
+  const transformer = program.transformer ? require(join(process.cwd(), program.transformer)) : undefined;
+
   if (program.file) {
     const data = readFileSync(join(process.cwd(), program.file), "utf-8");
     const { ext } = parse(program.file);
     const format = [".yaml", ".yml"].includes(ext.toLowerCase()) ? "yaml" : "json";
 
-    return importOpenApi(data, format);
+    return importOpenApi(data, format, transformer);
   } else if (program.github) {
     let accessToken: string;
     const githubTokenPath = join(__dirname, ".githubToken");
@@ -75,7 +78,7 @@ program.parse(process.argv);
           program.github.toLowerCase().includes(".yaml") || program.github.toLowerCase().includes(".yml")
             ? "yaml"
             : "json";
-        resolve(importOpenApi(JSON.parse(body).data.repository.object.text, format));
+        resolve(importOpenApi(JSON.parse(body).data.repository.object.text, format, transformer));
       });
     });
   } else {
