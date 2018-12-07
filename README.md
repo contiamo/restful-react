@@ -19,6 +19,7 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Response Resolution](#response-resolution)
   - [Debouncing Requests](#debouncing-requests)
   - [TypeScript Integration](#typescript-integration)
+  - [Support for Query Parameters](#support-for-query-parameters)
   - [Mutations with `Mutate`](#mutations-with-mutate)
     - [Full `Mutate` Component API](#full-mutate-component-api)
   - [Polling with `Poll`](#polling-with-poll)
@@ -27,6 +28,7 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Code Generation](#code-generation)
     - [Usage](#usage)
     - [Import from GitHub](#import-from-github)
+    - [Transforming an Original Spec](#transforming-an-original-spec)
   - [Caching](#caching)
 - [Contributing](#contributing)
   - [Code](#code)
@@ -348,6 +350,14 @@ One of the most poweful features of RESTful React, each component exported is st
 
 ![Using RESTful React in VS Code](assets/labs.gif)
 
+### Support for Query Parameters
+
+All components in this library support query params (`https://my.site/?query=param) via a`queryParams`prop. Each`Get`,`Mutate`and`Poll`component is _generic_, having a type signature of`Get<TData, TError, TQueryParams>`. If described, the`queryParams` prop is _fully_ type-safe in usage and provides autocomplete functionality.
+
+![Autocompletion on QueryParams](assets/idp.gif)
+
+Please note that the above example was built using our [OpenAPI generator](#code-generation) in order to infer the type of component from the specification and automatically generate the entire type-safe component in a _very_ quick and easy way.
+
 ### Mutations with `Mutate`
 
 Restful React exposes an additional component called `Mutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
@@ -533,6 +543,46 @@ To generate components from remote specifications, you'll need to follow the fol
     **Caveat:** _Since_ your token is stored in `node_modules`, your token will be removed on each `npm install` of `restful-react`.
 
 1.  You're done! 🎉
+
+#### Transforming an Original Spec
+
+In some cases, you might need to augment an existing OpenAPI specification on the fly, for code-generation purposes. Our CLI makes this quite easy:
+
+```bash
+  restful-react import --file myspec.yaml --output mybettercomponents.tsx --transformer path/to/my-transformer.js
+```
+
+The function specified in `--transformer` is pure: it imports your `--file`, transforms it, and passes the augmented OpenAPI specification to Restful React's generator. Here's how it can be used:
+
+```ts
+// /path/to/my-transformer.js
+
+/**
+ * Transformer function for restful-react.
+ *
+ * @param {OpenAPIObject} schema
+ * @return {OpenAPIObject}
+ */
+module.exports = inputSchema => ({
+  ...inputSchema,
+  // Place your augmentations here
+  paths: Object.entries(schema.paths).reduce(
+    (mem, [path, pathItem]) => ({
+      ...mem,
+      [path]: Object.entries(pathItem).reduce(
+        (pathItemMem, [verb, operation]) => ({
+          ...pathItemMem,
+          [verb]: {
+            ...fixOperationId(path, verb, operation),
+          },
+        }),
+        {},
+      ),
+    }),
+    {},
+  ),
+});
+```
 
 ### Caching
 
