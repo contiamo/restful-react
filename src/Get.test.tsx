@@ -730,6 +730,33 @@ describe("Get", () => {
       );
       expect(apiCalls).toEqual(2);
     });
+    it("should refetch when queryParams changes", () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, () => ++apiCalls)
+        .persist();
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, () => ++apiCalls)
+        .persist();
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="" queryParams={{ page: 2 }}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+      expect(apiCalls).toEqual(2);
+    });
   });
   describe("Compose paths and urls", () => {
     it("should compose the url with the base", async () => {
