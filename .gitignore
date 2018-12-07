@@ -93,8 +93,12 @@ typings/
 public
 lib
 
+# End of https://www.gitignore.io/api/node,macos,vscode
+
 # Cache for parcel serverl in example
 .cache
+
+package-lock.json
 
 # Files managed by operational-scripts
 tslint.json

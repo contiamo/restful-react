@@ -141,6 +141,41 @@ describe("Mutate", () => {
       // after delete state
       expect(children.mock.calls[2][1].loading).toEqual(false);
     });
+
+    it("should deal with query parameters", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/plop")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate verb="DELETE" path="" queryParams={{ myParam: true }}>
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // delete action
+      children.mock.calls[0][0]("plop");
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after delete state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
   });
   describe("POST", () => {
     it("should call the correct url", async () => {
@@ -357,6 +392,37 @@ describe("Mutate", () => {
       });
 
       expect(onError.mock.calls.length).toEqual(0);
+    });
+
+    it("should have the correct type definition", async () => {
+      interface Data {
+        id: string;
+        name: string;
+      }
+
+      interface Error {
+        message: string;
+        code: number;
+      }
+
+      interface Body {
+        id: string;
+        name?: string;
+        age?: number;
+      }
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate<Data, Error, Body> path="" verb="POST">
+            {mutate => <button onClick={() => mutate({ id: "my-id", name: "fabien" })}>test</button>}
+          </Mutate>
+          <Mutate<Data, Error> path="" verb="DELETE">
+            {mutate => <button onClick={() => mutate("my-id")}>test</button>}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      // No `expect` here, it's just to test if the types are correct 😉
     });
   });
   describe("Compose paths and urls", () => {
@@ -627,6 +693,40 @@ describe("Mutate", () => {
 
       // after post state
       expect(children.mock.calls[2][1].loading).toEqual(false);
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+    it("should deal with query params", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate<void, void, { myParam: boolean }> verb="POST" path="" queryParams={{ myParam: true }}>
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
       expect(children.mock.calls[2][1].loading).toEqual(false);
     });
   });

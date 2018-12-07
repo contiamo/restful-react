@@ -246,6 +246,42 @@ describe("Poll", () => {
         expect(children.mock.calls[children.mock.calls.length - 1][0]).toEqual(lastResponseWithoutIndex),
       );
     });
+    it("should deal with query parameters", async () => {
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;index=1",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "2" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll<void, void, { myParam: boolean }> path="" queryParams={{ myParam: true }}>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
   });
 
   describe("with error", () => {
