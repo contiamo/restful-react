@@ -181,11 +181,12 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
   }
 
   public componentDidUpdate(prevProps: GetProps<TData, TError, TQueryParams>) {
-    const { base, parentPath, path, resolve } = prevProps;
+    const { base, parentPath, path, resolve, queryParams } = prevProps;
     if (
       base !== this.props.base ||
       parentPath !== this.props.parentPath ||
       path !== this.props.path ||
+      queryParams !== this.props.queryParams ||
       // both `resolve` props need to _exist_ first, and then be equivalent.
       (resolve && this.props.resolve && resolve.toString() !== this.props.resolve.toString())
     ) {
