@@ -269,7 +269,21 @@ export const generateRestfulComponent = (
   const requestBodyTypes = getResReqTypes([["body", operation.requestBody!]]);
   const needAResponseComponent = responseTypes.includes("{");
 
-  // We ignore last param of DELETE action, the last params should be the `id` and it's given after in restful-react
+  /**
+   * We strip the ID from the URL in order to pass it as an argument to the
+   * `delete` function for generated <DeleteResource /> components.
+   *
+   * For example:
+   *
+   *  A given request
+   *    DELETE https://my.api/resource/123
+   *
+   *  Becomes
+   *    <DeleteResource>
+   *      {(deleteThisThing) => <Button onClick={() => deleteThisThing("123")}>DELETE IT</Button>}
+   *    </DeleteResource>
+   */
+
   const paramsInPath = getParamsInPath(route).filter(param => !(verb === "delete" && param === lastParamInTheRoute));
   const { query: queryParams = [], path: pathParams = [], header: headerParams = [] } = groupBy(
     [...parameters, ...(operation.parameters || [])].map<ParameterObject>(p => {

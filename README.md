@@ -1,7 +1,5 @@
 # RESTful React
 
-[![Build Status](https://travis-ci.org/contiamo/restful-react.svg?branch=master)](https://travis-ci.org/contiamo/restful-react)
-
 Building React apps that interact with a backend API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of a React component.
 
 As an abstraction, this tool allows for greater consistency and maintainability of dynamic codebases.
@@ -15,18 +13,20 @@ As an abstraction, this tool allows for greater consistency and maintainability 
   - [Global Configuration](#global-configuration)
     - [`RestfulProvider` API](#restfulprovider-api)
   - [Composability](#composability)
-    - [`Get` Component API](#get-component-api)
+    - [Full `Get` Component API](#full-get-component-api)
   - [Loading and Error States](#loading-and-error-states)
   - [Lazy Fetching](#lazy-fetching)
   - [Response Resolution](#response-resolution)
   - [Debouncing Requests](#debouncing-requests)
   - [TypeScript Integration](#typescript-integration)
   - [Mutations with `Mutate`](#mutations-with-mutate)
-    - [`Mutate` Component API](#mutate-component-api)
+    - [Full `Mutate` Component API](#full-mutate-component-api)
   - [Polling with `Poll`](#polling-with-poll)
     - [Long Polling](#long-polling)
-    - [`Poll` Component API](#poll-component-api)
-  - [CLI tool - Code generation](#cli-tool---code-generation)
+    - [Full `Poll` Component API](#full-poll-component-api)
+  - [Code Generation](#code-generation)
+    - [Usage](#usage)
+    - [Import from GitHub](#import-from-github)
   - [Caching](#caching)
 - [Contributing](#contributing)
   - [Code](#code)
@@ -60,6 +60,8 @@ To install and use this library, simply `yarn add restful-react`, or `npm i rest
 
 ## Features
 
+Restful React ships with the following features that we think might be useful.
+
 ### Global Configuration
 
 API endpoints usually sit alongside a base, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
@@ -90,6 +92,7 @@ import React from "react";
 import Get from "restful-react";
 
 const MyComponent = () => (
+  /* Make a request to https://dog.ceo/api/breeds/image/random" */
   <Get path="/breeds/image/random">
     {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage.message} />}
   </Get>
@@ -133,29 +136,36 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
 
 ### Composability
 
-`Get` components can be composed together and request URLs at an accumulation of their collective path props. Consider,
+`Get` components can be composed together and request URLs are an accumulation of their collective path props. Consider,
 
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
-// Assuming we're using a RestfulProvider with base={HOST} somewhere,
+// Assuming we're using a RestfulProvider with base="https://my.web/api somewhere,
 import React from "react";
 import Get from "restful-react";
 
 export default () => (
-  {/* Use the lazy prop to not send a request */}
-  <Get path="/breeds" lazy>
+  {/* Send a request to "https://my.web/api/breeds */}
+  <Get path="/breeds">
     {data => {
       return (
         <div>
           <h1>Random Image</h1>
-          {/* Composes path with parent: sends request to /breeds/image/random */}
-          <Get path="/image/random">
+          {/*
+            Composes path with parent: sends request to https://my.web/api/breeds/image/random.
+            This happens because there is no preceding / to the path.
+          */}
+          <Get path="image/random">
             {image => <img alt="Random Image" src={image && image.message} />}
           </Get>
 
           <h1>All Breeds</h1>
-          {/* Composes path with parent: sends request to /breeds/list */}
+
+          {/*
+            Composes path with parent: sends request to https://my.web/api/list
+            The preceding slash (/) ALWAYS queries the ROOT of the RestfulProvider's base.
+          */}
           <Get path="/list">
             {list => (
               <ul>{list && list.message.map(dogName => <li>{dogName}</li>)}</ul>
@@ -168,11 +178,11 @@ export default () => (
 );
 ```
 
-From the above example, _not only_ does the path accumulate based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
+From the above example, _not only_ does the path compose based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
 
 To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
 
-#### [`Get` Component API](src/Get.tsx#L50-L87)
+#### [Full `Get` Component API](src/Get.tsx#L50-L87)
 
 ### Loading and Error States
 
@@ -197,11 +207,7 @@ const MyAnimalsList = props => (
                 Here are all my {props.animal}
                 s!
               </h1>
-              <ul>
-                {animals.map(animal => (
-                  <li>{animal}</li>
-                ))}
-              </ul>
+              <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
             </>
           )}
         </div>
@@ -226,11 +232,7 @@ const MyAnimalsList = props => (
             Here are all my {props.animal}
             s!
           </h1>
-          <ul>
-            {animals.map(animal => (
-              <li>{animal}</li>
-            ))}
-          </ul>
+          <ul>{animals.map(animal => <li>{animal}</li>)}</ul>
         </div>
       )
     }
@@ -252,13 +254,7 @@ It is possible to render a `Get` component and defer the fetch to a later stage.
       <p>Are you ready to unleash all the magic? If yes, click this button!</p>
       <button onClick={get}>GET UNICORNS!!!!!!</button>
 
-      {unicorns && (
-        <ul>
-          {unicorns.map((unicorn, index) => (
-            <li key={index}>{unicorn}</li>
-          ))}
-        </ul>
-      )}
+      {unicorns && <ul>{unicorns.map((unicorn, index) => <li key={index}>{unicorn}</li>)}</ul>}
     </div>
   )}
 </Get>
@@ -283,11 +279,7 @@ const myNestedData = props => (
     {data => (
       <div>
         <h1>Here's all the things I want</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
+        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
       </div>
     )}
   </Get>
@@ -308,11 +300,7 @@ const SearchThis = props => (
     {data => (
       <div>
         <h1>Here's all the things I search</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
+        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
       </div>
     )}
   </Get>
@@ -396,7 +384,7 @@ const Movies = ({ dispatch }) => (
 
 Each mutation returns a promise, that can then be used to update local component state, or dispatch an action, or do something else depending on your use case.
 
-#### [`Mutate` Component API](src/Mutate.tsx#L31-L47)
+#### [Full `Mutate` Component API](src/Mutate.tsx#L31-L47)
 
 ### Polling with `Poll`
 
@@ -464,7 +452,7 @@ Note from the previous example, `Poll` also exposes more states: `finished`, and
 
 #### Long Polling
 
-At Contiamo, we have a [powerful Long Polling specification](docs/contiamo-long-poll.md) in place that allows us to build real-time apps over HTTP, as opposed to WebSockets. At a glance the specification can be distilled into:
+At Contiamo, we have a [powerful Long Polling specification](docs/contiamo-long-poll.md) in place that allows us to build real-time apps over HTTPS, as opposed to WebSockets. At a glance the specification can be distilled into:
 
 - Web UI sends a request with a `Prefer` header that contains:
   - a time, in seconds, to keep requests open (`60s`), and
@@ -482,21 +470,69 @@ Visually, this is represented as below.
 
 To get this functionality in Restful React, it is as simple as specifying a `wait` prop on your `Poll` component, provided your server implements the specification as well.
 
-#### [`Poll` Component API](src/Poll.tsx#L53-L101)
+#### [Full `Poll` Component API](src/Poll.tsx#L53-L101)
 
-### CLI tool - Code generation
+### Code Generation
 
-Typing are awesome, nobody will complain about this (exept if you really don't like autocompletion of course). But, manual typing is boring, long, and error prone… Luckily for you, we are lazy and really believe that OpenAPI specs should be only read by a computer (not really, who else want to read 10000+ lines of json or yaml :thinking:).
+Restful React is able to generate _type-safe_ React components from any valid OpenAPI v3 or Swagger v2 specification, either in `yaml` or `json` formats.
 
-Bref, `restful-react --file import my-open-api-spec-3-x.yaml --output my-awesome-generated-types.d.tsx` :tada:
+#### Usage
 
-Now you can import from this file any component with the types generated from the specs! Say welcome to the autocompletion and say goodbye to swagger :smile:
+Type-safe React data fetchers can be generated from an OpenAPI specification using the following command:
 
-If you don't want to rely on a local file to generate your components, you can use the `--github` options to specify a github file instead of a local `--file`
+- `restful-react import --file MY_OPENAPI_SPEC.yaml --output my-awesome-generated-types.d.tsx`
 
-Example: `restful-react --github owner:repo:branch:docs/openapi.yaml --output my-awesome-generated-types-from-github.d.tsx`
+This command can be invoked by _either_:
 
-Note: This is totally experimental for now, so if you have any issue with the generated types -> just open an issue (with the open-api extract and the restful-react component generated/wanted please).
+- Installing `restful-react` globally and running it in the terminal: `npm i -g restful-react`, or
+- Adding a `script` to your `package.json` like so:
+
+```diff
+      "scripts": {
+        "start": "webpack-dev-server",
+        "build": "webpack -p",
++       "generate-fetcher": "restful-react import --file MY_SWAGGER_DOCS.json --output FETCHERS.tsx"
+      }
+```
+
+    Your components can then be generated by running `npm run generate-fetcher`. Optionally, we recommend linting/prettifying the output for readability like so:
+
+```diff
+      "scripts": {
+        "start": "webpack-dev-server",
+        "build": "webpack -p",
+        "generate-fetcher": "restful-react import --file MY_SWAGGER_DOCS.json --output FETCHERS.tsx",
++       "postgenerate-fetcher": "prettier FETCHERS.d.tsx --write"
+      }
+```
+
+#### Import from GitHub
+
+Adding the `--github` flag to `restful-react import` instead of a `--file` allows us to **create React components from an OpenAPI spec _remotely hosted on GitHub._** <sup>_(how is this real life_ 🔥 _)_</sup>
+
+To generate components from remote specifications, you'll need to follow the following steps:
+
+1.  Visit [your GitHub settings](https://github.com/settings/tokens).
+1.  Click **Generate New Token** and choose the following:
+
+        Token Description: (enter anything, usually your computer name)
+        Scopes:
+            [X] repo
+                [X] repo:status
+                [X] repo_deployment
+                [X] public_repo
+                [X] repo:invite
+
+1.  Click **Generate token**.
+1.  Copy the generated string.
+1.  Open Terminal and run `restful-react import --github username:repo:branch:path/to/openapi.yaml --output MY_FETCHERS.tsx`.
+1.  You will be prompted for a token.
+1.  Paste your token.
+1.  You will be asked if you'd like to save it for later. This is _entirely_ up to you and completely safe: it is saved in your `node_modules` folder and _not_ committed to version control or sent to us or anything: the source code of this whole thing is public so you're safe.
+
+    **Caveat:** _Since_ your token is stored in `node_modules`, your token will be removed on each `npm install` of `restful-react`.
+
+1.  You're done! 🎉
 
 ### Caching
 

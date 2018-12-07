@@ -32,12 +32,12 @@ program.parse(process.argv);
           type: "input",
           name: "githubToken",
           message:
-            "Please provide a github token with `repo` rules checked (https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)",
+            "Please provide a GitHub token with `repo` rules checked (https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)",
         },
         {
           type: "confirm",
           name: "saveToken",
-          message: "Do you want to store your token for the next time? (store in your node_modules)",
+          message: "Would you like to store your token for the next time? (stored in your node_modules)",
         },
       ]);
       if (answers.saveToken) {
@@ -82,14 +82,14 @@ program.parse(process.argv);
       });
     });
   } else {
-    return Promise.reject("You need to provide a file (--file) or a github (--github) input");
+    return Promise.reject("Please provide a file (--file) or a github (--github) input");
   }
 })()
   .then(data => {
     writeFileSync(join(process.cwd(), program.output), data);
 
     // tslint:disable-next-line:no-console
-    console.log(`Your open-api specs is now convert into ready to use restful-react components!`);
+    console.log(`🎉 Your OpenAPI spec has been converted into ready to use restful-react components!`);
   })
   .catch(err => {
     // tslint:disable-next-line:no-console
