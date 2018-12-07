@@ -364,6 +364,23 @@ export const Poll${componentName} = (${
 };
 
 /**
+ * Generate the interface string
+ * A tslint comment is insert if the resulted object is empty
+ *
+ * @param name interface name
+ * @param schema
+ */
+export const generateInterface = (name: string, schema: SchemaObject) => {
+  const scalar = getScalar(schema);
+  const isEmptyObject = scalar === "{}";
+
+  return isEmptyObject
+    ? `// tslint:disable-next-line:no-empty-interface
+export interface ${pascal(name)} ${getScalar(schema)}`
+    : `export interface ${pascal(name)} ${getScalar(schema)}`;
+};
+
+/**
  * Extract all types from #/components/schemas
  *
  * @param schemas
@@ -378,7 +395,7 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
       .map(
         ([name, schema]) =>
           (!schema.type || schema.type === "object") && !schema.allOf && !isReference(schema)
-            ? `export interface ${pascal(name)} ${getScalar(schema)}`
+            ? generateInterface(name, schema)
             : `export type ${pascal(name)} = ${resolveValue(schema)};`,
       )
       .join("\n\n") + "\n"

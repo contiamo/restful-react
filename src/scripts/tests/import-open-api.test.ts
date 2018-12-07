@@ -274,6 +274,17 @@ describe("scripts/import-open-api", () => {
 
       expect(generateSchemasDefinition(schema)).toContain(`export type Wolf = Dog;`);
     });
+    it("should add a tslint ignore for empty object", () => {
+      const schema = {
+        Empty: {
+          type: "object",
+        },
+      };
+
+      expect(generateSchemasDefinition(schema)).toContain(`// tslint:disable-next-line:no-empty-interface
+export interface Empty {}
+`);
+    });
   });
 
   describe("generateResponsesDefinition", () => {
