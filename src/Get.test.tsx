@@ -152,6 +152,7 @@ describe("Get", () => {
       expect(children.mock.calls[1][1].error).toEqual({
         data: { message: "You shall not pass!" },
         message: "Failed to fetch: 401 Unauthorized",
+        status: 401,
       });
     });
 
@@ -199,6 +200,7 @@ describe("Get", () => {
           "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
         message:
           "Failed to fetch: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+        status: 200,
       });
     });
 
@@ -223,6 +225,7 @@ describe("Get", () => {
         {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
+          status: 401,
         },
         expect.any(Function), // retry
         expect.any(Object), // response
@@ -253,6 +256,7 @@ describe("Get", () => {
         {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
+          status: 401,
         },
         expect.any(Function), // retry
         expect.any(Object), // response
@@ -471,6 +475,7 @@ describe("Get", () => {
       expect(children.mock.calls[0][1].error).toEqual({
         data: "Go away!",
         message: "Failed to fetch: 401 Unauthorized",
+        status: 401,
       });
     });
   });

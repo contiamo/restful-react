@@ -16,6 +16,7 @@ export type ResolveFunction<T> = ((data: any) => T) | ((data: any) => Promise<T>
 export interface GetDataError<TError> {
   message: string;
   data: TError | string;
+  status?: number;
 }
 
 /**
@@ -262,6 +263,7 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
         const error = {
           message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
           data,
+          status: response.status,
         };
 
         this.setState({
