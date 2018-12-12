@@ -155,6 +155,27 @@ describe("Get", () => {
       });
     });
 
+    it("should handle network error", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .replyWithError({ message: "You shall not pass!" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][0]).toEqual(null);
+      expect(children.mock.calls[1][1].error).toMatchObject({
+        message: "Failed to fetch: request to https://my-awesome-api.fake failed, reason: You shall not pass!",
+      });
+    });
+
     it("should deal with non standard server error response (nginx style)", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")

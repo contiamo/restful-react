@@ -249,36 +249,46 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
     };
 
     const request = new Request(makeRequestPath(), this.getRequestOptions(thisRequestOptions));
-    const response = await fetch(request, { signal: this.signal });
-    const { data, responseError } = await processResponse(response);
+    try {
+      const response = await fetch(request, { signal: this.signal });
+      const { data, responseError } = await processResponse(response);
 
-    // avoid state updates when component has been unmounted
-    if (this.signal.aborted) {
-      return;
-    }
-
-    if (!response.ok || responseError) {
-      const error = {
-        message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
-        data,
-      };
-
-      this.setState({
-        loading: false,
-        error,
-      });
-
-      if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions), response);
+      // avoid state updates when component has been unmounted
+      if (this.signal.aborted) {
+        return;
       }
 
-      return null;
+      if (!response.ok || responseError) {
+        const error = {
+          message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+          data,
+        };
+
+        this.setState({
+          loading: false,
+          error,
+        });
+
+        if (!this.props.localErrorOnly && this.props.onError) {
+          this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions), response);
+        }
+
+        return null;
+      }
+
+      const resolved = await resolveData<TData, TError>({ data, resolve });
+
+      this.setState({ loading: false, data: resolved.data, error: resolved.error });
+      return data;
+    } catch (e) {
+      this.setState({
+        loading: false,
+        error: {
+          message: `Failed to fetch: ${e.message}`,
+          data: e,
+        },
+      });
     }
-
-    const resolved = await resolveData<TData, TError>({ data, resolve });
-
-    this.setState({ loading: false, data: resolved.data, error: resolved.error });
-    return data;
   };
 
   public render() {
