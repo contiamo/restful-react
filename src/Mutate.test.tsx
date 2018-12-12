@@ -293,6 +293,7 @@ describe("Mutate", () => {
         expect(error).toEqual({
           data: { error: "oh no… not again…" },
           message: "Failed to fetch: 500 Internal Server Error",
+          status: 500,
         });
       });
     });
@@ -324,6 +325,7 @@ describe("Mutate", () => {
         {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
+          status: 401,
         },
         expect.any(Function), // retry
         expect.any(Object), // response
@@ -360,6 +362,7 @@ describe("Mutate", () => {
         {
           data: { message: "You shall not pass!" },
           message: "Failed to fetch: 401 Unauthorized",
+          status: 401,
         },
         expect.any(Function), // retry
         expect.any(Object), // response

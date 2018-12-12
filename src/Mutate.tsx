@@ -171,7 +171,11 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
       return;
     }
     if (!response.ok || responseError) {
-      const error = { data, message: `Failed to fetch: ${response.status} ${response.statusText}` };
+      const error = {
+        data,
+        message: `Failed to fetch: ${response.status} ${response.statusText}`,
+        status: response.status,
+      };
 
       this.setState({
         loading: false,

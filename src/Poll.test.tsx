@@ -304,6 +304,7 @@ describe("Poll", () => {
       expect(children.mock.calls[1][1].error).toEqual({
         data: { message: "You shall not pass!" },
         message: "Failed to poll: 401 Unauthorized",
+        status: 401,
       });
     });
 
@@ -330,6 +331,7 @@ describe("Poll", () => {
           "invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
         message:
           "Failed to poll: 200 OK - invalid json response body at https://my-awesome-api.fake reason: Unexpected token < in JSON at position 0",
+        status: 200,
       });
     });
 
@@ -366,6 +368,7 @@ describe("Poll", () => {
       expect(children.mock.calls[1][1].error).toEqual({
         data: "<html>504 Gateway Time-out</html>",
         message: "Failed to poll: 504 Gateway Timeout",
+        status: 504,
       });
 
       // second res (success)
@@ -394,6 +397,7 @@ describe("Poll", () => {
         {
           data: { message: "You shall not pass!" },
           message: "Failed to poll: 401 Unauthorized",
+          status: 401,
         },
         expect.any(Function), // retry
         expect.any(Object), // response

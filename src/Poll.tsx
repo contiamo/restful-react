@@ -246,6 +246,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
         const error = {
           message: `Failed to poll: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
           data,
+          status: response.status,
         };
         this.setState({ loading: false, lastResponse: response, error });
 
