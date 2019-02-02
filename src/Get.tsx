@@ -1,7 +1,9 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
+import isEqual from "lodash/isEqual";
 import * as qs from "qs";
 import * as React from "react";
+
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
@@ -187,7 +189,7 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
       base !== this.props.base ||
       parentPath !== this.props.parentPath ||
       path !== this.props.path ||
-      queryParams !== this.props.queryParams ||
+      !isEqual(queryParams, this.props.queryParams) ||
       // both `resolve` props need to _exist_ first, and then be equivalent.
       (resolve && this.props.resolve && resolve.toString() !== this.props.resolve.toString())
     ) {
