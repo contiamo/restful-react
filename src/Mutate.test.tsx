@@ -7,12 +7,11 @@ import { cleanup, render, wait } from "react-testing-library";
 import Get from "./Get";
 import { Mutate, RestfulProvider } from "./index";
 
-afterEach(() => {
-  cleanup();
-  nock.cleanAll();
-});
-
 describe("Mutate", () => {
+  afterEach(() => {
+    cleanup();
+    nock.cleanAll();
+  });
   describe("DELETE", () => {
     it("should call the correct url with a specific id", async () => {
       nock("https://my-awesome-api.fake")

@@ -8,12 +8,11 @@ import { cleanup, render, wait } from "react-testing-library";
 import { Get, RestfulProvider } from "./index";
 import Mutate from "./Mutate";
 
-afterEach(() => {
-  cleanup();
-  nock.cleanAll();
-});
-
 describe("Get", () => {
+  afterEach(() => {
+    cleanup();
+    nock.cleanAll();
+  });
   describe("classic usage", () => {
     it("should call the url set in provider", async () => {
       nock("https://my-awesome-api.fake")
