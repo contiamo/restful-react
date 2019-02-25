@@ -6,12 +6,11 @@ import { cleanup, render, wait } from "react-testing-library";
 
 import { Poll, RestfulProvider } from "./index";
 
-afterEach(() => {
-  cleanup();
-  nock.cleanAll();
-});
-
 describe("Poll", () => {
+  afterEach(() => {
+    cleanup();
+    nock.cleanAll();
+  });
   describe("classic usage", () => {
     it("should call the url set in provider", async () => {
       nock("https://my-awesome-api.fake", {
