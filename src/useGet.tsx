@@ -76,7 +76,7 @@ async function fetchData<TData, TError>(
     setState({ ...state, loading: false, error });
 
     if (!props.localErrorOnly && context.onError) {
-      context.onError(error, () => fetchData(props, state, setState, context, signal));
+      context.onError(error, () => fetchData(props, state, setState, context, signal), response);
     }
   } else {
     setState({ ...state, loading: false, data: resolve(data) });
@@ -96,15 +96,12 @@ export function useGet<TData = unknown, TError = unknown>(props: UseGetProps<TDa
   const abortController = new AbortController();
   const signal = abortController.signal;
 
-  useEffect(
-    () => {
-      if (!props.lazy) {
-        fetchData(props, state, setState, context, signal);
-      }
-      return () => abortController.abort();
-    },
-    [props.path, props.base, props.resolve],
-  );
+  useEffect(() => {
+    if (!props.lazy) {
+      fetchData(props, state, setState, context, signal);
+    }
+    return () => abortController.abort();
+  }, [props.path, props.base, props.resolve]);
 
   // TODO deal with debounce
   // TODO use `url.resolve` to avoid trailing slash issues
