@@ -535,7 +535,7 @@
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.5.2.tgz#7f347062655056662845ba4bb79dcbfdc382cd61"
   integrity sha512-47kAAs3yV/hROraCTQYDMh4p/6zI9+gtssjD0kq9OWsGdLcBge59rl49FnCuJ+iWxEKiqFz6KXzeGH5DRVjNJA==
 
-"@types/react-dom@^16.0.9":
+"@types/react-dom@^16.8.2":
   version "16.8.3"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.8.3.tgz#6131b7b6158bc7ed1925a3374b88b7c00481f0cb"
   integrity sha512-HF5hD5YR3z9Mn6kXcW1VKe4AQ04ZlZj1EdLBae61hzQ3eEWWxMgNLUbIxeZp40BnSxqY1eAYLsH9QopQcxzScA==
@@ -6607,7 +6607,7 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-dom@^16.8.4:
+react-dom@^16.8.3:
   version "16.8.5"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.8.5.tgz#b3e37d152b49e07faaa8de41fdf562be3463335e"
   integrity sha512-VIEIvZLpFafsfu4kgmftP5L8j7P1f0YThfVTrANMhZUFMDOsA6e0kfR6wxw/8xxKs4NB59TZYbxNdPCDW34x4w==
@@ -6627,10 +6627,18 @@ react-is@^16.8.1, react-is@^16.8.4:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.8.5.tgz#c54ac229dd66b5afe0de5acbe47647c3da692ff8"
   integrity sha512-sudt2uq5P/2TznPV4Wtdi+Lnq3yaYW8LfvPKLM9BKD8jJNBkxMVyB0C9/GmVhLw7Jbdmndk/73n7XQGeN9A3QQ==
 
-react-testing-library@^5.0.0, react-testing-library@^5.2.3:
+react-testing-library@^5.0.0:
   version "5.9.0"
   resolved "https://registry.yarnpkg.com/react-testing-library/-/react-testing-library-5.9.0.tgz#e1c8a586d2f2cbd5f0035474ca90258eef1fece6"
   integrity sha512-T303PJZvrLKeeiPpjmMD1wxVpzEg9yI0qteH/cUvpFqNHOzPe3yN+Pu+jo9JlxuTMvVGPAmCAcgZ3sEtEDpJUQ==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    dom-testing-library "^3.13.1"
+
+react-testing-library@^6.0.0:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/react-testing-library/-/react-testing-library-6.0.2.tgz#afd7ddaa174e21cf672605e4e4f6f8156c4c9ef9"
+  integrity sha512-hWJIixR/jxJBnemcWI5O2JCMXlwoIpgF1IEUF8EYNEADORSZ9fs8rEJu4ygqyC53l3QOowkNb8D+eF5kGT3srg==
   dependencies:
     "@babel/runtime" "^7.3.1"
     dom-testing-library "^3.13.1"
@@ -8005,7 +8013,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.1.3, typescript@^3.3.3333:
+typescript@^3.3.3333:
   version "3.3.4000"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.3.4000.tgz#76b0f89cfdbf97827e1112d64f283f1151d6adf0"
   integrity sha512-jjOcCZvpkl2+z7JFn0yBOoLQyLoIkNZAs/fYJkUG6VKy6zLPHJGfQJYFHzibB6GJaF/8QrcECtlQ5cpvRHSMEA==
