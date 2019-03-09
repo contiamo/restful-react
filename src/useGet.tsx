@@ -1,15 +1,17 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
+import qs from "qs";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import url from "url";
 
+import isEqual from "lodash/isEqual";
 import { Context, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-export interface UseGetProps<TData> {
+export interface UseGetProps<TData, TQueryParams> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -17,6 +19,10 @@ export interface UseGetProps<TData> {
   path: string;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
+  /**
+   * Query parameters
+   */
+  queryParams?: TQueryParams;
   /**
    * Don't send the error to the Provider
    */
@@ -49,14 +55,14 @@ export interface UseGetProps<TData> {
     | number;
 }
 
-async function _fetchData<TData, TError>(
-  props: UseGetProps<TData>,
+async function _fetchData<TData, TError, TQueryParams>(
+  props: UseGetProps<TData, TQueryParams>,
   state: GetState<TData, TError>,
   setState: (newState: GetState<TData, TError>) => void,
   context: RestfulReactProviderProps,
   signal: AbortSignal,
 ) {
-  const { base = context.base, path, resolve = (d: any) => d as TData } = props;
+  const { base = context.base, path, resolve = (d: any) => d as TData, queryParams } = props;
   if (state.error || !state.loading) {
     setState({ ...state, error: null, loading: true });
   }
@@ -65,7 +71,10 @@ async function _fetchData<TData, TError>(
     (typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions) || {};
   requestOptions.headers = new Headers(requestOptions.headers);
 
-  const request = new Request(url.resolve(base, path), requestOptions);
+  const request = new Request(
+    url.resolve(base, queryParams ? `${path}?${qs.stringify(queryParams)}` : path),
+    requestOptions,
+  );
   try {
     const response = await fetch(request, { signal });
     const { data, responseError } = await processResponse(response);
@@ -99,7 +108,9 @@ async function _fetchData<TData, TError>(
   }
 }
 
-export function useGet<TData = unknown, TError = unknown>(props: UseGetProps<TData>) {
+export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
+  props: UseGetProps<TData, TQueryParams>,
+) {
   const context = useContext(Context);
 
   const fetchData = useCallback<typeof _fetchData>(
@@ -130,15 +141,21 @@ export function useGet<TData = unknown, TError = unknown>(props: UseGetProps<TDa
   //   });
   // }, []);
 
-  const prevProps = useRef<UseGetProps<TData>>();
+  const prevProps = useRef<UseGetProps<TData, TQueryParams>>();
   useEffect(() => {
-    const { base, path, resolve } = prevProps.current || { base: null, path: null, resolve: null };
+    const { base, path, resolve, queryParams } = prevProps.current || {
+      base: null,
+      path: null,
+      resolve: null,
+      queryParams: null,
+    };
 
     if (
       base !== props.base ||
       path !== props.path ||
       // both `resolve` props need to _exist_ first, and then be equivalent.
-      (resolve && props.resolve && resolve.toString() !== props.resolve.toString())
+      (resolve && props.resolve && resolve.toString() !== props.resolve.toString()) ||
+      !isEqual(queryParams, props.queryParams)
     ) {
       if (!props.lazy) {
         fetchData(props, state, setState, context, signal);
@@ -151,12 +168,10 @@ export function useGet<TData = unknown, TError = unknown>(props: UseGetProps<TDa
     return () => abortController.current.abort();
   }, [props.path, props.base, props.resolve]);
 
-  // TODO add queryParams
-
   return {
     ...state,
     absolutePath: url.resolve(props.base || context.base, props.path),
-    refetch: (options: Partial<Omit<UseGetProps<TData>, "lazy">> = {}) =>
+    refetch: (options: Partial<Omit<UseGetProps<TData, TQueryParams>, "lazy">> = {}) =>
       fetchData({ ...props, ...options }, state, setState, context, signal),
   };
 }

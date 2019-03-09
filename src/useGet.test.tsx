@@ -693,7 +693,7 @@ describe("useGet hook", () => {
       expect(apiCalls).toBe(2);
     });
 
-    it("should not refetch resolve is the same", () => {
+    it("should not refetch when resolve is the same", () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -717,6 +717,70 @@ describe("useGet hook", () => {
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
           <MyAwesomeComponent path="" resolve={() => "plop"} />
+        </RestfulProvider>,
+      );
+
+      expect(apiCalls).toBe(1);
+    });
+
+    it("should refetch when queryParams changes", () => {
+      const firstCall = nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 0 });
+      const secondCall = nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = ({ path, queryParams }) => {
+        const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams });
+        return children(params);
+      };
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" queryParams={null} />
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" queryParams={{ page: 2 }} />
+        </RestfulProvider>,
+      );
+
+      expect(firstCall.isDone).toBeTruthy();
+      expect(secondCall.isDone).toBeTruthy();
+    });
+
+    it("should not refetch when queryParams are the same", () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, () => ++apiCalls)
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = ({ path, queryParams }) => {
+        const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams });
+        return children(params);
+      };
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" queryParams={{ page: 2 }} />
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" queryParams={{ page: 2 }} />
         </RestfulProvider>,
       );
 
