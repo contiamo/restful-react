@@ -623,20 +623,20 @@ describe("useGet hook", () => {
 
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path={""} />
+          <MyAwesomeComponent path="" />
         </RestfulProvider>,
       );
 
       expect(apiCalls).toEqual(1);
     });
 
-    it("should refetch when path changes", () => {
+    it("should refetch when path changes", async () => {
       const firstAPI = nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, { id: 1 });
 
       const secondAPI = nock("https://my-new-api.fake")
-        .get("/")
+        .get("/plop")
         .reply(200, { id: 2 });
 
       const children = jest.fn();
@@ -655,12 +655,12 @@ describe("useGet hook", () => {
 
       rerender(
         <RestfulProvider base="https://my-new-api.fake">
-          <MyAwesomeComponent path="" />
+          <MyAwesomeComponent path="plop" />
         </RestfulProvider>,
       );
 
-      expect(firstAPI.isDone).toBeTruthy();
-      expect(secondAPI.isDone).toBeTruthy();
+      expect(firstAPI.isDone()).toBeTruthy();
+      expect(secondAPI.isDone()).toBeTruthy();
     });
 
     it("should refetch when resolve changes", () => {
@@ -723,11 +723,11 @@ describe("useGet hook", () => {
       expect(apiCalls).toBe(1);
     });
 
-    it("should refetch when queryParams changes", () => {
-      const firstCall = nock("https://my-awesome-api.fake")
+    it("should refetch when queryParams changes", async () => {
+      nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, { id: 0 });
-      const secondCall = nock("https://my-awesome-api.fake")
+      nock("https://my-awesome-api.fake")
         .get("/")
         .query({ page: 2 })
         .reply(200, { id: 1 });
@@ -752,8 +752,9 @@ describe("useGet hook", () => {
         </RestfulProvider>,
       );
 
-      expect(firstCall.isDone).toBeTruthy();
-      expect(secondCall.isDone).toBeTruthy();
+      await wait(() => expect(children).toBeCalledTimes(3));
+      expect(children.mock.calls[2][0].loading).toEqual(false);
+      expect(children.mock.calls[2][0].data).toEqual({ id: 1 });
     });
 
     it("should not refetch when queryParams are the same", () => {
@@ -785,6 +786,34 @@ describe("useGet hook", () => {
       );
 
       expect(apiCalls).toBe(1);
+    });
+  });
+
+  describe("with queryParams", () => {
+    it("should call the correct endpoint", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, () => ({ id: 42 }))
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = ({ path, queryParams }) => {
+        const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" queryParams={{ page: 2 }} />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
     });
   });
 });

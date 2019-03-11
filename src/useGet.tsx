@@ -60,9 +60,19 @@ async function _fetchData<TData, TError, TQueryParams>(
   state: GetState<TData, TError>,
   setState: (newState: GetState<TData, TError>) => void,
   context: RestfulReactProviderProps,
-  signal: AbortSignal,
+  abortControllers: AbortController[],
 ) {
   const { base = context.base, path, resolve = (d: any) => d as TData, queryParams } = props;
+
+  if (state.loading) {
+    // Abort previous requests
+    abortControllers.map(i => i.abort());
+
+    // Create a new abo
+    abortControllers.push(new AbortController());
+  }
+  const signal = abortControllers[abortControllers.length - 1].signal;
+
   if (state.error || !state.loading) {
     setState({ ...state, error: null, loading: true });
   }
@@ -91,7 +101,7 @@ async function _fetchData<TData, TError, TQueryParams>(
       setState({ ...state, loading: false, error });
 
       if (!props.localErrorOnly && context.onError) {
-        context.onError(error, () => _fetchData(props, state, setState, context, signal), response);
+        context.onError(error, () => _fetchData(props, state, setState, context, abortControllers), response);
       }
     } else {
       setState({ ...state, loading: false, data: resolve(data) });
@@ -131,15 +141,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     error: null,
   });
 
-  const abortController = useRef(new AbortController());
-  const signal = abortController.current.signal;
-
-  // We also probably need to recreate an abortController after abort
-  // useEffect(() => {
-  //   signal.addEventListener("abort", () => {
-  //     abortController.current = new AbortController();
-  //   });
-  // }, []);
+  const abortControllers = useRef([new AbortController()]);
 
   const prevProps = useRef<UseGetProps<TData, TQueryParams>>();
   useEffect(() => {
@@ -158,20 +160,23 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       !isEqual(queryParams, props.queryParams)
     ) {
       if (!props.lazy) {
-        fetchData(props, state, setState, context, signal);
+        fetchData(props, state, setState, context, abortControllers.current);
       }
     }
 
     // Save props for later comparison
     prevProps.current = props;
 
-    return () => abortController.current.abort();
-  }, [props.path, props.base, props.resolve]);
+    return () => abortControllers.current.forEach(i => i.abort());
+  }, [props.path, props.base, props.resolve, props.queryParams]);
 
   return {
     ...state,
-    absolutePath: url.resolve(props.base || context.base, props.path),
+    absolutePath: url.resolve(
+      props.base || context.base,
+      props.queryParams ? `${props.path}?${qs.stringify(props.queryParams)}` : props.path,
+    ),
     refetch: (options: Partial<Omit<UseGetProps<TData, TQueryParams>, "lazy">> = {}) =>
-      fetchData({ ...props, ...options }, state, setState, context, signal),
+      fetchData({ ...props, ...options }, state, setState, context, abortControllers.current),
   };
 }
