@@ -1,7 +1,7 @@
 # This file tells Travis what's up
 language: node_js
 node_js:
-  - stable
+  - "11.10.1"
 
 notifications:
   email: false
