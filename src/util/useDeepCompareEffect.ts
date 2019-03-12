@@ -1,19 +1,22 @@
-import isEqualWith from "lodash/isEqualWith";
+import isEqualWith from "lodash/fp/isEqualWith";
 import React, { useEffect, useRef } from "react";
+
+/**
+ * Custom version of isEqual to handle function comparison
+ */
+const isEqual = isEqualWith((a, b) => {
+  // Deal with the function comparison case
+  if (typeof a === "function" && typeof b === "function") {
+    return a.toString() === b.toString();
+  }
+  // Fallback on the method
+  return undefined;
+});
 
 function useDeepCompareMemoize(value: Readonly<any>) {
   const ref = useRef<any>();
 
-  if (
-    !isEqualWith(value, ref.current, (a, b) => {
-      // Deal with the function comparison case
-      if (typeof a === "function" && typeof b === "function") {
-        return a.toString() === b.toString();
-      }
-      // Fallback on the method
-      return undefined;
-    })
-  ) {
+  if (!isEqual(value, ref.current)) {
     ref.current = value;
   }
 
