@@ -68,7 +68,7 @@ async function _fetchData<TData, TError, TQueryParams>(
     // Abort previous requests
     abortControllers.map(i => i.abort());
 
-    // Create a new abo
+    // Create a new abort controller
     abortControllers.push(new AbortController());
   }
   const signal = abortControllers[abortControllers.length - 1].signal;

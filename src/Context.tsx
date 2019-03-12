@@ -60,6 +60,4 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
   }
 }
 
-const RestfulReactConsumer = Context.Consumer;
-
-export { RestfulReactConsumer };
+export const RestfulReactConsumer = Context.Consumer;
