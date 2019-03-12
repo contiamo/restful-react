@@ -1,13 +1,13 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import qs from "qs";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import url from "url";
 
-import isEqual from "lodash/isEqual";
 import { Context, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
+import { useDeepCompareEffect } from "./util/useDeepCompareEffect";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
@@ -143,29 +143,10 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   const abortControllers = useRef([new AbortController()]);
 
-  const prevProps = useRef<UseGetProps<TData, TQueryParams>>();
-  useEffect(() => {
-    const { base, path, resolve, queryParams } = prevProps.current || {
-      base: null,
-      path: null,
-      resolve: null,
-      queryParams: null,
-    };
-
-    if (
-      base !== props.base ||
-      path !== props.path ||
-      // both `resolve` props need to _exist_ first, and then be equivalent.
-      (resolve && props.resolve && resolve.toString() !== props.resolve.toString()) ||
-      !isEqual(queryParams, props.queryParams)
-    ) {
-      if (!props.lazy) {
-        fetchData(props, state, setState, context, abortControllers.current);
-      }
+  useDeepCompareEffect(() => {
+    if (!props.lazy) {
+      fetchData(props, state, setState, context, abortControllers.current);
     }
-
-    // Save props for later comparison
-    prevProps.current = props;
 
     return () => abortControllers.current.forEach(i => i.abort());
   }, [props.path, props.base, props.resolve, props.queryParams]);
