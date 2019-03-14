@@ -73,7 +73,8 @@
     "react-testing-library": "^5.0.0",
     "request": "^2.88.0",
     "rollup": "^0.67.3",
-    "rollup-plugin-typescript2": "^0.20.1"
+    "rollup-plugin-typescript2": "^0.20.1",
+    "typescript": "3.0.3"
   },
   "dependencies": {
     "case": "^1.6.1",
