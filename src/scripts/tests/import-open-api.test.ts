@@ -255,6 +255,18 @@ describe("scripts/import-open-api", () => {
       expect(generateSchemasDefinition(schema)).toContain(`export type Pet = NewPet & {id: number};`);
     });
 
+    it("should declare a discriminate object", () => {
+      const schema = {
+        Pet: {
+          oneOf: [
+            { $ref: "#/components/schemas/NewPet" },
+            { required: ["id"], properties: { id: { type: "integer", format: "int64" } } },
+          ],
+        },
+      };
+      expect(generateSchemasDefinition(schema)).toContain(`export type Pet = NewPet | {id: number};`);
+    });
+
     it("should declare a type for all others types", () => {
       const schema = {
         PetName: {
