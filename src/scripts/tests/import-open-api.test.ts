@@ -384,6 +384,25 @@ export interface Empty {}
         "export type JobRunResponse = {executionID?: string} | ExecutionID",
       );
     });
+
+    it("should add a tslint ignore for empty object", () => {
+      const responses: ComponentsObject["responses"] = {
+        JobRun: {
+          description: "Job is starting",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateResponsesDefinition(responses)).toContain(`// tslint:disable-next-line:no-empty-interface
+export interface JobRunResponse {}
+`);
+    });
   });
 
   describe("getResponseTypes", () => {

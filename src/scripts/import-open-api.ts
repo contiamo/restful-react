@@ -430,9 +430,15 @@ export const generateResponsesDefinition = (responses: ComponentsObject["respons
     Object.entries(responses)
       .map(([name, response]) => {
         const type = getResReqTypes([["", response]]);
-        return type.includes("{") && !type.includes("|") && !type.includes("&")
-          ? `export interface ${pascal(name)}Response ${getResReqTypes([["", response]])}`
-          : `export type ${pascal(name)}Response = ${getResReqTypes([["", response]])};`;
+        const isEmptyInterface = type === "{}";
+        if (isEmptyInterface) {
+          return `// tslint:disable-next-line:no-empty-interface
+export interface ${pascal(name)}Response ${type}`;
+        } else if (type.includes("{") && !type.includes("|") && !type.includes("&")) {
+          return `export interface ${pascal(name)}Response ${type}`;
+        } else {
+          return `export type ${pascal(name)}Response = ${type};`;
+        }
       })
       .join("\n\n") +
     "\n"
