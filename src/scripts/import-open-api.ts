@@ -390,8 +390,8 @@ export const generateInterface = (name: string, schema: SchemaObject) => {
 
   return isEmptyObject
     ? `// tslint:disable-next-line:no-empty-interface
-export interface ${pascal(name)} ${getScalar(schema)}`
-    : `export interface ${pascal(name)} ${getScalar(schema)}`;
+export interface ${pascal(name)} ${scalar}`
+    : `export interface ${pascal(name)} ${scalar}`;
 };
 
 /**
@@ -406,11 +406,10 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
 
   return (
     Object.entries(schemas)
-      .map(
-        ([name, schema]) =>
-          (!schema.type || schema.type === "object") && !schema.allOf && !isReference(schema)
-            ? generateInterface(name, schema)
-            : `export type ${pascal(name)} = ${resolveValue(schema)};`,
+      .map(([name, schema]) =>
+        (!schema.type || schema.type === "object") && !schema.allOf && !schema.oneOf && !isReference(schema)
+          ? generateInterface(name, schema)
+          : `export type ${pascal(name)} = ${resolveValue(schema)};`,
       )
       .join("\n\n") + "\n"
   );
