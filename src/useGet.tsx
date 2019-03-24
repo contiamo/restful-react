@@ -1,7 +1,7 @@
-import { DebounceSettings } from "lodash";
+import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import qs from "qs";
-import { useCallback, useContext, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import url from "url";
 
 import { Context, RestfulReactProviderProps } from "./Context";
@@ -116,21 +116,31 @@ async function _fetchData<TData, TError, TQueryParams>(
   }
 }
 
+type FetchData = typeof _fetchData;
+type CancellableFetchData = FetchData | (FetchData & Cancelable);
+
+const isCancellable = <T extends (...args: any[]) => any>(func: T): func is T & Cancelable => {
+  return typeof (func as any).cancel === "function" && typeof (func as any).flush === "function";
+};
+
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   props: UseGetProps<TData, TQueryParams>,
 ) {
   const context = useContext(Context);
 
-  const fetchData = useCallback<typeof _fetchData>(
+  const fetchData = useCallback<CancellableFetchData>(
     typeof props.debounce === "object"
-      ? debounce<typeof _fetchData>(_fetchData, props.debounce.wait, props.debounce.options)
+      ? debounce<FetchData>(_fetchData, props.debounce.wait, props.debounce.options)
       : typeof props.debounce === "number"
-      ? debounce<typeof _fetchData>(_fetchData, props.debounce)
+      ? debounce<FetchData>(_fetchData, props.debounce)
       : props.debounce
-      ? debounce<typeof _fetchData>(_fetchData)
+      ? debounce<FetchData>(_fetchData)
       : _fetchData,
     [props.debounce],
   );
+
+  // Cancel fetchData on unmount (if debounce)
+  useEffect(() => (isCancellable(fetchData) ? () => fetchData.cancel() : undefined), [fetchData]);
 
   const [state, setState] = useState<GetState<TData, TError>>({
     data: null,

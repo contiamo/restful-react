@@ -598,6 +598,31 @@ describe("useGet hook", () => {
 
       await wait(() => expect(apiCalls).toEqual(10));
     });
+    it("should cancel the debounce on unmount", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, () => ({ oh: "yeah" }));
+
+      const resolve = jest.fn(val => val);
+
+      const MyAwesomeComponent = () => {
+        const { data, loading } = useGet<{ oh: string }>({ path: "/", resolve, debounce: true });
+
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+      };
+
+      const { unmount } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      unmount();
+      await new Promise(res => {
+        setTimeout(res, 100);
+      });
+      expect(resolve).not.toHaveBeenCalled();
+    });
   });
   describe("refetch after update", () => {
     it("should not refetch when base, path or resolve don't change", () => {
