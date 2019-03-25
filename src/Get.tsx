@@ -13,7 +13,7 @@ import { resolveData } from "./util/resolveData";
  * A function that resolves returned data from
  * a fetch call.
  */
-export type ResolveFunction<T> = ((data: any) => T) | ((data: any) => Promise<T>);
+export type ResolveFunction<TData> = (data: any) => TData;
 
 export interface GetDataError<TError> {
   message: string;

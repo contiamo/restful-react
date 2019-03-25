@@ -357,10 +357,10 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
-"@operational/scripts@^1.4.0-1c795b9":
-  version "1.4.0-d29efea"
-  resolved "https://registry.yarnpkg.com/@operational/scripts/-/scripts-1.4.0-d29efea.tgz#c4bae2d9d37bbd090719d97b9035f7edd27f32b4"
-  integrity sha512-JJ9AElxvBDDd5mYvN9oR1Az1DuMzrGh3ReAEHefBpIgRx/CqsBbL1NEsA+3RmQcwXmxni/NQSYaT0EOp6czriQ==
+"@operational/scripts@1.4.0-1c795b9":
+  version "1.4.0-1c795b9"
+  resolved "https://registry.yarnpkg.com/@operational/scripts/-/scripts-1.4.0-1c795b9.tgz#7ad2710baaad59c05ea6932e8e9d814af306f4b9"
+  integrity sha512-jSt7H0UYr2iCQxnpQQ//xmDaX8vydEKdDTEgwwxGj2fY9MIQTSzHZTN4gL4Jf2kIK4SkNsd2I2KjIuaqUSX/7w==
   dependencies:
     "@types/jest" "^24.0.0"
     connect-history-api-fallback "^1.6.0"
@@ -8013,7 +8013,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.3.3333:
+typescript@^3.3.3333, typescript@^3.3.4000:
   version "3.3.4000"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.3.4000.tgz#76b0f89cfdbf97827e1112d64f283f1151d6adf0"
   integrity sha512-jjOcCZvpkl2+z7JFn0yBOoLQyLoIkNZAs/fYJkUG6VKy6zLPHJGfQJYFHzibB6GJaF/8QrcECtlQ5cpvRHSMEA==
