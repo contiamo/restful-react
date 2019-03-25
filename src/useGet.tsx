@@ -79,12 +79,12 @@ async function _fetchData<TData, TError, TQueryParams>(
     (typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions) || {};
   requestOptions.headers = new Headers(requestOptions.headers);
 
-  const request = new Request(
-    url.resolve(base, queryParams ? `${path}?${qs.stringify(queryParams)}` : path),
-    requestOptions,
-  );
+  const request = new Request(url.resolve(base, queryParams ? `${path}?${qs.stringify(queryParams)}` : path), {
+    ...requestOptions,
+    signal,
+  });
   try {
-    const response = await fetch(request, { signal });
+    const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
 
     if (signal.aborted) {
