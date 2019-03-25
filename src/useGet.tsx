@@ -165,6 +165,14 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       props.base || context.base,
       props.queryParams ? `${props.path}?${qs.stringify(props.queryParams)}` : props.path,
     ),
+    cancel: () => {
+      setState({
+        ...state,
+        loading: false,
+      });
+      abortController.current.abort();
+      abortController.current = new AbortController();
+    },
     refetch: (options: Partial<Omit<UseGetProps<TData, TQueryParams>, "lazy">> = {}) =>
       fetchData({ ...props, ...options }, state, setState, context, abortController),
   };
