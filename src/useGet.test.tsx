@@ -444,6 +444,28 @@ describe("useGet hook", () => {
 
       expect(getByTestId("data")).toHaveTextContent("my god 😍");
     });
+
+    it("should merge headers with providers", async () => {
+      nock("https://my-awesome-api.fake", { reqheaders: { foo: "bar", bar: "foo" } })
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { data, loading } = useGet<{ oh: string }>({ path: "/", requestOptions: { headers: { foo: "bar" } } });
+
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+      };
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" requestOptions={() => ({ headers: { bar: "foo" } })}>
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("data"));
+
+      expect(getByTestId("data")).toHaveTextContent("my god 😍");
+    });
   });
 
   describe("actions", () => {
