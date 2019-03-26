@@ -1,5 +1,6 @@
 import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
+import merge from "lodash/merge";
 import qs from "qs";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import url from "url";
@@ -77,12 +78,15 @@ async function _fetchData<TData, TError, TQueryParams>(
 
   const requestOptions =
     (typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions) || {};
-  requestOptions.headers = new Headers(requestOptions.headers);
 
-  const request = new Request(url.resolve(base, queryParams ? `${path}?${qs.stringify(queryParams)}` : path), {
-    ...requestOptions,
-    signal,
-  });
+  const contextRequestOptions =
+    (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
+
+  const request = new Request(
+    url.resolve(base, queryParams ? `${path}?${qs.stringify(queryParams)}` : path),
+    merge(contextRequestOptions, requestOptions, { signal }),
+  );
+
   try {
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
