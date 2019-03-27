@@ -127,9 +127,34 @@ const isCancellable = <T extends (...args: any[]) => any>(func: T): func is T & 
   return typeof (func as any).cancel === "function" && typeof (func as any).flush === "function";
 };
 
+export interface UseGetReturn<TData, TError> extends GetState<TData, TError> {
+  /**
+   * Absolute path resolved from `base` and `path` (context & local)
+   */
+  absolutePath: string;
+  /**
+   * Cancel the current fetch
+   */
+  cancel: () => void;
+  /**
+   * Refetch
+   */
+  refetch: () => Promise<void>;
+}
+
+export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
+  path: string,
+  props?: Omit<UseGetProps<TData, TQueryParams>, "path">,
+): UseGetReturn<TData, TError>;
+
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   props: UseGetProps<TData, TQueryParams>,
-) {
+): UseGetReturn<TData, TError>;
+
+export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>() {
+  const props: UseGetProps<TData, TError> =
+    typeof arguments[0] === "object" ? arguments[0] : { ...arguments[1], path: arguments[0] };
+
   const context = useContext(Context);
 
   const fetchData = useCallback<CancellableFetchData>(
