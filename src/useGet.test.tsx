@@ -57,6 +57,28 @@ describe("useGet hook", () => {
       expect(getByTestId("data")).toHaveTextContent("my god 😍");
     });
 
+    it("should have data from the request after loading (alternative syntax)", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { data, loading } = useGet<{ oh: string }>("/");
+
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+      };
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("data"));
+
+      expect(getByTestId("data")).toHaveTextContent("my god 😍");
+    });
+
     it("shouldn't resolve after component unmount", async () => {
       let requestResolves;
       const pendingRequestFinishes = new Promise(resolvePromise => {
