@@ -185,7 +185,10 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       fetchData(props, state, setState, context, abortController);
     }
 
-    return () => abortController.current.abort();
+    return () => {
+      abortController.current.abort();
+      abortController.current = new AbortController();
+    };
   }, [props.path, props.base, props.resolve, props.queryParams]);
 
   return {
