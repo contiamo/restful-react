@@ -93,7 +93,9 @@ async function _fetchData<TData, TError, TQueryParams>(
 
     if (signal.aborted) {
       return;
-    } else if (!response.ok || responseError) {
+    }
+
+    if (!response.ok || responseError) {
       const error = {
         message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
         data,
@@ -105,9 +107,10 @@ async function _fetchData<TData, TError, TQueryParams>(
       if (!props.localErrorOnly && context.onError) {
         context.onError(error, () => _fetchData(props, state, setState, context, abortController), response);
       }
-    } else {
-      setState({ ...state, error: null, loading: false, data: resolve(data) });
+      return;
     }
+
+    setState({ ...state, error: null, loading: false, data: resolve(data) });
   } catch (e) {
     setState({
       ...state,
