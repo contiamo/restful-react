@@ -106,7 +106,7 @@ async function _fetchData<TData, TError, TQueryParams>(
         context.onError(error, () => _fetchData(props, state, setState, context, abortController), response);
       }
     } else {
-      setState({ ...state, loading: false, data: resolve(data) });
+      setState({ ...state, error: null, loading: false, data: resolve(data) });
     }
   } catch (e) {
     setState({
