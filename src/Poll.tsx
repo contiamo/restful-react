@@ -1,3 +1,4 @@
+import merge from "lodash/merge";
 import * as qs from "qs";
 import * as React from "react";
 import equal from "react-fast-compare";
@@ -339,16 +340,22 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
-      {contextProps => (
-        <ContextlessPoll
-          {...contextProps}
-          {...props}
-          requestOptions={{
-            ...contextProps.requestOptions,
-            ...props.requestOptions,
-          }}
-        />
-      )}
+      {contextProps => {
+        const contextRequestOptions =
+          typeof contextProps.requestOptions === "function"
+            ? contextProps.requestOptions()
+            : contextProps.requestOptions || {};
+        const propsRequestOptions =
+          typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions || {};
+
+        return (
+          <ContextlessPoll
+            {...contextProps}
+            {...props}
+            requestOptions={merge(contextRequestOptions, propsRequestOptions)}
+          />
+        );
+      }}
     </RestfulReactConsumer>
   );
 }
