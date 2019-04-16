@@ -57,10 +57,10 @@ export interface UseGetProps<TData, TQueryParams> {
 }
 
 function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams) {
-  const escapedBase = base.endsWith("/") ? base : `${base}/`;
-  const escapedPath = path.startsWith("/") ? path.slice(1) : path;
+  const appendedBase = base.endsWith("/") ? base : `${base}/`;
+  const trimmedPath = path.startsWith("/") ? path.slice(1) : path;
 
-  return url.resolve(escapedBase, queryParams ? `${escapedPath}?${qs.stringify(queryParams)}` : escapedPath);
+  return url.resolve(appendedBase, queryParams ? `${trimmedPath}?${qs.stringify(queryParams)}` : trimmedPath);
 }
 
 async function _fetchData<TData, TError, TQueryParams>(
