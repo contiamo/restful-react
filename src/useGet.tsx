@@ -56,6 +56,13 @@ export interface UseGetProps<TData, TQueryParams> {
     | number;
 }
 
+function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams) {
+  const appendedBase = base.endsWith("/") ? base : `${base}/`;
+  const trimmedPath = path.startsWith("/") ? path.slice(1) : path;
+
+  return url.resolve(appendedBase, queryParams ? `${trimmedPath}?${qs.stringify(queryParams)}` : trimmedPath);
+}
+
 async function _fetchData<TData, TError, TQueryParams>(
   props: UseGetProps<TData, TQueryParams>,
   state: GetState<TData, TError>,
@@ -83,7 +90,7 @@ async function _fetchData<TData, TError, TQueryParams>(
     (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
 
   const request = new Request(
-    url.resolve(base, queryParams ? `${path}?${qs.stringify(queryParams)}` : path),
+    resolvePath(base, path, queryParams),
     merge(contextRequestOptions, requestOptions, { signal }),
   );
 
@@ -196,10 +203,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   return {
     ...state,
-    absolutePath: url.resolve(
-      props.base || context.base,
-      props.queryParams ? `${props.path}?${qs.stringify(props.queryParams)}` : props.path,
-    ),
+    absolutePath: resolvePath(props.base || context.base, props.path, props.queryParams),
     cancel: () => {
       setState({
         ...state,

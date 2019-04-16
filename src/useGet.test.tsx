@@ -113,14 +113,19 @@ describe("useGet hook", () => {
     [
       { base: "https://my-awesome-api.fake", path: "/", expected: ["https://my-awesome-api.fake", "/"] },
       { base: "https://my-awesome-api.fake", path: "/plop", expected: ["https://my-awesome-api.fake", "/plop"] },
-      { base: "https://my-awesome-api.fake/plop", path: "/", expected: ["https://my-awesome-api.fake", "/"] },
-      { base: "https://my-awesome-api.fake/plop/", path: "/", expected: ["https://my-awesome-api.fake", "/"] },
+      { base: "https://my-awesome-api.fake/plop", path: "/", expected: ["https://my-awesome-api.fake", "/plop/"] },
+      { base: "https://my-awesome-api.fake/plop/", path: "/", expected: ["https://my-awesome-api.fake", "/plop/"] },
       { base: "https://my-awesome-api.fake/plop/", path: "", expected: ["https://my-awesome-api.fake", "/plop/"] },
       { base: "https://my-awesome-api.fake/plop/", path: "../", expected: ["https://my-awesome-api.fake", "/"] },
-      { base: "https://my-awesome-api.fake/a", path: "/b", expected: ["https://my-awesome-api.fake", "/b"] },
+      { base: "https://my-awesome-api.fake/a", path: "/b", expected: ["https://my-awesome-api.fake", "/a/b"] },
+      {
+        base: "https://my-awesome-api.fake/a",
+        path: "/tejas/",
+        expected: ["https://my-awesome-api.fake", "/a/tejas/"],
+      },
       { base: "https://my-awesome-api.fake/a/", path: "", expected: ["https://my-awesome-api.fake", "/a/"] },
-    ].forEach(({ base, path, expected }) => {
-      it(`should call ${expected.join("")}`, async () => {
+    ].forEach(({ base, path, expected }, i) => {
+      it(`should call ${expected.join("")}(${i})`, async () => {
         nock(expected[0])
           .get(expected[1])
           .reply(200, { oh: "my god 😍" });
@@ -442,6 +447,7 @@ describe("useGet hook", () => {
       expect(children).toHaveBeenCalledWith({ data: null, error: null, loading: false });
     });
   });
+
   describe("with base", () => {
     it("should override the base url", async () => {
       nock("https://my-awesome-api.fake")
@@ -710,6 +716,7 @@ describe("useGet hook", () => {
       expect(resolve).not.toHaveBeenCalled();
     });
   });
+
   describe("refetch after update", () => {
     it("should not refetch when base, path or resolve don't change", () => {
       let apiCalls = 0;
