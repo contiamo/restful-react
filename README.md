@@ -1,6 +1,6 @@
 # RESTful React
 
-Building React apps that interact with a backend API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of a React component.
+Building React apps that interact with a backend API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.
 
 As an abstraction, this tool allows for greater consistency and maintainability of dynamic codebases.
 
@@ -39,34 +39,36 @@ As an abstraction, this tool allows for greater consistency and maintainability 
 
 ## Overview
 
-At its core, RESTful React exposes a component, called `Get`. This component retrieves data, either on mount or later, and then handles error states, caching, loading states, and other cases for you. As such, you simply get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
+At its core, RESTful React exposes a hook, called `useGet`. This component retrieves data, either on mount or later, and then handles error states, caching, loading states, and other cases for you. As such, you simply get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
 
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
 import React from "react";
-import Get from "restful-react";
+import { useGet } from "restful-react";
 
-const MyComponent = () => (
-  <Get path="https://dog.ceo/api/breeds/image/random">
-    {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />}
-  </Get>
-);
+const MyComponent = () => {
+  const { data: randomDogImage } = useGet({
+    path: "https://dog.ceo/api/breeds/image/random",
+  });
+
+  return <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />;
+};
 
 export default MyComponent;
 ```
 
 ## Getting Started
 
-To install and use this library, simply `yarn add restful-react`, or `npm i restful-react --save` and you should be good to go. Don't forget to `import Get from "restful-react"` or similar wherever you need it!
+To install and use this library, install it by running `yarn add restful-react`, or `npm i restful-react --save` and you should be good to go. Don't forget to `import { useGet } from "restful-react"` or similar wherever you need it!
 
 ## Features
 
-Restful React ships with the following features that we think might be useful.
+`restful-react` ships with the following features that we think might be useful.
 
 ### Global Configuration
 
-API endpoints usually sit alongside a base, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `Get` components.
+REST API endpoints usually sit alongside a base, global URL. As a convenience, the `RestfulProvider` allows top-level configuration of your requests, that are then passed down the React tree to `useGet` hooks.
 
 Consider,
 
@@ -91,14 +93,16 @@ Meanwhile, in `./App.jsx`,
 
 ```jsx
 import React from "react";
-import Get from "restful-react";
+import { useGet } from "restful-react";
 
-const MyComponent = () => (
-  /* Make a request to https://dog.ceo/api/breeds/image/random" */
-  <Get path="/breeds/image/random">
-    {randomDogImage => <img alt="Here's a good boye!" src={randomDogImage.message} />}
-  </Get>
-);
+const MyComponent = () => {
+  const { data: randomDogImage } = useGet({
+    // Inferred from RestfulProvider in index.js
+    path: "breeds/image/random",
+  });
+
+  return <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />;
+};
 
 export default MyComponent;
 ```
@@ -136,174 +140,82 @@ interface RestfulProviderProps<T> {
 
 Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) type of request options.
 
-### Composability
-
-`Get` components can be composed together and request URLs are an accumulation of their collective path props. Consider,
-
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
-
-```jsx
-// Assuming we're using a RestfulProvider with base="https://my.web/api somewhere,
-import React from "react";
-import Get from "restful-react";
-
-export default () => (
-  {/* Send a request to "https://my.web/api/breeds */}
-  <Get path="/breeds">
-    {data => {
-      return (
-        <div>
-          <h1>Random Image</h1>
-          {/*
-            Composes path with parent: sends request to https://my.web/api/breeds/image/random.
-            This happens because there is no preceding / to the path.
-          */}
-          <Get path="image/random">
-            {image => <img alt="Random Image" src={image && image.message} />}
-          </Get>
-
-          <h1>All Breeds</h1>
-
-          {/*
-            Composes path with parent: sends request to https://my.web/api/list
-            The preceding slash (/) ALWAYS queries the ROOT of the RestfulProvider's base.
-          */}
-          <Get path="/list">
-            {list => (
-              <ul>{list && list.message.map(dogName => <li>{dogName}</li>)}</ul>
-            )}
-          </Get>
-        </div>
-      );
-    }}
-  </Get>
-);
-```
-
-From the above example, _not only_ does the path compose based on the nesting of each `Get`, but each `Get` _can_ override its parent with other props as well: including having _specific_ `requestOptions` if there was a valid use case.
-
-To opt-out of this behavior `Get` components can use an alternative URL as their `base` prop.
-
-#### [Full `Get` Component API](src/Get.tsx#L50-L87)
-
 ### Loading and Error States
 
-`Get` components pass down loading and error states to their children, to allow for state handling. Consider,
+`useGet` hooks return an object with loading and error states, to allow for state handling. Consider,
 
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
-const MyAnimalsList = props => (
-  <Get path={`/${props.animal}`}>
-    {(animals, { loading, error }) =>
-      loading ? (
-        <Spinner />
-      ) : (
-        <div>
-          You should only see this after things are loaded.
-          {error ? (
-            "OH NO!"
-          ) : (
-            <>
-              <h1>
-                Here are all my {props.animal}
-                s!
-              </h1>
-              <ul>
-                {animals.map(animal => (
-                  <li>{animal}</li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      )
-    }
-  </Get>
-);
-```
+import React from "react";
+import { useGet } from "restful-react";
 
-Within [Operational UI](https://github.com/contiamo/operational-ui), all of our [`<Progress />`](https://operational-ui.netlify.com/#!/Progress) components support an `error` prop. For _even_ better request state handling, we can write:
+const MyComponent = () => {
+  const { data: randomDogImage, loading } = useGet({
+    path: "https://dog.ceo/api/breeds/image/random",
+  });
 
-```jsx
-const MyAnimalsList = props => (
-  <Get path={`/${props.animal}`}>
-    {(animals, { loading, error }) =>
-      loading ? (
-        <Progress error={error} />
-      ) : (
-        <div>
-          You should only see this after things are loaded.
-          <h1>
-            Here are all my {props.animal}
-            s!
-          </h1>
-          <ul>
-            {animals.map(animal => (
-              <li>{animal}</li>
-            ))}
-          </ul>
-        </div>
-      )
-    }
-  </Get>
-);
+  return loading ? <h1>Loading...</h1> : <img alt="Here's a good boye!" src={randomDogImage.message} />;
+};
+
+export default MyComponent;
 ```
 
 ### Lazy Fetching
 
-It is possible to render a `Get` component and defer the fetch to a later stage. This is done with the `lazy` boolean prop. This is great for displaying UI immediately, and then allowing parts of it to be fetched as a response to an event: like the click of a button, for instance. Consider,
+It is possible to use a `useGet` hook and defer the fetch to a later stage. This is done with the `lazy` boolean property. This is great for displaying UI immediately, and then allowing parts of it to be fetched as a response to an event: like the click of a button, for instance. Consider,
 
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
-<Get path="/unicorns" lazy>
-  {(unicorns, states, { get }) => (
-    <div>
-      <h1>Are you ready?</h1>
-      <p>Are you ready to unleash all the magic? If yes, click this button!</p>
-      <button onClick={get}>GET UNICORNS!!!!!!</button>
+import React from "react";
+import { useGet } from "restful-react";
 
-      {unicorns && (
-        <ul>
-          {unicorns.map((unicorn, index) => (
-            <li key={index}>{unicorn}</li>
-          ))}
-        </ul>
-      )}
+const MyComponent = () => {
+  const { data: randomDogImage, loading, refetch } = useGet({
+    path: "https://dog.ceo/api/breeds/image/random",
+    lazy: true,
+  });
+  return !randomDogImage && loading ? (
+    <h1>Loading!</h1>
+  ) : (
+    <div>
+      <div>
+        <h1>Welcome to my image getter!</h1>
+        <button onClick={() => refetch()}>Get a good boye!</button>
+      </div>
+      <div>{randomDogImage && <img alt="Here's a good boye!" src={randomDogImage.message} />}</div>
     </div>
-  )}
-</Get>
+  );
+};
+
+export default MyComponent;
 ```
 
-The above example will display your UI, and then load unicorns on demand.
+The above example will display your UI, and then load good boyes on demand.
 
 ### Response Resolution
 
-Sometimes, your backend responses arrive in a shape that you might want to adapt, validate, or reshape. Other times, maybe your data consistently arrives in a `{ data: {} }` shape, with `data` containing the stuff you want.
+Sometimes, your backend responses arrive in a shape that you might want to adapt, validate, or restructure. Other times, maybe your data consistently arrives in a `{ data: {} }` shape, with `data` containing the stuff you want.
 
-At the `RestfulProvider` level, _or_ on the `Get` level, a `resolve` prop will take the data and _do stuff_ to it, providing the final resolved data to the children. Consider,
+At the `RestfulProvider` level, _or_ on the `useGet` level, a `resolve` prop will take the data and _do stuff_ to it, providing the final resolved or unwrapped data to the children. Consider,
 
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
-const myNestedData = props => (
-  <Get
-    path="/this-should-be-simpler"
-    resolve={response => response.data.what.omg.how.map(singleThing => singleThing.name)}
-  >
-    {data => (
-      <div>
-        <h1>Here's all the things I want</h1>
-        <ul>
-          {data.map(thing => (
-            <li>{thing}</li>
-          ))}
-        </ul>
-      </div>
-    )}
-  </Get>
-);
+import React from "react";
+import { useGet } from "restful-react";
+
+const MyComponent = () => {
+  const { data: imageUrl } = useGet({
+    path: "https://dog.ceo/api/breeds/image/random",
+    resolve: image => image && image.message,
+  });
+
+  return <img alt="Here's a good boye!" src={imageUrl} />;
+};
+
+export default MyComponent;
 ```
 
 ### Debouncing Requests
@@ -315,10 +227,34 @@ Restful React exposes a `debounce` prop on `Get` that does exactly this.
 Here's an example:
 
 ```jsx
-const SearchThis = props => (
-  <Get path={`/search?q=${props.query}`} debounce>
-    {data => (
-      <div>
+const SearchThis = props => {
+  const { data } = useGet({
+    path: "/hello/world",
+    debounce: true,
+  });
+  return (
+    <div>
+      <h1>Here's all the things I search</h1>
+      <ul>
+        {data.map(thing => (
+          <li>{thing}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+```
+
+Debounce also accepts a number, which tells `Get` how long to wait until doing the request.
+
+```diff
+const SearchThis = props => {
+  const {data} = useGet({
+    path: "/hello/world",
+-    debounce: true,
++    debounce: 200 /* ms */,
+  })
+  return <div>
         <h1>Here's all the things I search</h1>
         <ul>
           {data.map(thing => (
@@ -326,100 +262,114 @@ const SearchThis = props => (
           ))}
         </ul>
       </div>
-    )}
-  </Get>
-);
-```
-
-Debounce also accepts a number, which tells `Get` how long to wait until doing the request.
-
-```diff
-const SearchThis = props => (
--  <Get path={`/search?q=${props.query}`} debounce>
-+  <Get path={`/search?q=${props.query}`} debounce={200 /*ms*/}>
-    {data => (
-      <div>
-        <h1>Here's all the things I search</h1>
-        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
-      </div>
-    )}
-  </Get>
-);
+}
 ```
 
 It uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) function under the hood, so you get all the benefits of it out of the box like so!
 
 ```diff
-const SearchThis = props => (
-  <Get
-    path={`/search?q=${props.query}`}
--   debounce={200}
-+   debounce={{ wait: 200, options: { leading: true, maxWait: 300, trailing: false } }}
-  >
-    {data => (
-      <div>
+
+const SearchThis = props => {
+  const {data} = useGet({
+    path: "/hello/world",
+-    debounce: 200,
++    debounce: { wait: 200, options: { leading: true, maxWait: 300, trailing: false } } /* ms */,
+  })
+  return <div>
         <h1>Here's all the things I search</h1>
-        <ul>{data.map(thing => <li>{thing}</li>)}</ul>
+        <ul>
+          {data.map(thing => (
+            <li>{thing}</li>
+          ))}
+        </ul>
       </div>
-    )}
-  </Get>
-);
+}
 ```
 
 ### TypeScript Integration
 
-One of the most poweful features of RESTful React, each component exported is strongly typed, empowering developers through self-documenting APIs. As for _returned_ data, simply tell your data prop _what_ you expect, and it'll be available to you throughout your usage of `children`.
+One of the most poweful features of restful-react is that each component exported is strongly typed, empowering developers through self-documenting APIs.
 
 ![Using RESTful React in VS Code](assets/labs.gif)
 
 ### Query Parameters
 
-All components in this library support query params (`https://my.site/?query=param`) via a `queryParams` prop. Each `Get`, `Mutate` and `Poll` component is _generic_, having a type signature of `Get<TData, TError, TQueryParams>`. If described, the `queryParams` prop is _fully_ type-safe in usage and provides autocomplete functionality.
+All components in this library support query params (`https://my.site/?query=param`) via a `queryParams` prop. Each `useGet`, `useMutat` and `usePoll` hook is _generic_, having a type signature of `Get<TData, TError, TQueryParams>`. If described, the `queryParams` prop is _fully_ type-safe in usage and provides autocomplete functionality.
 
 ![Autocompletion on QueryParams](assets/idp.gif)
 
 Please note that the above example was built using our [OpenAPI generator](#code-generation) in order to infer the type of component from the specification and automatically generate the entire type-safe component in a _very_ quick and easy way.
 
-### Mutations with `Mutate`
+### Mutations with `useMutate`
 
-Restful React exposes an additional component called `Mutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
+restful-react exposes an additional hook called `useMutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
 
 [![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
 
 ```jsx
-const Movies = ({ dispatch }) => (
-  <ul>
-    <Get path="/movies">
-      {(movies, states, actions) =>
-        movies.map(movie => (
-          <li>
-            {movie.name}
-            <Mutate verb="DELETE">
-              {(deleteMovie, { loading: isDeleting }) => (
-                <button onClick={() => deleteMovie(movie.id).then(() => dispatch("DELETED"))} loading={isDeleting}>
-                  Delete!
-                </button>
-              )}
-            </Mutate>
-          </li>
-        ))
-      }
-    </Get>
-  </ul>
-);
+import React from "react";
+import { useGet, useMutate } from "restful-react";
+
+const base = "https://jsonplaceholder.typicode.com";
+
+const ListItem = ({ id, children }) => {
+  const { mutate: del, loading } = useMutate({
+    verb: "DELETE",
+    path: `/posts/`,
+    base,
+  });
+
+  return (
+    <li key={id}>
+      {loading ? (
+        "Deleting..."
+      ) : (
+        <a
+          href="/"
+          onClick={e => {
+            e.preventDefault();
+            del(id).then(() => alert("Deleted successfully. Pretend it got removed from the DOM."));
+          }}
+        >
+          ❌
+        </a>
+      )}
+      &nbsp;{children}
+    </li>
+  );
+};
+
+const MyHugeList = () => {
+  const { data: posts } = useGet({
+    path: "/posts",
+    base,
+  });
+  return (
+    <div>
+      <h1>Posts</h1>
+      <ul>
+        {posts &&
+          posts.map(post => (
+            <ListItem key={post.id} id={post.id}>
+              {post.title}
+            </ListItem>
+          ))}
+      </ul>
+    </div>
+  );
+};
+export default MyHugeList;
 ```
 
-`Mutate` is strongly typed, and provides intelligent autocompletion out of the box, complete with available verbs and other self-documentation.
+`useMutate` is strongly typed, and provides intelligent autocompletion out of the box, complete with available verbs et al.
 
 ![Mutate](assets/mutate.png)
 
-Each mutation returns a promise, that can then be used to update local component state, or dispatch an action, or do something else depending on your use case.
-
-#### [Full `Mutate` Component API](src/Mutate.tsx#L31-L47)
+Each mutation returns a promise that can then be used to update local component state, dispatch an action, or do something else depending on your use case.
 
 ### Polling with `Poll`
 
-RESTful React also exports a `Poll` component that will poll a backend endpoint over a predetermined interval until a stop condition is met. Consider,
+restful-react also exports a `Poll` render props component that will poll a backend endpoint over a predetermined interval until a stop condition is met. Consider,
 
 ```jsx
 import { Poll } from "restful-react"
@@ -443,13 +393,11 @@ import { Poll } from "restful-react"
 </Poll>
 ```
 
-Note the API similarities that we have already uncovered. In essence, `Poll`, `Get` and `Mutate` have near-identical APIs, allowing developers to quickly swap out `<Get />` for `<Poll />` calls and have the transition happen seamlessly. This is powerful in the world of an ever-changing startup that may have volatile requirements.
-
-In addition to the `Get` component API, `Poll` also supports:
+`Poll` supports:
 
 - an `interval` prop that will poll at a specified interval (defaults to polling 1 second), and
 - an `until` prop that accepts a condition expressed as a function that returns a boolean value. When this condition is met, polling will stop.
-  - the signature of this function is `(data: T, response: Response) => boolean`. As a developer, you have access to the returned data, along with the response object in case you'd like to stop polling if `response.ok === false`, for example.
+  - the signature of this function is `(data: T, response: ResponseInit) => boolean`. As a developer, you have access to the returned data, along with the response object in case you'd like to stop polling if `response.ok === false`, for example.
 
 Below is a more convoluted example that employs nearly the full power of the `Poll` component.
 
@@ -499,7 +447,7 @@ Visually, this is represented as below.
 
 ![Contiamo Poll](docs/long-poll-flow.png).
 
-To get this functionality in Restful React, it is as simple as specifying a `wait` prop on your `Poll` component, provided your server implements the specification as well.
+To get this functionality in restful-react, this means specifying a `wait` prop on your `Poll` component, provided your server implements this specification as well.
 
 #### [Full `Poll` Component API](src/Poll.tsx#L53-L101)
 
@@ -511,7 +459,7 @@ Restful React is able to generate _type-safe_ React components from any valid Op
 
 Type-safe React data fetchers can be generated from an OpenAPI specification using the following command:
 
-- `restful-react import --file MY_OPENAPI_SPEC.yaml --output my-awesome-generated-types.d.tsx`
+- `restful-react import --file MY_OPENAPI_SPEC.yaml --output my-awesome-generated-types.tsx`
 
 This command can be invoked by _either_:
 
@@ -539,9 +487,9 @@ Your components can then be generated by running `npm run generate-fetcher`. Opt
 
 #### Validation of the specification
 
-To enforce the best quality as possible of specification, we have integrate the amazing open-api linter from ibm ([OpenAPI Validator](https://github.com/IBM/openapi-validator)). We strongly encourage you to setup your custom rules with a `.validaterc` file, you can find all useful information about this configuration [here](https://github.com/IBM/openapi-validator/#configuration).
+To enforce the best quality as possible of specification, we have integrated the amazing [OpenAPI linter from IBM](https://github.com/IBM/openapi-validator). We strongly encourage you to setup your custom rules with a `.validaterc` file, you can find all useful information about this configuration [here](https://github.com/IBM/openapi-validator/#configuration).
 
-To activate this, just add `--validation` flag.
+To activate this, add `--validation` flag to your `restful-react` call.
 
 #### Import from GitHub
 
@@ -552,7 +500,7 @@ To generate components from remote specifications, you'll need to follow the fol
 1.  Visit [your GitHub settings](https://github.com/settings/tokens).
 1.  Click **Generate New Token** and choose the following:
 
-        Token Description: (enter anything, usually your computer name)
+        Token Description: (enter anything)
         Scopes:
             [X] repo
                 [X] repo:status
@@ -562,7 +510,7 @@ To generate components from remote specifications, you'll need to follow the fol
 
 1.  Click **Generate token**.
 1.  Copy the generated string.
-1.  Open Terminal and run `restful-react import --github username:repo:branch:path/to/openapi.yaml --output MY_FETCHERS.tsx`.
+1.  Open Terminal and run `restful-react import --github username:repo:branch:path/to/openapi.yaml --output MY_FETCHERS.tsx`, substituting things where necessary.
 1.  You will be prompted for a token.
 1.  Paste your token.
 1.  You will be asked if you'd like to save it for later. This is _entirely_ up to you and completely safe: it is saved in your `node_modules` folder and _not_ committed to version control or sent to us or anything: the source code of this whole thing is public so you're safe.
@@ -573,13 +521,13 @@ To generate components from remote specifications, you'll need to follow the fol
 
 #### Transforming an Original Spec
 
-In some cases, you might need to augment an existing OpenAPI specification on the fly, for code-generation purposes. Our CLI makes this quite easy:
+In some cases, you might need to augment an existing OpenAPI specification on the fly, for code-generation purposes. Our CLI makes this quite straightforward:
 
 ```bash
   restful-react import --file myspec.yaml --output mybettercomponents.tsx --transformer path/to/my-transformer.js
 ```
 
-The function specified in `--transformer` is pure: it imports your `--file`, transforms it, and passes the augmented OpenAPI specification to Restful React's generator. Here's how it can be used:
+The function specified in `--transformer` is pure: it imports your `--file`, transforms it, and passes the augmented OpenAPI specification to restful-react's generator. Here's how it can be used:
 
 ```ts
 // /path/to/my-transformer.js
@@ -613,13 +561,13 @@ module.exports = inputSchema => ({
 
 #### Advanced configuration
 
-Do you have multiple backends? Do you need more control on the generated code? We have the solution!
+`restful-react` supports the concept of "schema stitching" in a RESTful ecosystem as well. We are able to tie multiple backends together and generate code using a single configuration file, `restful-react.config.js`
 
--> The `restful-react.config.js` (Note, all other flags will be ignored).
+To activate this "advanced mode", replace all flags from your `restful-react` call with the config flag: `--config restful-react.config.js` (or any filename that you want).
 
-To activate this "advanced mode", just replace all flags with `--config restful-react.config.js` (or any filename that you want)
+⚠️ Note: using a config file makes use of all of the options contained therein, and ignores all other CLI flags.
 
-Format of the config:
+##### Config File Format
 
 ```ts
 interface RestfulReactConfig {
@@ -640,11 +588,10 @@ interface RestfulReactConfig {
 }
 ```
 
-Example:
+##### Config File Example
 
 ```js
 // restful-react.config.js
-
 module.exports = {
   myFirstBackend: {
     output: "src/queries/myFirstBackend.tsx",
@@ -674,13 +621,6 @@ module.exports = {
 }
 ```
 
-### Caching
-
-This doesn't exist yet.
-Feel free to contribute a solution here.
-
-An LRU cache would be nice.
-
 ## Contributing
 
 All contributions are welcome – especially:
@@ -691,7 +631,7 @@ All contributions are welcome – especially:
 
 ### Code
 
-If you'd like to actively develop or maintain this project, clone the repo and then `yarn watch` to get into dev mode. There are existing tests against which you can test the library. Typically, this looks like
+If you'd like to actively develop or help maintain this project, clone the repo and then `yarn watch` to get into dev mode. There are existing tests against which you can test the library. Typically, this looks like
 
 - `git clone git@github.com:contiamo/restful-react.git`
 - `cd restful-react`
@@ -699,16 +639,6 @@ If you'd like to actively develop or maintain this project, clone the repo and t
 - `yarn test --watch`
 
 From there, you should be able to start developing without problems.
-
-### Dogfooding
-
-This project works great when [dogfooded](https://www.google.com/search?q=dogfooding): I'd suggest creating a separate project somewhere (or using an existing one), and using your fork in your project. To do so, after cloning and `npm i`,
-
-- `npm link` inside of the root folder of this project,
-- go to your consumer project,
-- `npm link restful-react` in there, and `npm` will link the packages.
-
-You can now `import Get from "restful-react"` and do all the things you'd like to do, including test and develop new features for the project to meet your use case.
 
 ## Next Steps
 
