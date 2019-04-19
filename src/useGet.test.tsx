@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { cleanup, fireEvent, render, wait, waitForElement } from "react-testing-library";
 
 import { RestfulProvider, useGet } from "./index";
+import { Omit, UseGetProps } from "./useGet";
 
 // NOTES:
 // We have react warning due to https://github.com/kentcdodds/react-testing-library/issues/281
@@ -926,6 +927,48 @@ describe("useGet hook", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <MyAwesomeComponent path="" queryParams={{ page: 2 }} />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
+    });
+  });
+
+  describe("generation pattern", () => {
+    it("should call the correct endpoint", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, () => ({ id: 42 }));
+
+      interface MyCustomEndpointResponse {
+        id: number;
+      }
+      interface MyCustomEndpointQueryParams {
+        page?: number;
+      }
+      interface MyCustomEndpointError {
+        message: string;
+        code: number;
+      }
+
+      type UseGetMyCustomEndpoint = Omit<UseGetProps<MyCustomEndpointResponse, MyCustomEndpointQueryParams>, "path">;
+      const useGetMyCustomEndpoint = (props: UseGetMyCustomEndpoint) =>
+        useGet<MyCustomEndpointResponse, MyCustomEndpointError, MyCustomEndpointQueryParams>("/", props);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = () => {
+        const res = useGetMyCustomEndpoint({ queryParams: { page: 2 } });
+        return children(res);
+      };
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
         </RestfulProvider>,
       );
 
