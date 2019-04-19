@@ -356,6 +356,20 @@ export const ${componentName} = (${
 
 `;
 
+  // Hooks version
+  if (verb === "get" /* TODO: Remove this condition after `useMutate` implementation */) {
+    output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypes}>, "path"${
+      verb === "get" ? "" : ` | "verb"`
+    }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
+
+${operation.summary ? "// " + operation.summary : ""}
+export const use${componentName} = (${
+      paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
+    }: Use${componentName}Props) => use${Component}<${genericsTypes}>(\`${route}\`, props);
+
+`;
+  }
+
   if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
     output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
       paramsInPath.length ? ` & {${paramsTypes}}` : ""
@@ -481,7 +495,7 @@ const importOpenApi = async (
 
   const imports = [];
   if (haveGet) {
-    imports.push("Get", "GetProps");
+    imports.push("Get", "GetProps", "useGet", "UseGetProps");
   }
   if (haveMutate) {
     imports.push("Mutate", "MutateProps");
