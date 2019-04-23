@@ -26,7 +26,7 @@ export const FindPets = (props: FindPetsProps) => (
   />
 );
 
-export type UseFindPetsProps = Omit<UseGetProps<Pet[], Error, FindPetsQueryParams>, \\"path\\">;
+export type UseFindPetsProps = Omit<UseGetProps<Pet[], FindPetsQueryParams>, \\"path\\">;
 
 
 export const useFindPets = (props: UseFindPetsProps) => useGet<Pet[], Error, FindPetsQueryParams>(\`/pets\`, props);
@@ -54,7 +54,7 @@ export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   />
 );
 
-export type UseFindPetByIdProps = Omit<UseGetProps<Pet, Error, void>, \\"path\\"> & {id: number};
+export type UseFindPetByIdProps = Omit<UseGetProps<Pet, void>, \\"path\\"> & {id: number};
 
 
 export const useFindPetById = ({id, ...props}: UseFindPetByIdProps) => useGet<Pet, Error, void>(\`/pets/\${id}\`, props);

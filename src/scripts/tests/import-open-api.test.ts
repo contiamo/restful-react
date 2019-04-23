@@ -516,7 +516,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
@@ -550,7 +550,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, unknown, void>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void>(\`/fields\`, props);
@@ -597,7 +597,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
@@ -661,7 +661,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
@@ -731,7 +731,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
@@ -794,7 +794,7 @@ export const ListFields = ({id, ...props}: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
 
 // List all fields for the use case schema
 export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
@@ -864,7 +864,7 @@ export const ListFields = ({id, ...props}: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
 
 // List all fields for the use case schema
 export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
@@ -1236,7 +1236,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
@@ -1287,7 +1287,7 @@ export const ListFields = (props: ListFieldsProps) => (
   />
 );
 
-export type UseListFieldsProps = Omit<UseGetProps<void, APIError, void>, \\"path\\">;
+export type UseListFieldsProps = Omit<UseGetProps<void, void>, \\"path\\">;
 
 // List all fields for the use case schema
 export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void>(\`/fields\`, props);

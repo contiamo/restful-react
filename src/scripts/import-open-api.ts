@@ -320,6 +320,15 @@ export const generateRestfulComponent = (
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${requestBodyTypes}`;
 
+  const genericsTypesWithoutError =
+    verb === "get"
+      ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
+          queryParamsType ? componentName + "QueryParams" : "void"
+        }`
+      : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
+          queryParamsType ? componentName + "QueryParams" : "void"
+        }, ${requestBodyTypes}`;
+
   let output = `${
     needAResponseComponent
       ? `
@@ -358,7 +367,7 @@ export const ${componentName} = (${
 
   // Hooks version
   if (verb === "get" /* TODO: Remove this condition after `useMutate` implementation */) {
-    output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypes}>, "path"${
+    output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesWithoutError}>, "path"${
       verb === "get" ? "" : ` | "verb"`
     }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
