@@ -4,7 +4,7 @@ export { default as RestfulProvider } from "./Context";
 export { default as Poll, PollProps } from "./Poll";
 export { default as Mutate, MutateProps, MutateMethod } from "./Mutate";
 
-export { useGet } from "./useGet";
+export { useGet, UseGetProps } from "./useGet";
 
 export { Get, GetDataError, GetProps, GetMethod };
 
