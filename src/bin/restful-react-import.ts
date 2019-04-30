@@ -15,6 +15,13 @@ program.parse(process.argv);
 (async () => {
   const transformer = program.transformer ? require(join(process.cwd(), program.transformer)) : undefined;
 
+  if (!program.output) {
+    throw new Error("You need to provide an output file with `--output`");
+  }
+  if (!program.file && !program.github) {
+    throw new Error("You need to provide an input specification with `--file` or `--github`");
+  }
+
   if (program.file) {
     const data = readFileSync(join(process.cwd(), program.file), "utf-8");
     const { ext } = parse(program.file);
