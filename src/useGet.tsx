@@ -91,7 +91,7 @@ async function _fetchData<TData, TError, TQueryParams>(
 
   const request = new Request(
     resolvePath(base, path, queryParams),
-    merge(contextRequestOptions, requestOptions, { signal }),
+    merge({}, contextRequestOptions, requestOptions, { signal }),
   );
 
   try {
