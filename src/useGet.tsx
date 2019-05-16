@@ -56,7 +56,7 @@ export interface UseGetProps<TData, TQueryParams> {
     | number;
 }
 
-function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams) {
+export function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams) {
   const appendedBase = base.endsWith("/") ? base : `${base}/`;
   const trimmedPath = path.startsWith("/") ? path.slice(1) : path;
 
