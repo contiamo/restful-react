@@ -373,8 +373,8 @@ const Movies = ({ dispatch }) => (
           <li>
             {movie.name}
             <Mutate verb="DELETE">
-              {(delete, {loading: isDeleting}) => (<button
-                      onClick={() => delete(movie.id).then(() => dispatch('DELETED'))}
+              {(deleteMovie, {loading: isDeleting}) => (<button
+                      onClick={() => deleteMovie(movie.id).then(() => dispatch('DELETED'))}
                       loading={isDeleting}
                     >
                       Delete!
