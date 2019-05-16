@@ -14,10 +14,6 @@ export interface UseMutateProps<TData, TQueryParams> extends Omit<UseGetProps<TD
 
 export interface UseMutateReturn<TData, TError, TRequestBody> extends MutateState<TData, TError> {
   /**
-   * Absolute path resolved from `base` and `path` (context & local)
-   */
-  absolutePath: string;
-  /**
    * Cancel the current fetch
    */
   cancel: () => void;
@@ -148,7 +144,6 @@ export function useMutate<
 
   return {
     ...state,
-    absolutePath: "todo",
     mutate,
     cancel: () => {
       setState(prevState => ({
