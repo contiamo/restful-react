@@ -16,7 +16,7 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
-export type MutateMethod<TData, TRequestBody> = (data?: string | TRequestBody) => Promise<TData>;
+export type MutateMethod<TData, TRequestBody> = (data?: TRequestBody) => Promise<TData>;
 
 /**
  * Meta information returned to the fetchable
