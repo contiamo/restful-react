@@ -23,8 +23,6 @@ export type MutateMethod<TData, TRequestBody> = (data?: string | TRequestBody) =
  * view.
  */
 export interface Meta {
-  /** The entire response object passed back from the request. */
-  response: Response | null;
   /** The absolute path of this request. */
   absolutePath: string;
 }
@@ -83,7 +81,6 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody> {
  * hidden from any consumers.
  */
 export interface MutateState<TData, TError> {
-  response: Response | null;
   error: GetState<TData, TError>["error"];
   loading: boolean;
 }
@@ -98,7 +95,6 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
   MutateState<TData, TError>
 > {
   public readonly state: Readonly<MutateState<TData, TError>> = {
-    response: null,
     loading: false,
     error: null,
   };
@@ -195,9 +191,9 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
 
   public render() {
     const { children, path, base, parentPath } = this.props;
-    const { error, loading, response } = this.state;
+    const { error, loading } = this.state;
 
-    return children(this.mutate, { loading, error }, { response, absolutePath: composeUrl(base!, parentPath!, path!) });
+    return children(this.mutate, { loading, error }, { absolutePath: composeUrl(base!, parentPath!, path!) });
   }
 }
 
