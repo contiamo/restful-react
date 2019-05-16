@@ -8,13 +8,19 @@ import { cleanup, fireEvent, render, wait, waitForElement } from "react-testing-
 import { RestfulProvider, useGet } from "./index";
 import { Omit, UseGetProps } from "./useGet";
 
-// NOTES:
-// We have react warning due to https://github.com/kentcdodds/react-testing-library/issues/281
 describe("useGet hook", () => {
+  // Mute console.error -> https://github.com/kentcdodds/react-testing-library/issues/281
+  // tslint:disable:no-console
+  const originalConsoleError = console.error;
+  beforeEach(() => {
+    console.error = jest.fn;
+  });
   afterEach(() => {
+    console.error = originalConsoleError;
     cleanup();
     nock.cleanAll();
   });
+
   describe("classic usage", () => {
     it("should have a loading state on mount", async () => {
       nock("https://my-awesome-api.fake")
