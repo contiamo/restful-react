@@ -178,6 +178,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
       };
 
       this.setState({
+        error,
         loading: false,
       });
 

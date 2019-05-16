@@ -294,6 +294,11 @@ describe("Mutate", () => {
           message: "Failed to fetch: 500 Internal Server Error",
           status: 500,
         });
+        expect(children.mock.calls[2][1].error).toEqual({
+          data: { error: "oh no… not again…" },
+          message: "Failed to fetch: 500 Internal Server Error",
+          status: 500,
+        });
       });
     });
 
