@@ -432,6 +432,42 @@ describe("Mutate", () => {
       // No `expect` here, it's just to test if the types are correct 😉
     });
   });
+  describe("PUT", () => {
+    it("should deal with empty response", async () => {
+      nock("https://my-awesome-api.fake")
+        .put("/")
+        .reply(204);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate verb="PUT" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // put action
+      children.mock.calls[0]
+        [0]()
+        .then(data => expect(data).toBe(undefined))
+        .catch(e => expect("should not").toBe("called"));
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+  });
   describe("Compose paths and urls", () => {
     it("should compose absolute urls", async () => {
       nock("https://my-awesome-api.fake")

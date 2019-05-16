@@ -1,4 +1,7 @@
 export const processResponse = async (response: Response) => {
+  if (response.status === 204) {
+    return { data: undefined, responseError: false };
+  }
   if ((response.headers.get("content-type") || "").includes("application/json")) {
     try {
       return {
