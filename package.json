@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@operational/scripts": "1.4.0-1c795b9",
+    "@types/chalk": "^2.2.0",
     "@types/commander": "^2.12.2",
     "@types/inquirer": "0.0.44",
     "@types/lodash": "^4.14.123",
@@ -85,6 +86,7 @@
   },
   "dependencies": {
     "case": "^1.6.1",
+    "chalk": "^2.4.2",
     "commander": "^2.19.0",
     "ibm-openapi-validator": "^0.3.1",
     "inquirer": "^6.2.2",
