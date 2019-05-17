@@ -16,7 +16,10 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
-export type MutateMethod<TData, TRequestBody> = (data?: TRequestBody) => Promise<TData>;
+export type MutateMethod<TData, TRequestBody> = (
+  data: TRequestBody,
+  mutateRequestOptions?: RequestInit,
+) => Promise<TData>;
 
 /**
  * Meta information returned to the fetchable
@@ -115,7 +118,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
     this.abortController.abort();
   }
 
-  public mutate = async (body?: string | TRequestBody, mutateRequestOptions?: RequestInit) => {
+  public mutate = async (body: TRequestBody, mutateRequestOptions?: RequestInit) => {
     const {
       __internal_hasExplicitBase,
       base,

@@ -3,6 +3,8 @@ import nock from "nock";
 import React from "react";
 import { renderHook } from "react-hooks-testing-library";
 import { RestfulProvider, useMutate } from ".";
+import { Omit } from "./useGet";
+import { UseMutateProps } from "./useMutate";
 
 describe("useMutate", () => {
   // Mute console.error -> https://github.com/kentcdodds/react-testing-library/issues/281
@@ -140,8 +142,10 @@ describe("useMutate", () => {
       const wrapper = ({ children }) => (
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
-      const { result } = renderHook(() => useMutate("POST", "plop"), { wrapper });
-      result.current.mutate();
+      const { result } = renderHook(() => useMutate<{ id: number }, unknown, {}, {}>("POST", "plop"), {
+        wrapper,
+      });
+      result.current.mutate({});
 
       expect(result.current).toMatchObject({
         error: null,
@@ -157,8 +161,8 @@ describe("useMutate", () => {
       const wrapper = ({ children }) => (
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
-      const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
-      const res = await result.current.mutate();
+      const { result } = renderHook(() => useMutate<{ id: number }, unknown, {}, {}>("POST", ""), { wrapper });
+      const res = await result.current.mutate({});
 
       expect(result.current).toMatchObject({
         error: null,
@@ -254,9 +258,11 @@ describe("useMutate", () => {
           {children}
         </RestfulProvider>
       );
-      const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
+      const { result } = renderHook(() => useMutate<{ id: number }, { message: string }, {}, {}>("POST", ""), {
+        wrapper,
+      });
 
-      await result.current.mutate().catch(() => {
+      await result.current.mutate({}).catch(() => {
         /* noop */
       });
 
@@ -301,10 +307,10 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(
-        () => useMutate<{ id: number }>("POST", "", { resolve: data => ({ id: data.id * 2 }) }),
+        () => useMutate<{ id: number }, unknown, {}, {}>("POST", "", { resolve: data => ({ id: data.id * 2 }) }),
         { wrapper },
       );
-      const res = await result.current.mutate();
+      const res = await result.current.mutate({});
 
       expect(result.current).toMatchObject({
         error: null,
@@ -323,7 +329,7 @@ describe("useMutate", () => {
       );
       const { result } = renderHook(
         () =>
-          useMutate<{ id: number }>("POST", "", {
+          useMutate<{ id: number }, unknown, {}, {}>("POST", "", {
             resolve: () => {
               throw new Error("I don't like your data!");
             },
@@ -332,7 +338,7 @@ describe("useMutate", () => {
       );
 
       try {
-        await result.current.mutate();
+        await result.current.mutate({});
         expect("this statement").toBe("not executed");
       } catch (e) {
         expect(result.current).toMatchObject({
@@ -344,6 +350,98 @@ describe("useMutate", () => {
         });
         expect(e.message).toEqual("I don't like your data!");
       }
+    });
+  });
+
+  describe("generation pattern", () => {
+    it("should call the correct endpoint (DELETE)", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/plop")
+        .query({ force: true })
+        .reply(200, { id: 1 });
+
+      interface MyCustomEnpointResponse {
+        id: number;
+      }
+
+      interface MyCustomEnpointQueryParams {
+        force?: boolean;
+      }
+
+      interface MyCustomEnpointError {
+        message: string;
+        code: number;
+      }
+
+      type UseDeleteMyCustomEndpoint = Omit<
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams>,
+        "path" | "verb"
+      >;
+      const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
+        useMutate<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, string>(
+          "DELETE",
+          "",
+          props,
+        );
+
+      const wrapper = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(() => useDeleteMyCustomEndpoint({ queryParams: { force: true } }), { wrapper });
+      const res = await result.current.mutate("plop");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ id: 1 });
+    });
+
+    it("should call the correct endpoint (POST)", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/plop", { id: 1 })
+        .query({ force: true })
+        .reply(200, { id: 1 });
+
+      interface MyCustomEnpointResponse {
+        id: number;
+      }
+
+      interface MyCustomEnpointQueryParams {
+        force?: boolean;
+      }
+
+      interface MyCustomEnpointError {
+        message: string;
+        code: number;
+      }
+
+      interface MyCustomEndpointBody {
+        id: number;
+      }
+
+      type UseDeleteMyCustomEndpoint = Omit<
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams>,
+        "path" | "verb"
+      >;
+      const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
+        useMutate<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, MyCustomEndpointBody>(
+          "POST",
+          "plop",
+          props,
+        );
+
+      const wrapper = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(() => useDeleteMyCustomEndpoint({ queryParams: { force: true } }), { wrapper });
+      const res = await result.current.mutate({ id: 1 });
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ id: 1 });
     });
   });
 });

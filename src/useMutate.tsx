@@ -5,7 +5,8 @@ import { MutateMethod, MutateState } from "./Mutate";
 import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
 
-export interface UseMutateProps<TData, TQueryParams> extends Omit<UseGetProps<TData, TQueryParams>, "lazy"> {
+export interface UseMutateProps<TData, TQueryParams>
+  extends Omit<UseGetProps<TData, TQueryParams>, "lazy" | "debounce"> {
   /**
    * What HTTP verb are we using?
    */
@@ -57,7 +58,7 @@ export function useMutate<
   useEffect(() => () => abortController.current.abort(), []);
 
   const mutate = useCallback<MutateMethod<TData, TRequestBody>>(
-    async body => {
+    async (body: TRequestBody, mutateRequestOptions?: RequestInit) => {
       if (state.error || !state.loading) {
         setState(prevState => ({ ...prevState, loading: true, error: null }));
       }
@@ -69,7 +70,7 @@ export function useMutate<
       }
       const signal = abortController.current.signal;
 
-      const requestOptions =
+      const propsRequestOptions =
         (typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions) || {};
 
       const contextRequestOptions =
@@ -88,7 +89,7 @@ export function useMutate<
 
       const request = new Request(
         resolvePath(base, isDelete ? `${path}/${body}` : path, queryParams),
-        merge({}, contextRequestOptions, options, requestOptions, { signal }),
+        merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );
 
       const response = await fetch(request);
