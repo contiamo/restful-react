@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import program from "commander";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import inquirer from "inquirer";
@@ -6,10 +7,13 @@ import request from "request";
 
 import importOpenApi from "../scripts/import-open-api";
 
+const log = console.log; // tslint:disable-line:no-console
+
 program.option("-o, --output [value]", "output file destination");
 program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.option("-t, --transformer [value]", "transformer function path");
+program.option("--no-validation", "skip the validation step (provided by ibm-openapi-validator)");
 program.parse(process.argv);
 
 (async () => {
@@ -27,7 +31,7 @@ program.parse(process.argv);
     const { ext } = parse(program.file);
     const format = [".yaml", ".yml"].includes(ext.toLowerCase()) ? "yaml" : "json";
 
-    return importOpenApi(data, format, transformer);
+    return importOpenApi(data, format, transformer, program.validation);
   } else if (program.github) {
     let accessToken: string;
     const githubTokenPath = join(__dirname, ".githubToken");
@@ -85,7 +89,7 @@ program.parse(process.argv);
           program.github.toLowerCase().includes(".yaml") || program.github.toLowerCase().includes(".yml")
             ? "yaml"
             : "json";
-        resolve(importOpenApi(JSON.parse(body).data.repository.object.text, format, transformer));
+        resolve(importOpenApi(JSON.parse(body).data.repository.object.text, format, transformer, program.validation));
       });
     });
   } else {
@@ -94,11 +98,8 @@ program.parse(process.argv);
 })()
   .then(data => {
     writeFileSync(join(process.cwd(), program.output), data);
-
-    // tslint:disable-next-line:no-console
-    console.log(`🎉 Your OpenAPI spec has been converted into ready to use restful-react components!`);
+    log(chalk.green(`🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`));
   })
   .catch(err => {
-    // tslint:disable-next-line:no-console
-    console.error(err);
+    log(chalk.red(err));
   });

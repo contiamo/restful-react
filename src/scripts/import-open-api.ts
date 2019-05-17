@@ -1,4 +1,6 @@
 import { pascal } from "case";
+import chalk from "chalk";
+import openApiValidator from "ibm-openapi-validator";
 import get from "lodash/get";
 import groupBy from "lodash/groupBy";
 import isEmpty from "lodash/isEmpty";
@@ -318,16 +320,16 @@ export const generateRestfulComponent = (
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${requestBodyTypes}`;
+        }, ${verb === "delete" ? "string" : requestBodyTypes}`;
 
-  const genericsTypesWithoutError =
+  const genericsTypesForHooksProps =
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${requestBodyTypes}`;
+        }`;
 
   let output = `${
     needAResponseComponent
@@ -366,18 +368,18 @@ export const ${componentName} = (${
 `;
 
   // Hooks version
-  if (verb === "get" /* TODO: Remove this condition after `useMutate` implementation */) {
-    output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesWithoutError}>, "path"${
-      verb === "get" ? "" : ` | "verb"`
-    }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
+  output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
+    verb === "get" ? "" : ` | "verb"`
+  }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
 ${operation.summary ? "// " + operation.summary : ""}
 export const use${componentName} = (${
-      paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-    }: Use${componentName}Props) => use${Component}<${genericsTypes}>(\`${route}\`, props);
+    paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
+  }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
+    verb === "get" ? "" : `"${verb.toUpperCase()}", `
+  }\`${route}\`, props);
 
 `;
-  }
 
   if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
     output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
@@ -469,21 +471,73 @@ export interface ${pascal(name)}Response ${type}`;
 };
 
 /**
+ * Validate the spec with ibm-openapi-validator (with a custom pretty logger).
+ *
+ * @param schema openAPI spec
+ */
+const validate = async (schema: OpenAPIObject) => {
+  // tslint:disable:no-console
+  const log = console.log;
+
+  // Catch the internal console.log to add some information if needed
+  // because openApiValidator() calls console.log internally and
+  // we want to add more context if it's used
+  let wasConsoleLogCalledFromBlackBox = false;
+  console.log = (...props: any) => {
+    wasConsoleLogCalledFromBlackBox = true;
+    log(...props);
+  };
+  const { errors, warnings } = await openApiValidator(schema);
+  console.log = log; // reset console.log because we're done with the black box
+
+  if (wasConsoleLogCalledFromBlackBox) {
+    log("More information: https://github.com/IBM/openapi-validator/#configuration");
+  }
+  if (warnings.length) {
+    log(chalk.yellow("(!) Warnings"));
+    warnings.forEach(i =>
+      log(
+        chalk.yellow(`
+Message : ${i.message}
+Path    : ${i.path}`),
+      ),
+    );
+  }
+  if (errors.length) {
+    log(chalk.red("(!) Errors"));
+    errors.forEach(i =>
+      log(
+        chalk.red(`
+Message : ${i.message}
+Path    : ${i.path}`),
+      ),
+    );
+  }
+  // tslint:enable:no-console
+};
+
+/**
  * Main entry of the generator. Generate restful-react component from openAPI.
  *
  * @param data raw data of the spec
  * @param format format of the spec
  * @param transformer custom function to transform your spec
+ * @param validation validate the spec with ibm-openapi-validator tool
  */
 const importOpenApi = async (
   data: string,
   format: "yaml" | "json",
   transformer?: (schema: OpenAPIObject) => OpenAPIObject,
+  validation = false,
 ) => {
   const operationIds: string[] = [];
   let schema = await importSpecs(data, format);
   if (transformer) {
     schema = transformer(schema);
+  }
+
+  if (validation) {
+    await validate(schema);
   }
 
   let output = "";
@@ -507,7 +561,7 @@ const importOpenApi = async (
     imports.push("Get", "GetProps", "useGet", "UseGetProps");
   }
   if (haveMutate) {
-    imports.push("Mutate", "MutateProps");
+    imports.push("Mutate", "MutateProps", "useMutate", "UseMutateProps");
   }
   if (havePoll) {
     imports.push("Poll", "PollProps");
