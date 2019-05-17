@@ -318,16 +318,16 @@ export const generateRestfulComponent = (
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${requestBodyTypes}`;
+        }, ${verb === "delete" ? "string" : requestBodyTypes}`;
 
-  const genericsTypesWithoutError =
+  const genericsTypesForHooksProps =
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${requestBodyTypes}`;
+        }`;
 
   let output = `${
     needAResponseComponent
@@ -366,18 +366,18 @@ export const ${componentName} = (${
 `;
 
   // Hooks version
-  if (verb === "get" /* TODO: Remove this condition after `useMutate` implementation */) {
-    output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesWithoutError}>, "path"${
-      verb === "get" ? "" : ` | "verb"`
-    }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
+  output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
+    verb === "get" ? "" : ` | "verb"`
+  }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
 ${operation.summary ? "// " + operation.summary : ""}
 export const use${componentName} = (${
-      paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-    }: Use${componentName}Props) => use${Component}<${genericsTypes}>(\`${route}\`, props);
+    paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
+  }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
+    verb === "get" ? "" : `"${verb.toUpperCase()}", `
+  }\`${route}\`, props);
 
 `;
-  }
 
   if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
     output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
