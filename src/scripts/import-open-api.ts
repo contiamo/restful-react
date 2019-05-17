@@ -558,7 +558,7 @@ const importOpenApi = async (
     imports.push("Get", "GetProps", "useGet", "UseGetProps");
   }
   if (haveMutate) {
-    imports.push("Mutate", "MutateProps");
+    imports.push("Mutate", "MutateProps", "useMutate", "UseMutateProps");
   }
   if (havePoll) {
     imports.push("Poll", "PollProps");
