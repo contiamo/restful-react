@@ -480,14 +480,17 @@ const validate = async (schema: OpenAPIObject) => {
   const log = console.log;
 
   // Catch the internal console.log to add some information if needed
-  let haveOpenAPIValidatorOutput = false;
+  // because openApiValidator() calls console.log internally and
+  // we want to add more context if it's used
+  let wasConsoleLogCalledFromBlackBox = false;
   console.log = (...props: any) => {
-    haveOpenAPIValidatorOutput = true;
+    wasConsoleLogCalledFromBlackBox = true;
     log(...props);
   };
   const { errors, warnings } = await openApiValidator(schema);
-  console.log = log;
-  if (haveOpenAPIValidatorOutput) {
+  console.log = log; // reset console.log because we're done with the black box
+
+  if (wasConsoleLogCalledFromBlackBox) {
     log("More information: https://github.com/IBM/openapi-validator/#configuration");
   }
   if (warnings.length) {
