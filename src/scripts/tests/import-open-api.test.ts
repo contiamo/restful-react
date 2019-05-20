@@ -118,6 +118,46 @@ describe("scripts/import-open-api", () => {
 
       expect(getArray(item)).toEqual("Foo[]");
     });
+    it("should return an array of oneOf", () => {
+      const item = {
+        items: {
+          oneOf: [
+            {
+              type: "boolean",
+            },
+            {
+              type: "number",
+            },
+            {
+              type: "string",
+            },
+          ],
+          title: "Result field",
+        },
+        title: "Result row",
+        type: "array",
+      };
+      expect(getArray(item)).toEqual("(boolean | number | string)[]");
+    });
+    it("should return an array of allOf", () => {
+      const item = {
+        items: {
+          allOf: [
+            {
+              $ref: "#/components/schemas/foo",
+            },
+            {
+              $ref: "#/components/schemas/bar",
+            },
+            {
+              $ref: "#/components/schemas/baz",
+            },
+          ],
+        },
+        type: "array",
+      };
+      expect(getArray(item)).toEqual("(Foo & Bar & Baz)[]");
+    });
   });
 
   describe("getObject", () => {
