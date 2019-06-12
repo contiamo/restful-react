@@ -257,7 +257,7 @@ export const generateRestfulComponent = (
   route = route.replace(/\{/g, "${"); // `/pet/{id}` => `/pet/${id}`
 
   // Remove the last param of the route if we are in the DELETE case
-  let lastParamInTheRoute: string;
+  let lastParamInTheRoute: string | null = null;
   if (verb === "delete") {
     const lastParamInTheRouteRegExp = /\/\$\{(\w+)\}$/;
     lastParamInTheRoute = (route.match(lastParamInTheRouteRegExp) || [])[1];
@@ -324,7 +324,7 @@ export const generateRestfulComponent = (
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${verb === "delete" ? "string" : requestBodyTypes}`;
+        }, ${verb === "delete" && lastParamInTheRoute ? "string" : requestBodyTypes}`;
 
   const genericsTypesForHooksProps =
     verb === "get"
