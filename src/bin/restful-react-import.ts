@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import program from "commander";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import inquirer from "inquirer";
 import { join, parse } from "path";
 import request from "request";
@@ -80,16 +80,33 @@ program.parse(process.argv);
     };
 
     return new Promise((resolve, reject) => {
-      request(options, (error, _, body) => {
+      request(options, async (error, _, rawBody) => {
         if (error) {
           return reject(error);
+        }
+
+        const body = JSON.parse(rawBody);
+        if (!body.data) {
+          if (body.message === "Bad credentials") {
+            const answers = await inquirer.prompt<{ removeToken: boolean }>([
+              {
+                type: "confirm",
+                name: "removeToken",
+                message: "Your token doesn't have the correct permissions, should we remove it?",
+              },
+            ]);
+            if (answers.removeToken) {
+              unlinkSync(githubTokenPath);
+            }
+          }
+          return reject(body.message);
         }
 
         const format =
           program.github.toLowerCase().includes(".yaml") || program.github.toLowerCase().includes(".yml")
             ? "yaml"
             : "json";
-        resolve(importOpenApi(JSON.parse(body).data.repository.object.text, format, transformer, program.validation));
+        resolve(importOpenApi(body.data.repository.object.text, format, transformer, program.validation));
       });
     });
   } else {
