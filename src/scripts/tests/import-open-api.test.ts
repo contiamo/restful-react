@@ -1238,11 +1238,11 @@ export interface JobRunResponse {}
 
       expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}/secret", [])).toMatchInlineSnapshot(`
         "
-        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, string>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
         // Delete use case
         export const DeleteUseCase = ({useCaseId, ...props}: DeleteUseCaseProps) => (
-          <Mutate<void, APIError, void, string>
+          <Mutate<void, APIError, void, void>
             verb=\\"DELETE\\"
             path={\`/use-cases/\${useCaseId}/secret\`}
             {...props}
@@ -1252,7 +1252,7 @@ export interface JobRunResponse {}
         export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
         // Delete use case
-        export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string>(\\"DELETE\\", \`/use-cases/\${useCaseId}/secret\`, props);
+        export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, void>(\\"DELETE\\", \`/use-cases/\${useCaseId}/secret\`, props);
 
         "
       `);
