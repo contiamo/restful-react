@@ -140,7 +140,7 @@ export function useMutate<
 
       return data;
     },
-    [context.base, context.requestOptions, context.resolve, state.error, state.loading],
+    [context.base, context.requestOptions, context.resolve, state.error, state.loading, path],
   );
 
   return {
