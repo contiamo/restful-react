@@ -92,7 +92,27 @@ export function useMutate<
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );
 
-      const response = await fetch(request);
+      let response: Response;
+      try {
+        response = await fetch(request);
+      } catch (e) {
+        const error = {
+          message: "Failed to fetch" + e.message ? `: ${e.message}` : "",
+          data: "",
+        };
+
+        setState({
+          error,
+          loading: false,
+        });
+
+        if (!props.localErrorOnly && context.onError) {
+          context.onError(error, () => mutate(body, mutateRequestOptions));
+        }
+
+        throw error;
+      }
+
       const { data: rawData, responseError } = await processResponse(response);
 
       let data: TData | any; // `any` -> data in error case
