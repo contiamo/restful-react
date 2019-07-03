@@ -162,7 +162,27 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
       },
     } as RequestInit); // Type assertion for version of TypeScript that can't yet discriminate.
 
-    const response = await fetch(request, { signal: this.signal });
+    let response: Response;
+    try {
+      response = await fetch(request, { signal: this.signal });
+    } catch (e) {
+      const error = {
+        message: "Failed to fetch" + e.message ? `: ${e.message}` : "",
+        data: "",
+      };
+
+      this.setState({
+        error,
+        loading: false,
+      });
+
+      if (!this.props.localErrorOnly && this.props.onError) {
+        this.props.onError(error, () => this.mutate(body, mutateRequestOptions));
+      }
+
+      throw error;
+    }
+
     const { data, responseError } = await processResponse(response);
 
     // avoid state updates when component has been unmounted
