@@ -167,7 +167,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
       response = await fetch(request, { signal: this.signal });
     } catch (e) {
       const error = {
-        message: "Failed to fetch" + e.message ? `: ${e.message}` : "",
+        message: `Failed to fetch: ${e.message}`,
         data: "",
       };
 

@@ -97,7 +97,7 @@ export function useMutate<
         response = await fetch(request);
       } catch (e) {
         const error = {
-          message: "Failed to fetch" + e.message ? `: ${e.message}` : "",
+          message: `Failed to fetch: ${e.message}`,
           data: "",
         };
 
