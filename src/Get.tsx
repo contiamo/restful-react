@@ -285,6 +285,12 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
       this.setState({ loading: false, data: resolved.data, error: resolved.error });
       return data;
     } catch (e) {
+      // avoid state updates when component has been unmounted
+      // and when fetch/processResponse threw an error
+      if (this.signal.aborted) {
+        return;
+      }
+
       this.setState({
         loading: false,
         error: {
