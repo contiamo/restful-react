@@ -218,6 +218,39 @@ describe("useMutate", () => {
       }
     });
 
+    it("should deal with non standard server error response (nginx style)", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(200, "<html>404 - this is not a json!</html>", {
+          "content-type": "application/json",
+        });
+
+      const wrapper = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
+      try {
+        await result.current.mutate({ foo: "bar" });
+        expect("this statement").toBe("not executed");
+      } catch (e) {
+        expect(result.current).toMatchObject({
+          error: {
+            data:
+              "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+            message: "Failed to fetch: 200 OK",
+            status: 200,
+          },
+          loading: false,
+        });
+        expect(e).toEqual({
+          data:
+            "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+          message: "Failed to fetch: 200 OK",
+          status: 200,
+        });
+      }
+    });
+
     it("should call the provider onError", async () => {
       nock("https://my-awesome-api.fake")
         .post("/")
