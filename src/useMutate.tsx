@@ -5,12 +5,19 @@ import { MutateMethod, MutateState } from "./Mutate";
 import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
 
-export interface UseMutateProps<TData, TQueryParams>
+export interface UseMutateProps<TData, TQueryParams, TRequestBody>
   extends Omit<UseGetProps<TData, TQueryParams>, "lazy" | "debounce"> {
   /**
    * What HTTP verb are we using?
    */
   verb: "POST" | "PUT" | "PATCH" | "DELETE";
+  /**
+   * Callback called after the mutation is done.
+   *
+   * @param body - Body given to mutate
+   * @param data - Response data
+   */
+  onMutate?: (body: TRequestBody, data: TData) => void;
 }
 
 export interface UseMutateReturn<TData, TError, TRequestBody> extends MutateState<TData, TError> {
@@ -25,13 +32,13 @@ export interface UseMutateReturn<TData, TError, TRequestBody> extends MutateStat
 }
 
 export function useMutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
-  props: UseMutateProps<TData, TQueryParams>,
+  props: UseMutateProps<TData, TQueryParams, TRequestBody>,
 ): UseMutateReturn<TData, TError, TRequestBody>;
 
 export function useMutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
-  verb: UseMutateProps<TData, TQueryParams>["verb"],
+  verb: UseMutateProps<TData, TQueryParams, TRequestBody>["verb"],
   path: string,
-  props?: Omit<UseMutateProps<TData, TQueryParams>, "path" | "verb">,
+  props?: Omit<UseMutateProps<TData, TQueryParams, TRequestBody>, "path" | "verb">,
 ): UseMutateReturn<TData, TError, TRequestBody>;
 
 export function useMutate<
@@ -40,7 +47,7 @@ export function useMutate<
   TQueryParams = { [key: string]: any },
   TRequestBody = any
 >(): UseMutateReturn<TData, TError, TRequestBody> {
-  const props: UseMutateProps<TData, TQueryParams> =
+  const props: UseMutateProps<TData, TQueryParams, TRequestBody> =
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
   const context = useContext(Context);
@@ -157,6 +164,10 @@ export function useMutate<
       }
 
       setState(prevState => ({ ...prevState, loading: false }));
+
+      if (props.onMutate) {
+        props.onMutate(body, data);
+      }
 
       return data;
     },
