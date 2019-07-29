@@ -76,6 +76,13 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody> {
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
   children: (mutate: MutateMethod<TData, TRequestBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
+  /**
+   * Callback called after the mutation is done.
+   *
+   * @param body - Body given to mutate
+   * @param data - Response data
+   */
+  onMutate?: (body: TRequestBody, data: TData) => void;
 }
 
 /**
@@ -209,6 +216,11 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
     }
 
     this.setState({ loading: false });
+
+    if (this.props.onMutate) {
+      this.props.onMutate(body, data);
+    }
+
     return data;
   };
 

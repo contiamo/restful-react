@@ -431,7 +431,34 @@ describe("Mutate", () => {
 
       // No `expect` here, it's just to test if the types are correct 😉
     });
+
+    it("should call onMutate", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onMutate = jest.fn();
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Mutate verb="POST" path="" onMutate={onMutate}>
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      // call mutate
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      await children.mock.calls[0][0]();
+
+      expect(onMutate).toHaveBeenCalled();
+    });
   });
+
   describe("PUT", () => {
     it("should deal with empty response", async () => {
       nock("https://my-awesome-api.fake")

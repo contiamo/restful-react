@@ -218,6 +218,20 @@ describe("useMutate", () => {
       }
     });
 
+    it("should call onMutation", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(200, { ok: true });
+
+      const wrapper = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const onMutate = jest.fn();
+      const { result } = renderHook(() => useMutate("POST", "", { onMutate }), { wrapper });
+      await result.current.mutate({ foo: "bar" });
+      expect(onMutate).toHaveBeenCalled();
+    });
+
     it("should deal with non standard server error response (nginx style)", async () => {
       nock("https://my-awesome-api.fake")
         .post("/")
@@ -407,7 +421,7 @@ describe("useMutate", () => {
       }
 
       type UseDeleteMyCustomEndpoint = Omit<
-        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams>,
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}>,
         "path" | "verb"
       >;
       const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
@@ -454,7 +468,7 @@ describe("useMutate", () => {
       }
 
       type UseDeleteMyCustomEndpoint = Omit<
-        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams>,
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}>,
         "path" | "verb"
       >;
       const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
