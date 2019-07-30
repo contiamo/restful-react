@@ -545,24 +545,24 @@ export interface JobRunResponse {}
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                "
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const ListFields = (props: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, void>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
 
     it("should add a fallback if the error is not defined", () => {
@@ -579,24 +579,24 @@ export interface JobRunResponse {}
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                "
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const ListFields = (props: ListFieldsProps) => (
-                  <Get<FieldListResponse, unknown, void>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, unknown, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void>(\`/fields\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
 
     it("should remove duplicate types", () => {
@@ -626,24 +626,24 @@ export interface JobRunResponse {}
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                "
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const ListFields = (props: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, void>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
 
     it("should deal with parameters in query", () => {
@@ -688,26 +688,26 @@ export interface JobRunResponse {}
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                "
-                export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
+                        "
+                        export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
 
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const ListFields = (props: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, ListFieldsQueryParams>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, ListFieldsQueryParams>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
     it("should deal with parameters in query (root level)", () => {
       const operation: OperationObject = {
@@ -758,26 +758,26 @@ export interface JobRunResponse {}
           ],
         ),
       ).toMatchInlineSnapshot(`
-                "
-                export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
+                        "
+                        export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
 
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const ListFields = (props: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, ListFieldsQueryParams>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, ListFieldsQueryParams>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
 
     it("should deal with parameters in path", () => {
@@ -823,24 +823,24 @@ export interface JobRunResponse {}
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields/{id}", [])).toMatchInlineSnapshot(`
-                "
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
 
-                // List all fields for the use case schema
-                export const ListFields = ({id, ...props}: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, void>
-                    path={\`/fields/\${id}\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = ({id, ...props}: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields/\${id}\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
 
-                // List all fields for the use case schema
-                export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
 
     it("should deal with parameters in path (root level)", () => {
@@ -893,24 +893,24 @@ export interface JobRunResponse {}
           ],
         ),
       ).toMatchInlineSnapshot(`
-                "
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
 
-                // List all fields for the use case schema
-                export const ListFields = ({id, ...props}: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, void>
-                    path={\`/fields/\${id}\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = ({id, ...props}: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields/\${id}\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
 
-                // List all fields for the use case schema
-                export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
 
-                "
-            `);
+                        "
+                  `);
     });
 
     it("should generate a Mutate type component", () => {
@@ -968,7 +968,7 @@ export interface JobRunResponse {}
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
         // Update use case details
         export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
@@ -1048,7 +1048,7 @@ export interface JobRunResponse {}
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
         // Update use case details
         export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
@@ -1132,7 +1132,7 @@ export interface JobRunResponse {}
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
         // Update use case details
         export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
@@ -1191,7 +1191,7 @@ export interface JobRunResponse {}
           />
         );
 
-        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void>, \\"path\\" | \\"verb\\">;
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, string>, \\"path\\" | \\"verb\\">;
 
         // Delete use case
         export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string>(\\"DELETE\\", \`/use-cases\`, props);
@@ -1249,7 +1249,7 @@ export interface JobRunResponse {}
           />
         );
 
-        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
         // Delete use case
         export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, void>(\\"DELETE\\", \`/use-cases/\${useCaseId}/secret\`, props);
@@ -1290,34 +1290,34 @@ export interface JobRunResponse {}
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                "
-                export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const ListFields = (props: ListFieldsProps) => (
-                  <Get<FieldListResponse, APIError, void>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                // List all fields for the use case schema
-                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
 
-                export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                // List all fields for the use case schema (long polling)
-                export const PollListFields = (props: PollListFieldsProps) => (
-                  <Poll<FieldListResponse, APIError, void>
-                    path={\`/fields\`}
-                    {...props}
-                  />
-                );
+                        // List all fields for the use case schema (long polling)
+                        export const PollListFields = (props: PollListFieldsProps) => (
+                          <Poll<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                "
-            `);
+                        "
+                  `);
     });
   });
   it("should deal with no 2xx response case", () => {
@@ -1341,23 +1341,23 @@ export interface JobRunResponse {}
     };
 
     expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-            "
-            export type ListFieldsProps = Omit<GetProps<void, APIError, void>, \\"path\\">;
+                  "
+                  export type ListFieldsProps = Omit<GetProps<void, APIError, void>, \\"path\\">;
 
-            // List all fields for the use case schema
-            export const ListFields = (props: ListFieldsProps) => (
-              <Get<void, APIError, void>
-                path={\`/fields\`}
-                {...props}
-              />
-            );
+                  // List all fields for the use case schema
+                  export const ListFields = (props: ListFieldsProps) => (
+                    <Get<void, APIError, void>
+                      path={\`/fields\`}
+                      {...props}
+                    />
+                  );
 
-            export type UseListFieldsProps = Omit<UseGetProps<void, void>, \\"path\\">;
+                  export type UseListFieldsProps = Omit<UseGetProps<void, void>, \\"path\\">;
 
-            // List all fields for the use case schema
-            export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void>(\`/fields\`, props);
+                  // List all fields for the use case schema
+                  export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void>(\`/fields\`, props);
 
-            "
-        `);
+                  "
+            `);
   });
 });

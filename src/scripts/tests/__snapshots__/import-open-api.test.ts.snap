@@ -43,7 +43,7 @@ export const AddPet = (props: AddPetProps) => (
   />
 );
 
-export type UseAddPetProps = Omit<UseMutateProps<Pet, void>, \\"path\\" | \\"verb\\">;
+export type UseAddPetProps = Omit<UseMutateProps<Pet, void, NewPet>, \\"path\\" | \\"verb\\">;
 
 
 export const useAddPet = (props: UseAddPetProps) => useMutate<Pet, Error, void, NewPet>(\\"POST\\", \`/pets\`, props);
@@ -76,7 +76,7 @@ export const DeletePet = (props: DeletePetProps) => (
   />
 );
 
-export type UseDeletePetProps = Omit<UseMutateProps<void, void>, \\"path\\" | \\"verb\\">;
+export type UseDeletePetProps = Omit<UseMutateProps<void, void, string>, \\"path\\" | \\"verb\\">;
 
 
 export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, string>(\\"DELETE\\", \`/pets\`, props);

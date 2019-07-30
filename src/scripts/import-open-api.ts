@@ -333,7 +333,7 @@ export const generateRestfulComponent = (
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${requestBodyTypes}`;
+        }, ${verb === "delete" && lastParamInTheRoute ? "string" : requestBodyTypes}`;
 
   let output = `${
     needAResponseComponent
