@@ -69,6 +69,11 @@ describe("scripts/import-open-api", () => {
       { item: { type: "password" }, expected: "string" },
       { item: { type: "string", enum: ["foo", "bar"] }, expected: `"foo" | "bar"` },
       { item: { type: "customType" }, expected: "any" },
+      { item: { type: "integer", nullable: true }, expected: "number | null" },
+      { item: { type: "boolean", nullable: true }, expected: "boolean | null" },
+      { item: { type: "string", nullable: true }, expected: "string | null" },
+      { item: { type: "object", nullable: true }, expected: "{} | null" },
+      { item: { type: "object", $ref: "#/components/schemas/Foo", nullable: true }, expected: "Foo | null" },
     ].map(({ item, expected }) =>
       it(`should return ${expected} as type for ${item.type}`, () => {
         expect(getScalar(item)).toEqual(expected);
@@ -283,6 +288,24 @@ describe("scripts/import-open-api", () => {
       expect(generateSchemasDefinition(schema)).toContain(`export interface NewPet {name: string; tag?: string}`);
     });
 
+    it("should declare an interface for simple object (nullable)", () => {
+      const schema = {
+        NewPet: {
+          required: ["name"],
+          nullable: true,
+          properties: {
+            name: {
+              type: "string",
+            },
+            tag: {
+              type: "string",
+            },
+          },
+        },
+      };
+      expect(generateSchemasDefinition(schema)).toContain(`export type NewPet = {name: string; tag?: string} | null`);
+    });
+
     it("should declare a type for union object", () => {
       const schema = {
         Pet: {
@@ -315,6 +338,17 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateSchemasDefinition(schema)).toContain(`export type PetName = string;`);
+    });
+
+    it("should declare a type for all others types (nullable)", () => {
+      const schema = {
+        PetName: {
+          type: "string",
+          nullable: true,
+        },
+      };
+
+      expect(generateSchemasDefinition(schema)).toContain(`export type PetName = string | null;`);
     });
 
     it("should deal with aliases", () => {

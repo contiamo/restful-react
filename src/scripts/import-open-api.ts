@@ -38,6 +38,8 @@ export const isReference = (property: any): property is ReferenceObject => {
  * @ref https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#data-types
  */
 export const getScalar = (item: SchemaObject) => {
+  const nullable = item.nullable ? " | null" : "";
+
   switch (item.type) {
     case "int32":
     case "int64":
@@ -46,30 +48,26 @@ export const getScalar = (item: SchemaObject) => {
     case "long":
     case "float":
     case "double":
-      return "number";
+      return "number" + nullable;
 
     case "boolean":
-      return "boolean";
+      return "boolean" + nullable;
 
     case "array":
-      return getArray(item);
-
-    case "object":
-      return getObject(item);
+      return getArray(item) + nullable;
 
     case "string":
-      return item.enum ? `"${item.enum.join(`" | "`)}"` : "string";
-
     case "byte":
     case "binary":
     case "date":
     case "dateTime":
     case "date-time":
     case "password":
-      return "string";
+      return (item.enum ? `"${item.enum.join(`" | "`)}"` : "string") + nullable;
 
+    case "object":
     default:
-      return getObject(item);
+      return getObject(item) + nullable;
   }
 };
 
@@ -436,7 +434,11 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
   return (
     Object.entries(schemas)
       .map(([name, schema]) =>
-        (!schema.type || schema.type === "object") && !schema.allOf && !schema.oneOf && !isReference(schema)
+        (!schema.type || schema.type === "object") &&
+        !schema.allOf &&
+        !schema.oneOf &&
+        !isReference(schema) &&
+        !schema.nullable
           ? generateInterface(name, schema)
           : `export type ${pascal(name)} = ${resolveValue(schema)};`,
       )
