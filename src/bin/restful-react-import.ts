@@ -35,8 +35,12 @@ program.parse(process.argv);
 
     return importOpenApi(data, format, transformer, program.validation);
   } else if (program.github) {
-    const accessToken = await githubAuth({ githubLoginUrl: program.githubAuthUrl });
     const [owner, repo, branch, path] = program.github.split(":");
+    if (!owner || !repo || !branch || !path) {
+      throw new Error("The github path is not valid, expected format: `owner:repo:branch:path`");
+    }
+
+    const accessToken = await githubAuth({ githubLoginUrl: program.githubAuthUrl });
 
     const options = {
       method: "POST",
@@ -66,8 +70,8 @@ program.parse(process.argv);
         }
 
         const body = JSON.parse(rawBody);
-        if (!body.data || !body.data.repository) {
-          return reject(body.message || get(body, "errors.0.message"));
+        if (!body.data || !body.data.repository || !body.data.repository.object) {
+          return reject(body.message || get(body, "errors.0.message") || "Specifications not found!");
         }
 
         const format =
