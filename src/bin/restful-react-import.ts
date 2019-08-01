@@ -1,10 +1,11 @@
 import chalk from "chalk";
 import program from "commander";
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
-import inquirer from "inquirer";
+import { readFileSync, writeFileSync } from "fs";
+import get from "lodash/get";
 import { join, parse } from "path";
 import request from "request";
 
+import { githubAuth } from "../scripts/github-auth";
 import importOpenApi from "../scripts/import-open-api";
 
 const log = console.log; // tslint:disable-line:no-console
@@ -13,6 +14,7 @@ program.option("-o, --output [value]", "output file destination");
 program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.option("-t, --transformer [value]", "transformer function path");
+program.option("--github-auth-url [value]", "lambda url to have an access token from github");
 program.option("--no-validation", "skip the validation step (provided by ibm-openapi-validator)");
 program.parse(process.argv);
 
@@ -33,29 +35,7 @@ program.parse(process.argv);
 
     return importOpenApi(data, format, transformer, program.validation);
   } else if (program.github) {
-    let accessToken: string;
-    const githubTokenPath = join(__dirname, ".githubToken");
-    if (existsSync(githubTokenPath)) {
-      accessToken = readFileSync(githubTokenPath, "utf-8");
-    } else {
-      const answers = await inquirer.prompt<{ githubToken: string; saveToken: boolean }>([
-        {
-          type: "input",
-          name: "githubToken",
-          message:
-            "Please provide a GitHub token with `repo` rules checked (https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)",
-        },
-        {
-          type: "confirm",
-          name: "saveToken",
-          message: "Would you like to store your token for the next time? (stored in your node_modules)",
-        },
-      ]);
-      if (answers.saveToken) {
-        writeFileSync(githubTokenPath, answers.githubToken);
-      }
-      accessToken = answers.githubToken;
-    }
+    const accessToken = await githubAuth({ githubLoginUrl: program.githubAuthUrl });
     const [owner, repo, branch, path] = program.github.split(":");
 
     const options = {
@@ -86,20 +66,8 @@ program.parse(process.argv);
         }
 
         const body = JSON.parse(rawBody);
-        if (!body.data) {
-          if (body.message === "Bad credentials") {
-            const answers = await inquirer.prompt<{ removeToken: boolean }>([
-              {
-                type: "confirm",
-                name: "removeToken",
-                message: "Your token doesn't have the correct permissions, should we remove it?",
-              },
-            ]);
-            if (answers.removeToken) {
-              unlinkSync(githubTokenPath);
-            }
-          }
-          return reject(body.message);
+        if (!body.data || !body.data.repository) {
+          return reject(body.message || get(body, "errors.0.message"));
         }
 
         const format =
