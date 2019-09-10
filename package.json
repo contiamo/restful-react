@@ -75,7 +75,6 @@
     "react-hooks-testing-library": "^0.5.0",
     "react-test-renderer": "^16.8.6",
     "react-testing-library": "^7.0.0",
-    "request": "^2.88.0",
     "rollup": "^0.67.3",
     "rollup-plugin-typescript2": "^0.20.1",
     "ts-jest": "^23.1.4",
@@ -95,6 +94,7 @@
     "qs": "^6.6.0",
     "react": "^16.8.4",
     "react-fast-compare": "^2.0.4",
+    "request": "^2.88.0",
     "swagger2openapi": "^3.2.14",
     "url": "^0.11.0",
     "yamljs": "^0.3.0"
