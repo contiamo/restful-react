@@ -2,6 +2,7 @@ import chalk from "chalk";
 import program from "commander";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import inquirer from "inquirer";
+import difference from "lodash/difference";
 import { join, parse } from "path";
 import request from "request";
 
@@ -156,20 +157,31 @@ if (program.config) {
   // tslint:disable-next-line: no-var-requires
   const config: ExternalConfigFile = require(join(process.cwd(), program.config));
 
-  Object.entries(config).forEach(([backend, options]) => {
-    importSpecs(options)
-      .then(data => {
-        writeFileSync(join(process.cwd(), options.output), data);
-        log(
-          chalk.green(
-            `[${backend}] 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
-          ),
-        );
-      })
-      .catch(err => {
-        log(chalk.red(err));
-      });
-  });
+  const mismatchArgs = difference(program.args, Object.keys(config));
+  if (mismatchArgs) {
+    log(
+      chalk.yellow(
+        `${mismatchArgs.join(", ")} ${mismatchArgs.length === 1 ? "is" : "are"} not defined in your configuration!`,
+      ),
+    );
+  }
+
+  Object.entries(config)
+    .filter(([backend]) => (program.args.length === 0 ? true : program.args.includes(backend)))
+    .forEach(([backend, options]) => {
+      importSpecs(options)
+        .then(data => {
+          writeFileSync(join(process.cwd(), options.output), data);
+          log(
+            chalk.green(
+              `[${backend}] 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
+            ),
+          );
+        })
+        .catch(err => {
+          log(chalk.red(err));
+        });
+    });
 } else {
   // Use flags as configuration
   importSpecs((program as any) as Options)

@@ -670,7 +670,8 @@ module.exports = {
 // package.json
 {
   "scripts": {
-    "gen": "restful-react import --config restful-react.config.js"
+    "gen": "restful-react import --config restful-react.config.js",
+    "gen-first": "restful-react import --config restful-react.config.js myFirstBackend"
   }
 }
 ```
