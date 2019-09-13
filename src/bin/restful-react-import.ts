@@ -9,8 +9,7 @@ import importOpenApi from "../scripts/import-open-api";
 
 const log = console.log; // tslint:disable-line:no-console
 
-interface Options {
-  // classic configuration
+export interface Options {
   output: string;
   file?: string;
   github?: string;
@@ -18,14 +17,15 @@ interface Options {
   validation?: boolean;
 }
 
-interface ExternalConfigFile {
-  [backend: string]: Options & {
-    // advanced configuration
-    customImport?: string;
-    customProperties?: {
-      base?: string;
-    };
+export type AdvancedOptions = Options & {
+  customImport?: string;
+  customProps?: {
+    base?: string;
   };
+};
+
+export interface ExternalConfigFile {
+  [backend: string]: AdvancedOptions;
 }
 
 program.option("-o, --output [value]", "output file destination");
@@ -36,7 +36,7 @@ program.option("--validation", "add the validation step (provided by ibm-openapi
 program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
-const importSpecs = async (options: Options) => {
+const importSpecs = async (options: AdvancedOptions) => {
   const transformer = options.transformer ? require(join(process.cwd(), options.transformer)) : undefined;
 
   if (!options.output) {
@@ -51,7 +51,14 @@ const importSpecs = async (options: Options) => {
     const { ext } = parse(options.file);
     const format = [".yaml", ".yml"].includes(ext.toLowerCase()) ? "yaml" : "json";
 
-    return importOpenApi(data, format, transformer, options.validation);
+    return importOpenApi({
+      data,
+      format,
+      transformer,
+      validation: options.validation,
+      customImport: options.customImport,
+      customProps: options.customProps,
+    });
   } else if (options.github) {
     let accessToken: string;
     const githubTokenPath = join(__dirname, ".githubToken");
@@ -126,7 +133,16 @@ const importSpecs = async (options: Options) => {
           options.github!.toLowerCase().includes(".yaml") || options.github!.toLowerCase().includes(".yml")
             ? "yaml"
             : "json";
-        resolve(importOpenApi(body.data.repository.object.text, format, transformer, options.validation));
+        resolve(
+          importOpenApi({
+            data: body.data.repository.object.text,
+            format,
+            transformer,
+            validation: options.validation,
+            customImport: options.customImport,
+            customProps: options.customProps,
+          }),
+        );
       });
     });
   } else {
