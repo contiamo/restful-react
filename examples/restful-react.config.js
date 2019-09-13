@@ -1,14 +1,18 @@
 /**
- * Integration config for `yarn integration:advanced`
+ * Example config for `yarn example:advanced`
  */
 
 module.exports = {
   "petstore-file": {
-    file: "integration/petstore.yaml",
-    output: "integration/petstoreFromFileSpecWithConfig.tsx",
+    file: "examples/petstore.yaml",
+    output: "examples/petstoreFromFileSpecWithConfig.tsx",
   },
   "petstore-github": {
     github: "OAI:OpenAPI-Specification:master:examples/v3.0/petstore.yaml",
-    output: "integration/petstoreFromGithubSpecWithConfig.tsx",
+    output: "examples/petstoreFromGithubSpecWithConfig.tsx",
+    customImport: "/* a custom import */",
+    customProps: {
+      base: `"http://my-pet-store.com"`,
+    },
   },
 };

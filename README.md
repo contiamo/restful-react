@@ -635,7 +635,7 @@ interface RestfulReactConfig {
 
     // advanced configuration
     customImport?: string;
-    customProperties?: {
+    customProps?: {
       base?: string;
     };
   };
@@ -651,7 +651,7 @@ module.exports = {
   myFirstBackend: {
     output: "src/queries/myFirstBackend.tsx",
     file: "specs/my-first-backend.yaml",
-    customProperties: {
+    customProps: {
       base: `"http://my-first-backend.com"`,
     },
   },
@@ -659,7 +659,7 @@ module.exports = {
     output: "src/queries/configurableBackend.tsx",
     github: "contiamo:restful-react:master:docs/swagger.json",
     customImport: `import { getConfig } from "../components/Config.tsx";`,
-    customProperties: {
+    customProps: {
       base: `{getConfig("backendBasePath")}`,
     },
   },
