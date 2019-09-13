@@ -14,6 +14,7 @@ import importOpenApi, {
   getResReqTypes,
   getScalar,
   isReference,
+  reactPropsValueToObjectValue,
 } from "../import-open-api";
 
 describe("scripts/import-open-api", () => {
@@ -1393,5 +1394,14 @@ export interface JobRunResponse {}
 
                   "
             `);
+  });
+
+  describe("reactPropsValueToObjectValue", () => {
+    it("should remove the curly braces", () => {
+      expect(reactPropsValueToObjectValue("{getConfig('plop')}")).toEqual("getConfig('plop')");
+    });
+    it("should do nothing", () => {
+      expect(reactPropsValueToObjectValue('"hello"')).toEqual('"hello"');
+    });
   });
 });
