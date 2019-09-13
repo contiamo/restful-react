@@ -229,6 +229,14 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
 };
 
 /**
+ * Take a react props value style and convert it to object style
+ *
+ * Example:
+ *  reactPropsValueToObjectValue(`{ getConfig("myVar") }`) // `getConfig("myVar")`
+ */
+export const reactPropsValueToObjectValue = (value: string) => value.replace(/^{(.*)}$/, "$1");
+
+/**
  * Generate a restful-react component from openapi operation specs
  *
  * @param operation
@@ -335,6 +343,8 @@ export const generateRestfulComponent = (
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${verb === "delete" && lastParamInTheRoute ? "string" : requestBodyTypes}`;
 
+  const customPropsEntries = Object.entries(customProps);
+
   let output = `${
     needAResponseComponent
       ? `
@@ -364,10 +374,11 @@ export const ${componentName} = (${
       : `
     verb="${verb.toUpperCase()}"`
   }
-    path={\`${route}\`}
-    ${Object.entries(customProps)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("\n    ")}
+    path={\`${route}\`}${
+    customPropsEntries.length
+      ? "\n    " + customPropsEntries.map(([key, value]) => `${key}=${value}`).join("\n    ")
+      : ""
+  }
     {...props}
   />
 );
@@ -384,7 +395,13 @@ export const use${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
-  }\`${route}\`, props);
+  }\`${route}\`, ${
+    customPropsEntries.length
+      ? `{ ${customPropsEntries
+          .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
+          .join(", ")}, ...props}`
+      : "props"
+  });
 
 `;
 
