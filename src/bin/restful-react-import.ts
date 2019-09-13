@@ -9,30 +9,50 @@ import importOpenApi from "../scripts/import-open-api";
 
 const log = console.log; // tslint:disable-line:no-console
 
+interface Options {
+  // classic configuration
+  output: string;
+  file?: string;
+  github?: string;
+  transformer?: string;
+  validation?: boolean;
+}
+
+interface ExternalConfigFile {
+  [backend: string]: Options & {
+    // advanced configuration
+    customImport?: string;
+    customProperties?: {
+      base?: string;
+    };
+  };
+}
+
 program.option("-o, --output [value]", "output file destination");
 program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.option("-t, --transformer [value]", "transformer function path");
-program.option("--no-validation", "skip the validation step (provided by ibm-openapi-validator)");
+program.option("--validation", "add the validation step (provided by ibm-openapi-validator)");
+program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
-(async () => {
-  const transformer = program.transformer ? require(join(process.cwd(), program.transformer)) : undefined;
+const importSpecs = async (options: Options) => {
+  const transformer = options.transformer ? require(join(process.cwd(), options.transformer)) : undefined;
 
-  if (!program.output) {
+  if (!options.output) {
     throw new Error("You need to provide an output file with `--output`");
   }
-  if (!program.file && !program.github) {
+  if (!options.file && !options.github) {
     throw new Error("You need to provide an input specification with `--file` or `--github`");
   }
 
-  if (program.file) {
-    const data = readFileSync(join(process.cwd(), program.file), "utf-8");
-    const { ext } = parse(program.file);
+  if (options.file) {
+    const data = readFileSync(join(process.cwd(), options.file), "utf-8");
+    const { ext } = parse(options.file);
     const format = [".yaml", ".yml"].includes(ext.toLowerCase()) ? "yaml" : "json";
 
-    return importOpenApi(data, format, transformer, program.validation);
-  } else if (program.github) {
+    return importOpenApi(data, format, transformer, options.validation);
+  } else if (options.github) {
     let accessToken: string;
     const githubTokenPath = join(__dirname, ".githubToken");
     if (existsSync(githubTokenPath)) {
@@ -56,9 +76,9 @@ program.parse(process.argv);
       }
       accessToken = answers.githubToken;
     }
-    const [owner, repo, branch, path] = program.github.split(":");
+    const [owner, repo, branch, path] = options.github.split(":");
 
-    const options = {
+    const githubSpecReq = {
       method: "POST",
       url: "https://api.github.com/graphql",
       headers: {
@@ -80,7 +100,7 @@ program.parse(process.argv);
     };
 
     return new Promise((resolve, reject) => {
-      request(options, async (error, _, rawBody) => {
+      request(githubSpecReq, async (error, _, rawBody) => {
         if (error) {
           return reject(error);
         }
@@ -103,20 +123,45 @@ program.parse(process.argv);
         }
 
         const format =
-          program.github.toLowerCase().includes(".yaml") || program.github.toLowerCase().includes(".yml")
+          options.github!.toLowerCase().includes(".yaml") || options.github!.toLowerCase().includes(".yml")
             ? "yaml"
             : "json";
-        resolve(importOpenApi(body.data.repository.object.text, format, transformer, program.validation));
+        resolve(importOpenApi(body.data.repository.object.text, format, transformer, options.validation));
       });
     });
   } else {
     return Promise.reject("Please provide a file (--file) or a github (--github) input");
   }
-})()
-  .then(data => {
-    writeFileSync(join(process.cwd(), program.output), data);
-    log(chalk.green(`🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`));
-  })
-  .catch(err => {
-    log(chalk.red(err));
+};
+
+if (program.config) {
+  // Use config file as configuration (advanced usage)
+
+  // tslint:disable-next-line: no-var-requires
+  const config: ExternalConfigFile = require(join(process.cwd(), program.config));
+
+  Object.entries(config).forEach(([backend, options]) => {
+    importSpecs(options)
+      .then(data => {
+        writeFileSync(join(process.cwd(), options.output), data);
+        log(
+          chalk.green(
+            `[${backend}] 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
+          ),
+        );
+      })
+      .catch(err => {
+        log(chalk.red(err));
+      });
   });
+} else {
+  // Use flags as configuration
+  importSpecs((program as any) as Options)
+    .then(data => {
+      writeFileSync(join(process.cwd(), program.output), data);
+      log(chalk.green(`🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`));
+    })
+    .catch(err => {
+      log(chalk.red(err));
+    });
+}
