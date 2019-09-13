@@ -19,7 +19,7 @@ import importOpenApi, {
 describe("scripts/import-open-api", () => {
   it("should parse correctly petstore-expanded.yaml", async () => {
     const input = readFileSync(join(__dirname, "./petstore-expanded.yaml"), "utf-8");
-    const data = await importOpenApi(input, "yaml");
+    const data = await importOpenApi({ data: input, format: "yaml" });
     expect(data).toMatchSnapshot();
   });
 

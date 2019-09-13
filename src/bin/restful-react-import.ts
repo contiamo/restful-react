@@ -61,6 +61,8 @@ const importSpecs = async (options: AdvancedOptions) => {
       customProps: options.customProps,
     });
   } else if (options.github) {
+    const { github } = options;
+
     let accessToken: string;
     const githubTokenPath = join(__dirname, ".githubToken");
     if (existsSync(githubTokenPath)) {
@@ -84,7 +86,7 @@ const importSpecs = async (options: AdvancedOptions) => {
       }
       accessToken = answers.githubToken;
     }
-    const [owner, repo, branch, path] = options.github.split(":");
+    const [owner, repo, branch, path] = github.split(":");
 
     const githubSpecReq = {
       method: "POST",
@@ -131,9 +133,7 @@ const importSpecs = async (options: AdvancedOptions) => {
         }
 
         const format =
-          options.github!.toLowerCase().includes(".yaml") || options.github!.toLowerCase().includes(".yml")
-            ? "yaml"
-            : "json";
+          github.toLowerCase().includes(".yaml") || github.toLowerCase().includes(".yml") ? "yaml" : "json";
         resolve(
           importOpenApi({
             data: body.data.repository.object.text,
@@ -158,7 +158,7 @@ if (program.config) {
   const config: ExternalConfigFile = require(join(process.cwd(), program.config));
 
   const mismatchArgs = difference(program.args, Object.keys(config));
-  if (mismatchArgs) {
+  if (mismatchArgs.length) {
     log(
       chalk.yellow(
         `${mismatchArgs.join(", ")} ${mismatchArgs.length === 1 ? "is" : "are"} not defined in your configuration!`,
