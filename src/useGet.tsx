@@ -199,7 +199,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       abortController.current.abort();
       abortController.current = new AbortController();
     };
-  }, [props.path, props.base, props.resolve, props.queryParams, props.requestOptions]);
+  }, [props.lazy, props.path, props.base, props.resolve, props.queryParams, props.requestOptions]);
 
   return {
     ...state,
