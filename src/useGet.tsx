@@ -6,7 +6,7 @@ import qs from "qs";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import url from "url";
 
-import { Context, RestfulReactProviderProps } from "./Context";
+import { Context, Lru, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
 import { useDeepCompareEffect } from "./util/useDeepCompareEffect";
@@ -55,6 +55,7 @@ export interface UseGetProps<TData, TQueryParams> {
       }
     | boolean
     | number;
+  cache?: Lru;
 }
 
 export function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams) {
@@ -97,9 +98,10 @@ async function _fetchData<TData, TError, TQueryParams>(
 
   const requestInput = resolvePath(base, path, queryParams);
   const requestInit = merge({}, contextRequestOptions, requestOptions, { signal });
-  const requestKey = context.cache ? `${requestInput}${stringifyRequestInit(requestInit)}` : "";
-  if (context.cache && context.cache.has(requestKey)) {
-    setState({ ...state, error: null, loading: false, data: resolve(context.cache.get(requestKey)) });
+  const cache = props.cache || context.cache;
+  const requestKey = cache ? `${requestInput}${stringifyRequestInit(requestInit)}` : "";
+  if (cache && cache.has(requestKey)) {
+    setState({ ...state, error: null, loading: false, data: resolve(cache.get(requestKey)) });
     return;
   }
 
@@ -128,8 +130,8 @@ async function _fetchData<TData, TError, TQueryParams>(
       return;
     }
 
-    if (context.cache) {
-      context.cache.set(requestKey, data);
+    if (cache) {
+      cache.set(requestKey, data);
     }
     setState({ ...state, error: null, loading: false, data: resolve(data) });
   } catch (e) {
