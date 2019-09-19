@@ -1,7 +1,12 @@
 import noop from "lodash/noop";
 import * as React from "react";
-import { Lru } from "tiny-lru";
 import { ResolveFunction } from "./Get";
+
+export interface Lru<T = any> {
+  has: (key: string) => boolean;
+  get: (key: string) => T;
+  set: (key: string, value: T, bypass?: boolean) => void;
+}
 
 export interface RestfulReactProviderProps<T = any> {
   /** The backend URL where the RESTful resources live. */

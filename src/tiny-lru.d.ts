@@ -4,12 +4,11 @@ declare module "tiny-lru" {
 
     public has(key: string): boolean;
     public get(key: string): T;
-    public set(key: string, value: T, bypass?: boolean);
-    // set(key: string, value: T, bypass?: boolean): this;
-    // clear(): this;
-    // delete(key: string): this;
-    // evict(): this;
-    // keys(): string[];
+    public set(key: string, value: T, bypass?: boolean): this;
+    public clear(): this;
+    public delete(key: string): this;
+    public evict(): this;
+    public keys(): string[];
   }
   export default Lru;
 }
