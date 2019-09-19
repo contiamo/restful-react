@@ -86,7 +86,8 @@
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-blank-line": "^0.0.9",
-    "typescript": "^3.3.4000"
+    "typescript": "^3.3.4000",
+    "tiny-lru": "^6.0.1"
   },
   "dependencies": {
     "case": "^1.6.1",

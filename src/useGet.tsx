@@ -1,6 +1,7 @@
 import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
+import omit from "lodash/omit";
 import qs from "qs";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import url from "url";
@@ -63,6 +64,11 @@ export function resolvePath<TQueryParams>(base: string, path: string, queryParam
   return url.resolve(appendedBase, queryParams ? `${trimmedPath}?${qs.stringify(queryParams)}` : trimmedPath);
 }
 
+const stringifyRequestInit = (options: Partial<RequestInit>) => {
+  options = omit(options, "signal");
+  return Object.keys(options).length === 0 ? "" : JSON.stringify(options);
+};
+
 async function _fetchData<TData, TError, TQueryParams>(
   props: UseGetProps<TData, TQueryParams>,
   state: GetState<TData, TError>,
@@ -89,10 +95,15 @@ async function _fetchData<TData, TError, TQueryParams>(
   const contextRequestOptions =
     (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
 
-  const request = new Request(
-    resolvePath(base, path, queryParams),
-    merge({}, contextRequestOptions, requestOptions, { signal }),
-  );
+  const requestInput = resolvePath(base, path, queryParams);
+  const requestInit = merge({}, contextRequestOptions, requestOptions, { signal });
+  const requestKey = context.cache ? `${requestInput}${stringifyRequestInit(requestInit)}` : "";
+  if (context.cache && context.cache.has(requestKey)) {
+    setState({ ...state, error: null, loading: false, data: resolve(context.cache.get(requestKey)) });
+    return;
+  }
+
+  const request = new Request(requestInput, requestInit);
 
   try {
     const response = await fetch(request);
@@ -117,6 +128,9 @@ async function _fetchData<TData, TError, TQueryParams>(
       return;
     }
 
+    if (context.cache) {
+      context.cache.set(requestKey, data);
+    }
     setState({ ...state, error: null, loading: false, data: resolve(data) });
   } catch (e) {
     setState({

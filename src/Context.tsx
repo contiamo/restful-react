@@ -1,5 +1,6 @@
 import noop from "lodash/noop";
 import * as React from "react";
+import { Lru } from "tiny-lru";
 import { ResolveFunction } from "./Get";
 
 export interface RestfulReactProviderProps<T = any> {
@@ -27,9 +28,12 @@ export interface RestfulReactProviderProps<T = any> {
    * to deal with your retry locally instead of in the provider scope.
    */
   onError?: (err: any, retry: () => Promise<T | null>, response?: Response) => void;
+  cache?: Lru;
 }
 
-export const Context = React.createContext<Required<RestfulReactProviderProps>>({
+type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
+
+export const Context = React.createContext<Omit<Required<RestfulReactProviderProps>, "cache">>({
   base: "",
   parentPath: "",
   resolve: (data: any) => data,
