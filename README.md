@@ -1,6 +1,6 @@
-# RESTful React
+# `restful-react`
 
-Building React apps that interact with a backend API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.
+Building React apps that interact with a RESTful API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.
 
 As an abstraction, this tool allows for greater consistency and maintainability of dynamic codebases.
 
@@ -39,9 +39,9 @@ As an abstraction, this tool allows for greater consistency and maintainability 
 
 ## Overview
 
-At its core, RESTful React exposes a hook, called `useGet`. This component retrieves data, either on mount or later, and then handles error states, caching, loading states, and other cases for you. As such, you simply get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
+At its core, `restful-react` exposes a [hook](https://reactjs.org/docs/hooks-intro.html), called `useGet`. This component retrieves data, either on mount or later, and then handles error states, loading states, and other cases for you. As such, you get a component that _gets stuff_ and then does stuff with it. Here's a quick overview what it looks like.
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit restful-react demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/restful-react-demos-vjets)
 
 ```jsx
 import React from "react";
@@ -72,9 +72,11 @@ REST API endpoints usually sit alongside a base, global URL. As a convenience, t
 
 Consider,
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit restful-react demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/restful-react-demos-vjets)
 
 ```jsx
+// index.js
+
 import React from "react";
 import { RestfulProvider } from "restful-react";
 
@@ -92,6 +94,8 @@ export default MyRestfulApp;
 Meanwhile, in `./App.jsx`,
 
 ```jsx
+// App.jsx
+
 import React from "react";
 import { useGet } from "restful-react";
 
@@ -115,9 +119,14 @@ Here's a full overview of the API available through the `RestfulProvider`, along
 
 ```tsx
 // Interface
-interface RestfulProviderProps<T> {
+export interface RestfulReactProviderProps<T = any> {
   /** The backend URL where the RESTful resources live. */
   base: string;
+  /**
+   * The path that gets accumulated from each level of nesting
+   * taking the absolute and relative nature of each path into consideration
+   */
+  parentPath?: string;
   /**
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
@@ -125,9 +134,16 @@ interface RestfulProviderProps<T> {
   resolve?: ResolveFunction<T>;
   /**
    * Options passed to the fetch request.
-   * This can be a function if you want dynamically computed options each time.
    */
   requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
+  /**
+   * Trigger on each error.
+   * For `Get` and `Mutation` calls, you can also call `retry` to retry the exact same request.
+   * Please note that it's quite hard to retrieve the response data after a retry mutation in this case.
+   * Depending of your case, it can be easier to add a `localErrorOnly` on your `Mutate` component
+   * to deal with your retry locally instead of in the provider scope.
+   */
+  onError?: (err: any, retry: () => Promise<T | null>, response?: Response) => void;
 }
 
 // Usage
@@ -144,7 +160,7 @@ Here's some docs about the [RequestInit](https://developer.mozilla.org/en-US/doc
 
 `useGet` hooks return an object with loading and error states, to allow for state handling. Consider,
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit restful-react demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/restful-react-demos-vjets)
 
 ```jsx
 import React from "react";
@@ -165,7 +181,7 @@ export default MyComponent;
 
 It is possible to use a `useGet` hook and defer the fetch to a later stage. This is done with the `lazy` boolean property. This is great for displaying UI immediately, and then allowing parts of it to be fetched as a response to an event: like the click of a button, for instance. Consider,
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit restful-react demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/restful-react-demos-vjets)
 
 ```jsx
 import React from "react";
@@ -176,6 +192,7 @@ const MyComponent = () => {
     path: "https://dog.ceo/api/breeds/image/random",
     lazy: true,
   });
+
   return !randomDogImage && loading ? (
     <h1>Loading!</h1>
   ) : (
@@ -200,7 +217,7 @@ Sometimes, your backend responses arrive in a shape that you might want to adapt
 
 At the `RestfulProvider` level, _or_ on the `useGet` level, a `resolve` prop will take the data and _do stuff_ to it, providing the final resolved or unwrapped data to the children. Consider,
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit restful-react demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/restful-react-demos-vjets)
 
 ```jsx
 import React from "react";
@@ -222,7 +239,7 @@ export default MyComponent;
 
 Some requests fire in response to a rapid succession of user events: things like autocomplete or resizing a window. For this reason, users sometimes need to wait until all the keystrokes are typed (until everything's _done_), before sending a request.
 
-Restful React exposes a `debounce` prop on `Get` that does exactly this.
+`restful-react` exposes a `debounce` prop on `Get` that does exactly this.
 
 Here's an example:
 
@@ -232,6 +249,7 @@ const SearchThis = props => {
     path: "/hello/world",
     debounce: true,
   });
+
   return (
     <div>
       <h1>Here's all the things I search</h1>
@@ -245,15 +263,16 @@ const SearchThis = props => {
 };
 ```
 
-Debounce also accepts a number, which tells `Get` how long to wait until doing the request.
+Debounce also accepts a number, which tells `useGet` how long to wait until doing the request.
 
 ```diff
 const SearchThis = props => {
-  const {data} = useGet({
+  const { data } = useGet({
     path: "/hello/world",
 -    debounce: true,
 +    debounce: 200 /* ms */,
   })
+
   return <div>
         <h1>Here's all the things I search</h1>
         <ul>
@@ -270,11 +289,12 @@ It uses [lodash's debounce](https://lodash.com/docs/4.17.10#debounce) function u
 ```diff
 
 const SearchThis = props => {
-  const {data} = useGet({
+  const { data } = useGet({
     path: "/hello/world",
 -    debounce: 200,
 +    debounce: { wait: 200, options: { leading: true, maxWait: 300, trailing: false } } /* ms */,
   })
+
   return <div>
         <h1>Here's all the things I search</h1>
         <ul>
@@ -288,13 +308,13 @@ const SearchThis = props => {
 
 ### TypeScript Integration
 
-One of the most poweful features of restful-react is that each component exported is strongly typed, empowering developers through self-documenting APIs.
+One of the most poweful features of `restful-react` is that each component exported is strongly typed, empowering developers through self-documenting APIs.
 
-![Using RESTful React in VS Code](assets/labs.gif)
+![Using restful-react in VS Code](assets/labs.gif)
 
 ### Query Parameters
 
-All components in this library support query params (`https://my.site/?query=param`) via a `queryParams` prop. Each `useGet`, `useMutat` and `usePoll` hook is _generic_, having a type signature of `Get<TData, TError, TQueryParams>`. If described, the `queryParams` prop is _fully_ type-safe in usage and provides autocomplete functionality.
+All components in this library support query params (`https://my.site/?query=param`) via a `queryParams` prop. Each `useGet`, `useMutate` and `Poll` instance is _generic_, having a type signature of `useGet<TData, TError, TQueryParams>`. If described, the `queryParams` prop is _fully_ type-safe in usage and provides autocomplete functionality.
 
 ![Autocompletion on QueryParams](assets/idp.gif)
 
@@ -302,9 +322,9 @@ Please note that the above example was built using our [OpenAPI generator](#code
 
 ### Mutations with `useMutate`
 
-restful-react exposes an additional hook called `useMutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
+`restful-react` exposes an additional hook called `useMutate`. These components allow sending requests with other HTTP verbs in order to mutate backend resources.
 
-[![Edit Restful React demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/30n66z45mq)
+[![Edit restful-react demos](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/restful-react-demos-vjets)
 
 ```jsx
 import React from "react";
@@ -369,7 +389,7 @@ Each mutation returns a promise that can then be used to update local component 
 
 ### Polling with `Poll`
 
-restful-react also exports a `Poll` render props component that will poll a backend endpoint over a predetermined interval until a stop condition is met. Consider,
+`restful-react` also exports a `Poll` render props component that will poll a backend endpoint over a predetermined interval until a stop condition is met. Consider,
 
 ```jsx
 import { Poll } from "restful-react"
@@ -447,13 +467,13 @@ Visually, this is represented as below.
 
 ![Contiamo Poll](docs/long-poll-flow.png).
 
-To get this functionality in restful-react, this means specifying a `wait` prop on your `Poll` component, provided your server implements this specification as well.
+To get this functionality in `restful-react`, this means specifying a `wait` prop on your `Poll` component, provided your server implements this specification as well.
 
 #### [Full `Poll` Component API](src/Poll.tsx#L53-L101)
 
 ### Code Generation
 
-Restful React is able to generate _type-safe_ React components from any valid OpenAPI v3 or Swagger v2 specification, either in `yaml` or `json` formats.
+`restful-react` is able to generate _type-safe_ React components from any valid OpenAPI v3 or Swagger v2 specification, either in `yaml` or `json` formats.
 
 #### Usage
 
@@ -485,15 +505,15 @@ Your components can then be generated by running `npm run generate-fetcher`. Opt
       }
 ```
 
-#### Validation of the specification
+#### Validation of the OpenAPI specification
 
 To enforce the best quality as possible of specification, we have integrated the amazing [OpenAPI linter from IBM](https://github.com/IBM/openapi-validator). We strongly encourage you to setup your custom rules with a `.validaterc` file, you can find all useful information about this configuration [here](https://github.com/IBM/openapi-validator/#configuration).
 
-To activate this, add `--validation` flag to your `restful-react` call.
+To activate this, add a `--validation` flag to your `restful-react` call.
 
 #### Import from GitHub
 
-Adding the `--github` flag to `restful-react import` instead of a `--file` allows us to **create React components from an OpenAPI spec _remotely hosted on GitHub._** <sup>_(how is this real life_ 🔥 _)_</sup>
+Adding the `--github` flag to `restful-react import` instead of using the `--file` flag allows us to **create React components from an OpenAPI spec _remotely hosted on GitHub._** <sup>_(how is this real life_ 🔥 _)_</sup>
 
 To generate components from remote specifications, you'll need to follow the following steps:
 
@@ -510,7 +530,7 @@ To generate components from remote specifications, you'll need to follow the fol
 
 1.  Click **Generate token**.
 1.  Copy the generated string.
-1.  Open Terminal and run `restful-react import --github username:repo:branch:path/to/openapi.yaml --output MY_FETCHERS.tsx`, substituting things where necessary.
+1.  Open a terminal and run `restful-react import --github username:repo:branch:path/to/openapi.yaml --output MY_FETCHERS.tsx`, substituting things where necessary.
 1.  You will be prompted for a token.
 1.  Paste your token.
 1.  You will be asked if you'd like to save it for later. This is _entirely_ up to you and completely safe: it is saved in your `node_modules` folder and _not_ committed to version control or sent to us or anything: the source code of this whole thing is public so you're safe.
@@ -527,7 +547,7 @@ In some cases, you might need to augment an existing OpenAPI specification on th
   restful-react import --file myspec.yaml --output mybettercomponents.tsx --transformer path/to/my-transformer.js
 ```
 
-The function specified in `--transformer` is pure: it imports your `--file`, transforms it, and passes the augmented OpenAPI specification to restful-react's generator. Here's how it can be used:
+The function specified in `--transformer` is pure: it imports your `--file`, transforms it, and passes the augmented OpenAPI specification to `restful-react`'s generator. Here's how it can be used:
 
 ```ts
 // /path/to/my-transformer.js
@@ -565,7 +585,7 @@ module.exports = inputSchema => ({
 
 To activate this "advanced mode", replace all flags from your `restful-react` call with the config flag: `--config restful-react.config.js` (or any filename that you want).
 
-⚠️ Note: using a config file makes use of all of the options contained therein, and ignores all other CLI flags.
+⚠️ **Note:** using a config file makes use of all of the options contained therein, and ignores all other CLI flags.
 
 ##### Config File Format
 
