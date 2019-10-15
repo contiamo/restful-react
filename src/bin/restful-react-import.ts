@@ -37,12 +37,14 @@ program.option("--validation", "add the validation step (provided by ibm-openapi
 program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
+const createSuccessMessage = (backend?: string) =>
+  chalk.green(`${backend} 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`);
+
+const successWithoutOutputMessage = chalk.yellow("Success! No output path specified; printed to standard output.");
+
 const importSpecs = async (options: AdvancedOptions) => {
   const transformer = options.transformer ? require(join(process.cwd(), options.transformer)) : undefined;
 
-  if (!options.output) {
-    throw new Error("You need to provide an output file with `--output`");
-  }
   if (!options.file && !options.github) {
     throw new Error("You need to provide an input specification with `--file` or `--github`");
   }
@@ -171,25 +173,33 @@ if (program.config) {
     .forEach(([backend, options]) => {
       importSpecs(options)
         .then(data => {
-          writeFileSync(join(process.cwd(), options.output), data);
-          log(
-            chalk.green(
-              `[${backend}] 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
-            ),
-          );
+          if (options.output) {
+            writeFileSync(join(process.cwd(), options.output), data);
+            log(createSuccessMessage(backend));
+          } else {
+            log(data);
+            log(successWithoutOutputMessage);
+          }
         })
         .catch(err => {
           log(chalk.red(err));
+          process.exit(1);
         });
     });
 } else {
   // Use flags as configuration
   importSpecs((program as any) as Options)
     .then(data => {
-      writeFileSync(join(process.cwd(), program.output), data);
-      log(chalk.green(`🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`));
+      if (program.output) {
+        writeFileSync(join(process.cwd(), program.output), data);
+        log(createSuccessMessage());
+      } else {
+        log(data);
+        log(successWithoutOutputMessage);
+      }
     })
     .catch(err => {
       log(chalk.red(err));
+      process.exit(1);
     });
 }
