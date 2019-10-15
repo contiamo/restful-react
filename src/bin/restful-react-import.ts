@@ -182,6 +182,7 @@ if (program.config) {
         })
         .catch(err => {
           log(chalk.red(err));
+          process.exit(1);
         });
     });
 } else {
@@ -198,5 +199,6 @@ if (program.config) {
     })
     .catch(err => {
       log(chalk.red(err));
+      process.exit(1);
     });
 }
