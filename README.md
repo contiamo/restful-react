@@ -229,7 +229,7 @@ const MyComponent = () => {
     resolve: image => image && image.message,
   });
 
-  return <img alt="Here's a good boye!" src={imageUrl} />;
+  return imageUrl && <img alt="Here's a good boye!" src={imageUrl} />;
 };
 
 export default MyComponent;
@@ -344,15 +344,9 @@ const ListItem = ({ id, children }) => {
       {loading ? (
         "Deleting..."
       ) : (
-        <a
-          href="/"
-          onClick={e => {
-            e.preventDefault();
-            del(id).then(() => alert("Deleted successfully. Pretend it got removed from the DOM."));
-          }}
-        >
+        <button onClick={() => del(id).then(() => alert("Deleted successfully. Pretend it got removed from the DOM."))}>
           ❌
-        </a>
+        </button>
       )}
       &nbsp;{children}
     </li>
@@ -381,7 +375,7 @@ const MyHugeList = () => {
 export default MyHugeList;
 ```
 
-`useMutate` is strongly typed, and provides intelligent autocompletion out of the box, complete with available verbs et al.
+`useMutate` is strongly typed, and provides intelligent autocompletion out of the box, complete with other available [HTTP verbs](https://developer.mozilla.org/de/docs/Web/HTTP/Methods).
 
 ![Mutate](assets/mutate.png)
 
@@ -417,7 +411,8 @@ import { Poll } from "restful-react"
 
 - an `interval` prop that will poll at a specified interval (defaults to polling 1 second), and
 - an `until` prop that accepts a condition expressed as a function that returns a boolean value. When this condition is met, polling will stop.
-  - the signature of this function is `(data: T, response: ResponseInit) => boolean`. As a developer, you have access to the returned data, along with the response object in case you'd like to stop polling if `response.ok === false`, for example.
+
+  The signature of this function is `(data: T, response: ResponseInit) => boolean`. As a developer, you have access to the returned data, along with the response object in case you'd like to stop polling if `response.ok === false`, for example.
 
 Below is a more convoluted example that employs nearly the full power of the `Poll` component.
 
@@ -473,7 +468,7 @@ To get this functionality in `restful-react`, this means specifying a `wait` pro
 
 ### Code Generation
 
-`restful-react` is able to generate _type-safe_ React components from any valid OpenAPI v3 or Swagger v2 specification, either in `yaml` or `json` formats.
+`restful-react` is able to generate React hooks with appropriate type-signatures (TypeScript) from any valid OpenAPI v3 or Swagger v2 specification, either in `yaml` or `json` formats.
 
 #### Usage
 
