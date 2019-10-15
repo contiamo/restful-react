@@ -37,6 +37,11 @@ program.option("--validation", "add the validation step (provided by ibm-openapi
 program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
+const createSuccessMessage = (backend?: string) =>
+  chalk.green(`${backend} 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`);
+
+const successWithoutOutputMessage = chalk.yellow("Success! No output path specified; printed to standard output.");
+
 const importSpecs = async (options: AdvancedOptions) => {
   const transformer = options.transformer ? require(join(process.cwd(), options.transformer)) : undefined;
 
@@ -170,14 +175,10 @@ if (program.config) {
         .then(data => {
           if (options.output) {
             writeFileSync(join(process.cwd(), options.output), data);
-            log(
-              chalk.green(
-                `[${backend}] 🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
-              ),
-            );
+            log(createSuccessMessage(backend));
           } else {
             log(data);
-            log(chalk.yellow("Success! No output path specified; printed to standard output."));
+            log(successWithoutOutputMessage);
           }
         })
         .catch(err => {
@@ -191,10 +192,10 @@ if (program.config) {
     .then(data => {
       if (program.output) {
         writeFileSync(join(process.cwd(), program.output), data);
-        log(chalk.green(`🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`));
+        log(createSuccessMessage());
       } else {
         log(data);
-        log(chalk.yellow("Success! No output path specified; printed to standard output."));
+        log(successWithoutOutputMessage);
       }
     })
     .catch(err => {
