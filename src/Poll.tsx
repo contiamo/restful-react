@@ -222,7 +222,9 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     const requestOptions = this.getRequestOptions();
 
     let url = composeUrl(base!, "", path);
-    if (Object.keys(this.props.queryParams).length) {
+
+    // We use a ! because it's in defaultProps
+    if (Object.keys(this.props.queryParams!).length) {
       url += `?${qs.stringify(this.props.queryParams)}`;
     }
 

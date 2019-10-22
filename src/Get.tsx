@@ -246,7 +246,9 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
       } else {
         url = composeUrl(base!, parentPath!, requestPath || path || "");
       }
-      if (Object.keys(this.props.queryParams).length) {
+
+      // We use ! because it's in defaultProps
+      if (Object.keys(this.props.queryParams!).length) {
         url += `?${qs.stringify(this.props.queryParams)}`;
       }
       return url;
