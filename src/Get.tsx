@@ -175,6 +175,7 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
     base: "",
     parentPath: "",
     resolve: (unresolvedData: any) => unresolvedData,
+    queryParams: {},
   };
 
   public componentDidMount() {
@@ -245,7 +246,7 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
       } else {
         url = composeUrl(base!, parentPath!, requestPath || path || "");
       }
-      if (this.props.queryParams) {
+      if (Object.keys(this.props.queryParams).length) {
         url += `?${qs.stringify(this.props.queryParams)}`;
       }
       return url;
@@ -335,7 +336,12 @@ function Get<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path)}>
-          <ContextlessGet {...contextProps} {...props} __internal_hasExplicitBase={Boolean(props.base)} />
+          <ContextlessGet
+            {...contextProps}
+            {...props}
+            queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
+            __internal_hasExplicitBase={Boolean(props.base)}
+          />
         </RestfulReactProvider>
       )}
     </RestfulReactConsumer>

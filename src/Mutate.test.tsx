@@ -495,7 +495,7 @@ describe("Mutate", () => {
       expect(children.mock.calls[2][1].loading).toEqual(false);
     });
   });
-  describe("Compose paths and urls", () => {
+  describe("Compose paths, urls, and query parameters", () => {
     it("should compose absolute urls", async () => {
       nock("https://my-awesome-api.fake")
         .post("/absolute")
@@ -780,6 +780,109 @@ describe("Mutate", () => {
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Mutate<void, void, { myParam: boolean }> verb="POST" path="" queryParams={{ myParam: true }}>
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+    it("should inherit provider's query params if present", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ myParam: true }}>
+          <Mutate<void, void, { myParam: boolean }> verb="POST" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+    it("should override provider's query params if own present", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .query({
+          myParam: false,
+        })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ myParam: true }}>
+          <Mutate<void, void, { myParam: boolean }> verb="POST" path="" queryParams={{ myParam: false }}>
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+    });
+    it("should merge provider's query params with own if present", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .query({
+          myParam: false,
+          otherParam: true,
+        })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      // setup - first render
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ otherParam: true }}>
+          <Mutate<void, void, { myParam: boolean }> verb="POST" path="" queryParams={{ myParam: false }}>
             {children}
           </Mutate>
         </RestfulProvider>,

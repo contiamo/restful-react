@@ -113,6 +113,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
     base: "",
     parentPath: "",
     path: "",
+    queryParams: {},
   };
 
   /**
@@ -149,7 +150,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
             ? composeUrl(base!, parentPath!, composePath(path!, body))
             : composeUrl(base!, parentPath!, path!);
       }
-      if (this.props.queryParams) {
+      if (Object.keys(this.props.queryParams).length) {
         url += `?${qs.stringify(this.props.queryParams)}`;
       }
       return url;
@@ -252,6 +253,7 @@ function Mutate<TData = any, TError = any, TQueryParams = { [key: string]: any }
           <ContextlessMutate<TData, TError, TQueryParams, TRequestBody>
             {...contextProps}
             {...props}
+            queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
             __internal_hasExplicitBase={Boolean(props.base)}
           />
         </RestfulReactProvider>

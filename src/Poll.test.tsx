@@ -281,6 +281,113 @@ describe("Poll", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+    it("should inherit query parameters from provider if none specified", async () => {
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;index=1",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "2" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ myParam: true }}>
+          <Poll<void, void, { myParam: boolean }> path="">{children}</Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+    it("should override query parameters from provider if own specified", async () => {
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: false,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;index=1",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "2" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ myParam: true }}>
+          <Poll<void, void, { myParam: boolean }> path="" queryParams={{ myParam: false }}>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+    it("should merge query parameters from provider when both specified", async () => {
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: false,
+          otherParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+
+      nock("https://my-awesome-api.fake", {
+        reqheaders: {
+          prefer: "wait=60s;index=1",
+        },
+      })
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200, { data: "hello" }, { "x-polling-index": "2" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ otherParam: true }}>
+          <Poll<void, void, { myParam: boolean }> path="" queryParams={{ myParam: false }}>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
   });
 
   describe("with error", () => {

@@ -60,7 +60,10 @@ export function resolvePath<TQueryParams>(base: string, path: string, queryParam
   const appendedBase = base.endsWith("/") ? base : `${base}/`;
   const trimmedPath = path.startsWith("/") ? path.slice(1) : path;
 
-  return url.resolve(appendedBase, queryParams ? `${trimmedPath}?${qs.stringify(queryParams)}` : trimmedPath);
+  return url.resolve(
+    appendedBase,
+    Object.keys(queryParams).length ? `${trimmedPath}?${qs.stringify(queryParams)}` : trimmedPath,
+  );
 }
 
 async function _fetchData<TData, TError, TQueryParams>(
@@ -70,7 +73,7 @@ async function _fetchData<TData, TError, TQueryParams>(
   context: RestfulReactProviderProps,
   abortController: React.MutableRefObject<AbortController>,
 ) {
-  const { base = context.base, path, resolve = (d: any) => d as TData, queryParams } = props;
+  const { base = context.base, path, resolve = (d: any) => d as TData, queryParams = {} } = props;
 
   if (state.loading) {
     // Abort previous requests
@@ -90,7 +93,7 @@ async function _fetchData<TData, TError, TQueryParams>(
     (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
 
   const request = new Request(
-    resolvePath(base, path, queryParams),
+    resolvePath(base, path, { ...context.queryParams, ...queryParams }),
     merge({}, contextRequestOptions, requestOptions, { signal }),
   );
 
@@ -203,7 +206,10 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   return {
     ...state,
-    absolutePath: resolvePath(props.base || context.base, props.path, props.queryParams),
+    absolutePath: resolvePath(props.base || context.base, props.path, {
+      ...context.queryParams,
+      ...props.queryParams,
+    }),
     cancel: () => {
       setState({
         ...state,

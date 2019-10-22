@@ -940,6 +940,84 @@ describe("useGet hook", () => {
       expect(children.mock.calls[1][0].loading).toEqual(false);
       expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
     });
+
+    it("should inherit global queryParams if none specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ apiKey: "unsafe-as-heck" })
+        .reply(200, () => ({ authenticated: true }))
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = ({ path }) => {
+        const params = useGet<{ id: number }, any>({ path });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider queryParams={{ apiKey: "unsafe-as-heck" }} base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ authenticated: true });
+    });
+
+    it("should override global queryParams if own queryParams are specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ apiKey: "safer" })
+        .reply(200, () => ({ authenticated: true }))
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = ({ path }) => {
+        const params = useGet<{ id: number }, any, { apiKey: string }>({ path, queryParams: { apiKey: "safer" } });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider queryParams={{ apiKey: "unsafe-as-heck" }} base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ authenticated: true });
+    });
+
+    it("should merge global queryParams if both queryParams are specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ apiKey: "unsafe-as-heck", cheese: "nice" })
+        .reply(200, () => ({ authenticated: true }))
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = ({ path }) => {
+        const params = useGet<{ id: number }, any, { cheese: string }>({ path, queryParams: { cheese: "nice" } });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider queryParams={{ apiKey: "unsafe-as-heck" }} base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ authenticated: true });
+    });
   });
 
   describe("generation pattern", () => {
