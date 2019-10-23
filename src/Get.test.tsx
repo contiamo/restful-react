@@ -1059,5 +1059,67 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+    it("should inherit provider's queryParams if none specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({
+          myParam: true,
+        })
+        .reply(200);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider queryParams={{ myParam: true }} base="https://my-awesome-api.fake">
+          <Get<void, void, { myParam: boolean }> path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+    it("should override provider's queryParams if own specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({
+          myParam: false,
+        })
+        .reply(200);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider queryParams={{ myParam: true }} base="https://my-awesome-api.fake">
+          <Get<void, void, { myParam: boolean }> path="" queryParams={{ myParam: false }}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
+    it("should merge provider's queryParams with own", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({
+          myParam: false,
+          otherParam: true,
+        })
+        .reply(200);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider queryParams={{ otherParam: true }} base="https://my-awesome-api.fake">
+          <Get<void, void, { myParam: boolean }> path="" queryParams={{ myParam: false }}>
+            {children}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+    });
   });
 });

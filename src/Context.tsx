@@ -27,6 +27,11 @@ export interface RestfulReactProviderProps<T = any> {
    * to deal with your retry locally instead of in the provider scope.
    */
   onError?: (err: any, retry: () => Promise<T | null>, response?: Response) => void;
+  /**
+   * Any global level query params?
+   * **Warning:** it's probably not a good idea to put API keys here. Consider headers instead.
+   */
+  queryParams?: { [key: string]: any };
 }
 
 export const Context = React.createContext<Required<RestfulReactProviderProps>>({
@@ -35,6 +40,7 @@ export const Context = React.createContext<Required<RestfulReactProviderProps>>(
   resolve: (data: any) => data,
   requestOptions: {},
   onError: noop,
+  queryParams: {},
 });
 
 export interface InjectedProps {
@@ -51,6 +57,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           resolve: (data: any) => data,
           requestOptions: {},
           parentPath: "",
+          queryParams: value.queryParams || {},
           ...value,
         }}
       >

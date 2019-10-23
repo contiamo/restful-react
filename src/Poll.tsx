@@ -174,6 +174,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     wait: 60,
     base: "",
     resolve: (data: any) => data,
+    queryParams: {},
   };
 
   private keepPolling = !this.props.lazy;
@@ -221,7 +222,9 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     const requestOptions = this.getRequestOptions();
 
     let url = composeUrl(base!, "", path);
-    if (this.props.queryParams) {
+
+    // We use a ! because it's in defaultProps
+    if (Object.keys(this.props.queryParams!).length) {
       url += `?${qs.stringify(this.props.queryParams)}`;
     }
 
@@ -352,6 +355,7 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
           <ContextlessPoll
             {...contextProps}
             {...props}
+            queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
             requestOptions={merge(contextRequestOptions, propsRequestOptions)}
           />
         );

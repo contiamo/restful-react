@@ -51,7 +51,7 @@ export function useMutate<
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
   const context = useContext(Context);
-  const { verb, base = context.base, path, queryParams, resolve } = props;
+  const { verb, base = context.base, path, queryParams = {}, resolve } = props;
   const isDelete = verb === "DELETE";
 
   const [state, setState] = useState<MutateState<TData, TError>>({
@@ -95,7 +95,7 @@ export function useMutate<
       }
 
       const request = new Request(
-        resolvePath(base, isDelete ? `${path}/${body}` : path, queryParams),
+        resolvePath(base, isDelete ? `${path}/${body}` : path, { ...context.queryParams, ...queryParams }),
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );
 

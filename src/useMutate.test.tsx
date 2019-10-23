@@ -133,6 +133,83 @@ describe("useMutate", () => {
     });
   });
 
+  describe("Query Params", () => {
+    it("should inherit the provider's query parameters if none specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query({
+          cheese: "yummy",
+        })
+        .reply(200, { vegan: false });
+
+      const wrapper = ({ children }) => (
+        <RestfulProvider queryParams={{ cheese: "yummy" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("DELETE", ""), {
+        wrapper,
+      });
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: false });
+    });
+
+    it("should override the provider's query parameters if own specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query({
+          cheese: "yucky",
+        })
+        .reply(200, { vegan: true });
+
+      const wrapper = ({ children }) => (
+        <RestfulProvider queryParams={{ cheese: "yummy" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "yucky" } }), {
+        wrapper,
+      });
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: true });
+    });
+  });
+  it("should merge with the provider's query parameters if both specified", async () => {
+    nock("https://my-awesome-api.fake")
+      .delete("/")
+      .query({
+        cheese: "yucky",
+        meat: "omg amazing",
+      })
+      .reply(200, { vegan: "confused" });
+
+    const wrapper = ({ children }) => (
+      <RestfulProvider queryParams={{ meat: "omg amazing" }} base="https://my-awesome-api.fake">
+        {children}
+      </RestfulProvider>
+    );
+    const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "yucky" } }), {
+      wrapper,
+    });
+    const res = await result.current.mutate("");
+
+    expect(result.current).toMatchObject({
+      error: null,
+      loading: false,
+    });
+    expect(res).toEqual({ vegan: "confused" });
+  });
+
   describe("POST", () => {
     it("should set loading to true after a call", async () => {
       nock("https://my-awesome-api.fake")
