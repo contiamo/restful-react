@@ -7,33 +7,33 @@ As an abstraction, this tool allows for greater consistency and maintainability 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Overview](#overview)
-- [Getting Started](#getting-started)
-- [Features](#features)
-  - [Global Configuration](#global-configuration)
-    - [`RestfulProvider` API](#restfulprovider-api)
-  - [Composability](#composability)
-    - [Full `Get` Component API](#full-get-component-api)
-  - [Loading and Error States](#loading-and-error-states)
-  - [Lazy Fetching](#lazy-fetching)
-  - [Response Resolution](#response-resolution)
-  - [Debouncing Requests](#debouncing-requests)
-  - [TypeScript Integration](#typescript-integration)
-  - [Query Parameters](#query-parameters)
-  - [Mutations with `Mutate`](#mutations-with-mutate)
-    - [Full `Mutate` Component API](#full-mutate-component-api)
-  - [Polling with `Poll`](#polling-with-poll)
-    - [Long Polling](#long-polling)
-    - [Full `Poll` Component API](#full-poll-component-api)
-  - [Code Generation](#code-generation)
-    - [Usage](#usage)
-    - [Import from GitHub](#import-from-github)
-    - [Transforming an Original Spec](#transforming-an-original-spec)
-  - [Caching](#caching)
-- [Contributing](#contributing)
-  - [Code](#code)
-  - [Dogfooding](#dogfooding)
-- [Next Steps](#next-steps)
+- [`restful-react`](#restful-react)
+  - [Overview](#overview)
+  - [Getting Started](#getting-started)
+  - [Features](#features)
+    - [Global Configuration](#global-configuration)
+      - [`RestfulProvider` API](#restfulprovider-api)
+    - [Loading and Error States](#loading-and-error-states)
+    - [Lazy Fetching](#lazy-fetching)
+    - [Response Resolution](#response-resolution)
+    - [Debouncing Requests](#debouncing-requests)
+    - [TypeScript Integration](#typescript-integration)
+    - [Query Parameters](#query-parameters)
+    - [Mutations with `useMutate`](#mutations-with-usemutate)
+    - [Polling with `Poll`](#polling-with-poll)
+      - [Long Polling](#long-polling)
+      - [Full `Poll` Component API](#full-poll-component-api)
+    - [Code Generation](#code-generation)
+      - [Usage](#usage)
+      - [Validation of the OpenAPI specification](#validation-of-the-openapi-specification)
+      - [Import from GitHub](#import-from-github)
+      - [Transforming an Original Spec](#transforming-an-original-spec)
+      - [Advanced configuration](#advanced-configuration)
+        - [Config File Format](#config-file-format)
+        - [Config File Example](#config-file-example)
+  - [Contributing](#contributing)
+    - [Code](#code)
+  - [Next Steps](#next-steps)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -56,6 +56,36 @@ const MyComponent = () => {
 };
 
 export default MyComponent;
+```
+
+and on React Native,
+[Edit restful-react basic demo on Expo](https://snack.expo.io/SJaSAj49r)
+
+```jsx
+import { AppRegistry, Image } from "react-native";
+import React from "react";
+
+import { useGet } from "restful-react";
+
+const App = () => {
+  const { data: randomDogImage } = useGet({
+    path: "https://dog.ceo/api/breeds/image/random",
+  });
+  return (
+    <>
+      {randomDogImage && (
+        <Image
+          style={{ width: 250, height: 250 }}
+          source={{
+            uri: randomDogImage.message,
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+AppRegistry.registerComponent("react-native-app", () => App);
 ```
 
 ## Getting Started
