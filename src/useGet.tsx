@@ -1,7 +1,7 @@
 import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
-import qs from "qs";
+import qs, { IStringifyOptions } from "qs";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import url from "url";
 
@@ -24,6 +24,10 @@ export interface UseGetProps<TData, TQueryParams> {
    * Query parameters
    */
   queryParams?: TQueryParams;
+  /**
+   * Query parameter stringify options
+   */
+  queryParamStringifyOptions?: IStringifyOptions;
   /**
    * Don't send the error to the Provider
    */
@@ -56,13 +60,13 @@ export interface UseGetProps<TData, TQueryParams> {
     | number;
 }
 
-export function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams) {
+export function resolvePath<TQueryParams>(base: string, path: string, queryParams: TQueryParams, queryParamOptions: IStringifyOptions) {
   const appendedBase = base.endsWith("/") ? base : `${base}/`;
   const trimmedPath = path.startsWith("/") ? path.slice(1) : path;
 
   return url.resolve(
     appendedBase,
-    Object.keys(queryParams).length ? `${trimmedPath}?${qs.stringify(queryParams)}` : trimmedPath,
+    Object.keys(queryParams).length ? `${trimmedPath}?${qs.stringify(queryParams, queryParamOptions)}` : trimmedPath,
   );
 }
 
@@ -93,7 +97,7 @@ async function _fetchData<TData, TError, TQueryParams>(
     (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
 
   const request = new Request(
-    resolvePath(base, path, { ...context.queryParams, ...queryParams }),
+    resolvePath(base, path, { ...context.queryParams, ...queryParams }, props.queryParamStringifyOptions || P{),
     merge({}, contextRequestOptions, requestOptions, { signal }),
   );
 
@@ -209,7 +213,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     absolutePath: resolvePath(props.base || context.base, props.path, {
       ...context.queryParams,
       ...props.queryParams,
-    }),
+    }, props.queryParamStringifyOptions || {}),
     cancel: () => {
       setState({
         ...state,
