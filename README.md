@@ -49,10 +49,15 @@ import { useGet } from "restful-react";
 
 const MyComponent = () => {
   const { data: randomDogImage } = useGet({
-    path: "https://dog.ceo/api/breeds/image/random",
+    path: "https://dog.ceo/api/breeds/image/random"
   });
 
-  return <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />;
+  return (
+    <img
+      alt="Here's a good boye!"
+      src={randomDogImage && randomDogImage.message}
+    />
+  );
 };
 
 export default MyComponent;
@@ -69,7 +74,7 @@ import { useGet } from "restful-react";
 
 const App = () => {
   const { data: randomDogImage } = useGet({
-    path: "https://dog.ceo/api/breeds/image/random",
+    path: "https://dog.ceo/api/breeds/image/random"
   });
   return (
     <>
@@ -77,7 +82,7 @@ const App = () => {
         <Image
           style={{ width: 250, height: 250 }}
           source={{
-            uri: randomDogImage.message,
+            uri: randomDogImage.message
           }}
         />
       )}
@@ -132,16 +137,21 @@ import { useGet } from "restful-react";
 const MyComponent = () => {
   const { data: randomDogImage } = useGet({
     // Inferred from RestfulProvider in index.js
-    path: "breeds/image/random",
+    path: "breeds/image/random"
   });
 
-  return <img alt="Here's a good boye!" src={randomDogImage && randomDogImage.message} />;
+  return (
+    <img
+      alt="Here's a good boye!"
+      src={randomDogImage && randomDogImage.message}
+    />
+  );
 };
 
 export default MyComponent;
 ```
 
-Naturally, the request will be sent to the full path `https://dog.ceo/api/breeds/image/random`. The full API of the `RestfulProvider` is outlined below. Each configuration option is composable and _can be_ overriden by `Get` components further down the tree.
+Naturally, the request will be sent to the full path `https://dog.ceo/api/breeds/image/random`. The full API of the `RestfulProvider` is outlined below. Each configuration option is composable and _can be_ overridden by `Get` components further down the tree.
 
 #### `RestfulProvider` API
 
@@ -173,7 +183,20 @@ export interface RestfulReactProviderProps<T = any> {
    * Depending of your case, it can be easier to add a `localErrorOnly` on your `Mutate` component
    * to deal with your retry locally instead of in the provider scope.
    */
-  onError?: (err: any, retry: () => Promise<T | null>, response?: Response) => void;
+  onError?: (
+    err: any,
+    retry: () => Promise<T | null>,
+    response?: Response
+  ) => void;
+  /**
+   * Any global level query params?
+   * **Warning:** it's probably not a good idea to put API keys here. Consider headers instead.
+   */
+  queryParams?: { [key: string]: any };
+  /*
+   * Allows to obtain the Provider and/or the Consumer name
+   */
+  displayName?: String;
 }
 
 // Usage
@@ -181,6 +204,8 @@ export interface RestfulReactProviderProps<T = any> {
   base="String!"
   resolve={data => data}
   requestOptions={authToken => ({ headers: { Authorization: authToken } })}
+  queryParams={{ myParam: true }}
+  displayName="MyAwesomeProvider"
 />;
 ```
 
@@ -198,10 +223,14 @@ import { useGet } from "restful-react";
 
 const MyComponent = () => {
   const { data: randomDogImage, loading } = useGet({
-    path: "https://dog.ceo/api/breeds/image/random",
+    path: "https://dog.ceo/api/breeds/image/random"
   });
 
-  return loading ? <h1>Loading...</h1> : <img alt="Here's a good boye!" src={randomDogImage.message} />;
+  return loading ? (
+    <h1>Loading...</h1>
+  ) : (
+    <img alt="Here's a good boye!" src={randomDogImage.message} />
+  );
 };
 
 export default MyComponent;
@@ -220,7 +249,7 @@ import { useGet } from "restful-react";
 const MyComponent = () => {
   const { data: randomDogImage, loading, refetch } = useGet({
     path: "https://dog.ceo/api/breeds/image/random",
-    lazy: true,
+    lazy: true
   });
 
   return !randomDogImage && loading ? (
@@ -231,7 +260,11 @@ const MyComponent = () => {
         <h1>Welcome to my image getter!</h1>
         <button onClick={() => refetch()}>Get a good boye!</button>
       </div>
-      <div>{randomDogImage && <img alt="Here's a good boye!" src={randomDogImage.message} />}</div>
+      <div>
+        {randomDogImage && (
+          <img alt="Here's a good boye!" src={randomDogImage.message} />
+        )}
+      </div>
     </div>
   );
 };
@@ -256,7 +289,7 @@ import { useGet } from "restful-react";
 const MyComponent = () => {
   const { data: imageUrl } = useGet({
     path: "https://dog.ceo/api/breeds/image/random",
-    resolve: image => image && image.message,
+    resolve: image => image && image.message
   });
 
   return imageUrl && <img alt="Here's a good boye!" src={imageUrl} />;
@@ -277,7 +310,7 @@ Here's an example:
 const SearchThis = props => {
   const { data } = useGet({
     path: "/hello/world",
-    debounce: true,
+    debounce: true
   });
 
   return (
@@ -338,7 +371,7 @@ const SearchThis = props => {
 
 ### TypeScript Integration
 
-One of the most poweful features of `restful-react` is that each component exported is strongly typed, empowering developers through self-documenting APIs.
+One of the most powerful features of `restful-react` is that each component exported is strongly typed, empowering developers through self-documenting APIs.
 
 ![Using restful-react in VS Code](assets/labs.gif)
 
@@ -366,7 +399,7 @@ const ListItem = ({ id, children }) => {
   const { mutate: del, loading } = useMutate({
     verb: "DELETE",
     path: `/posts/`,
-    base,
+    base
   });
 
   return (
@@ -374,7 +407,15 @@ const ListItem = ({ id, children }) => {
       {loading ? (
         "Deleting..."
       ) : (
-        <button onClick={() => del(id).then(() => alert("Deleted successfully. Pretend it got removed from the DOM."))}>
+        <button
+          onClick={() =>
+            del(id).then(() =>
+              alert(
+                "Deleted successfully. Pretend it got removed from the DOM."
+              )
+            )
+          }
+        >
           ❌
         </button>
       )}
@@ -386,7 +427,7 @@ const ListItem = ({ id, children }) => {
 const MyHugeList = () => {
   const { data: posts } = useGet({
     path: "/posts",
-    base,
+    base
   });
   return (
     <div>
@@ -447,7 +488,12 @@ import { Poll } from "restful-react"
 Below is a more convoluted example that employs nearly the full power of the `Poll` component.
 
 ```jsx
-<Poll path="/status" until={(_, response) => response && response.ok} interval={0} lazy>
+<Poll
+  path="/status"
+  until={(_, response) => response && response.ok}
+  interval={0}
+  lazy
+>
   {(_, { loading, error, finished, polling }, { start }) => {
     return loading ? (
       <Progress error={error} />
@@ -472,7 +518,7 @@ Below is a more convoluted example that employs nearly the full power of the `Po
 </Poll>
 ```
 
-Note from the previous example, `Poll` also exposes more states: `finished`, and `polling` that allow better flow control, as well as lazy-start polls that can also be programatically stopped at a later stage.
+Note from the previous example, `Poll` also exposes more states: `finished`, and `polling` that allow better flow control, as well as lazy-start polls that can also be programmatically stopped at a later stage.
 
 #### Long Polling
 
@@ -593,14 +639,14 @@ module.exports = inputSchema => ({
         (pathItemMem, [verb, operation]) => ({
           ...pathItemMem,
           [verb]: {
-            ...fixOperationId(path, verb, operation),
-          },
+            ...fixOperationId(path, verb, operation)
+          }
         }),
-        {},
-      ),
+        {}
+      )
     }),
-    {},
-  ),
+    {}
+  )
 });
 ```
 
@@ -642,17 +688,17 @@ module.exports = {
     output: "src/queries/myFirstBackend.tsx",
     file: "specs/my-first-backend.yaml",
     customProps: {
-      base: `"http://my-first-backend.com"`,
-    },
+      base: `"http://my-first-backend.com"`
+    }
   },
   configurableBackend: {
     output: "src/queries/configurableBackend.tsx",
     github: "contiamo:restful-react:master:docs/swagger.json",
     customImport: `import { getConfig } from "../components/Config.tsx";`,
     customProps: {
-      base: `{getConfig("backendBasePath")}`,
-    },
-  },
+      base: `{getConfig("backendBasePath")}`
+    }
+  }
 };
 ```
 
