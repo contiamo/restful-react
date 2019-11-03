@@ -32,6 +32,10 @@ export interface RestfulReactProviderProps<T = any> {
    * **Warning:** it's probably not a good idea to put API keys here. Consider headers instead.
    */
   queryParams?: { [key: string]: any };
+  /*
+  * Allows to obtain the Provider and/or the Consumer name
+  */
+ displayName?: String;
 }
 
 export const Context = React.createContext<Required<RestfulReactProviderProps>>({
@@ -41,6 +45,7 @@ export const Context = React.createContext<Required<RestfulReactProviderProps>>(
   requestOptions: {},
   onError: noop,
   queryParams: {},
+  displayName: "",
 });
 
 export interface InjectedProps {
@@ -58,6 +63,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           requestOptions: {},
           parentPath: "",
           queryParams: value.queryParams || {},
+          displayName: value.displayName || "",
           ...value,
         }}
       >
