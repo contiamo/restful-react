@@ -40,7 +40,7 @@ program.parse(process.argv);
 const createSuccessMessage = (backend?: string) =>
   chalk.green(
     `${
-      backend ? `${backend} ` : ``
+      backend || ""
     }🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
   );
 
