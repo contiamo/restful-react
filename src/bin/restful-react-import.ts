@@ -87,7 +87,7 @@ const importSpecs = async (options: AdvancedOptions) => {
 
         // Attempt to determine format
         // will default to yaml as it
-        // also support json fully
+        // also supports json fully
         let format: 'json' | 'yaml' = 'yaml';
         if (url.endsWith('.json') || response.headers['content-type'] === 'application/json') {
           format = 'json';
