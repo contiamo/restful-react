@@ -135,12 +135,13 @@ async function _fetchData<TData, TError, TQueryParams>(
 
 type FetchData = typeof _fetchData;
 type CancellableFetchData = FetchData | (FetchData & Cancelable);
+type RefetchOptions<TData, TQueryParams> = Partial<Omit<UseGetProps<TData, TQueryParams>, "lazy">>;
 
 const isCancellable = <T extends (...args: any[]) => any>(func: T): func is T & Cancelable => {
   return typeof (func as any).cancel === "function" && typeof (func as any).flush === "function";
 };
 
-export interface UseGetReturn<TData, TError> extends GetState<TData, TError> {
+export interface UseGetReturn<TData, TError, TQueryParams = {}> extends GetState<TData, TError> {
   /**
    * Absolute path resolved from `base` and `path` (context & local)
    */
@@ -152,17 +153,17 @@ export interface UseGetReturn<TData, TError> extends GetState<TData, TError> {
   /**
    * Refetch
    */
-  refetch: () => Promise<void>;
+  refetch: (options?: RefetchOptions<TData, TQueryParams>) => Promise<void>;
 }
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   path: string,
   props?: Omit<UseGetProps<TData, TQueryParams>, "path">,
-): UseGetReturn<TData, TError>;
+): UseGetReturn<TData, TError, TQueryParams>;
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   props: UseGetProps<TData, TQueryParams>,
-): UseGetReturn<TData, TError>;
+): UseGetReturn<TData, TError, TQueryParams>;
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }>() {
   const props: UseGetProps<TData, TError> =
@@ -218,7 +219,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       abortController.current.abort();
       abortController.current = new AbortController();
     },
-    refetch: (options: Partial<Omit<UseGetProps<TData, TQueryParams>, "lazy">> = {}) =>
+    refetch: (options: RefetchOptions<TData, TQueryParams> = {}) =>
       fetchData({ ...props, ...options }, state, setState, context, abortController),
   };
 }
