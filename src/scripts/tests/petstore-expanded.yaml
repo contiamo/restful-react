@@ -143,6 +143,47 @@ components:
         tag:
           type: string
 
+    CatOrDog:
+      description: A discriminator example.
+      oneOf:
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Dog"
+      discriminator:
+        propertyName: type
+        mapping:
+           cat: "#/components/schemas/Cat"
+           dog: "#/components/schemas/Dog"
+
+    Cat:
+      type: object
+      properties:
+        type:
+          type: string
+        breed:
+          type: string
+          enum:
+            - labrador
+            - carlin
+            - beagle
+      required:
+        - type
+        - breed
+
+    Dog:
+      type: object
+      properties:
+        type:
+          type: string
+        breed:
+          type: string
+          enum:
+           - saimois
+           - bengal
+           - british shorthair
+      required:
+        - type
+        - breed
+
     Error:
       required:
         - code

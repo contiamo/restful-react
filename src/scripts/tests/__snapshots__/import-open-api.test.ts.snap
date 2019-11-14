@@ -12,6 +12,12 @@ export type Pet = NewPet & {id: number};
 
 export interface NewPet {name: string; tag?: string}
 
+export type CatOrDog = Cat | Dog;
+
+export interface Cat {type: \\"cat\\"; breed: \\"labrador\\" | \\"carlin\\" | \\"beagle\\"}
+
+export interface Dog {type: \\"dog\\"; breed: \\"saimois\\" | \\"bengal\\" | \\"british shorthair\\"}
+
 export interface Error {code: number; message: string}
 
 export interface FindPetsQueryParams {tags?: string[]; limit?: number}

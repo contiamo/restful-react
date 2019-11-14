@@ -444,6 +444,41 @@ export interface ${pascal(name)} ${scalar}`
 };
 
 /**
+ * Propagate every `discriminator.propertyName` mapping to the original ref
+ *
+ * Note: This method directly mutate the `specs` object.
+ *
+ * @param specs
+ */
+export const resolveDiscriminator = (specs: OpenAPIObject) => {
+  if (specs.components && specs.components.schemas) {
+    Object.values(specs.components.schemas).forEach(schema => {
+      if (!schema.discriminator || !schema.discriminator.mapping) {
+        return;
+      }
+      const { mapping, propertyName } = schema.discriminator;
+
+      Object.entries(mapping).map(([name, ref]) => {
+        if (!ref.startsWith("#/components/schemas/")) {
+          throw new Error("Discriminator mapping outside of `#/components/schemas` is not supported");
+        }
+        if (
+          specs.components &&
+          specs.components.schemas &&
+          specs.components.schemas[ref.slice("#/components/schemas/".length)] &&
+          specs.components.schemas[ref.slice("#/components/schemas/".length)].properties &&
+          specs.components.schemas[ref.slice("#/components/schemas/".length)].properties![propertyName] &&
+          !specs.components.schemas[ref.slice("#/components/schemas/".length)].properties![propertyName].$ref
+        ) {
+          // @ts-ignore This is check on runtime
+          specs.components.schemas[ref.slice("#/components/schemas/".length)].properties![propertyName].enum = [name];
+        }
+      });
+    });
+  }
+};
+
+/**
  * Extract all types from #/components/schemas
  *
  * @param schemas
@@ -501,9 +536,9 @@ export interface ${pascal(name)}Response ${type}`;
 /**
  * Validate the spec with ibm-openapi-validator (with a custom pretty logger).
  *
- * @param schema openAPI spec
+ * @param specs openAPI spec
  */
-const validate = async (schema: OpenAPIObject) => {
+const validate = async (specs: OpenAPIObject) => {
   // tslint:disable:no-console
   const log = console.log;
 
@@ -515,7 +550,7 @@ const validate = async (schema: OpenAPIObject) => {
     wasConsoleLogCalledFromBlackBox = true;
     log(...props);
   };
-  const { errors, warnings } = await openApiValidator(schema);
+  const { errors, warnings } = await openApiValidator(specs);
   console.log = log; // reset console.log because we're done with the black box
 
   if (wasConsoleLogCalledFromBlackBox) {
@@ -562,26 +597,28 @@ const importOpenApi = async ({
 }: {
   data: string;
   format: "yaml" | "json";
-  transformer?: (schema: OpenAPIObject) => OpenAPIObject;
+  transformer?: (specs: OpenAPIObject) => OpenAPIObject;
   validation?: boolean;
   customImport?: AdvancedOptions["customImport"];
   customProps?: AdvancedOptions["customProps"];
 }) => {
   const operationIds: string[] = [];
-  let schema = await importSpecs(data, format);
+  let specs = await importSpecs(data, format);
   if (transformer) {
-    schema = transformer(schema);
+    specs = transformer(specs);
   }
 
   if (validation) {
-    await validate(schema);
+    await validate(specs);
   }
+
+  resolveDiscriminator(specs);
 
   let output = "";
 
-  output += generateSchemasDefinition(schema.components && schema.components.schemas);
-  output += generateResponsesDefinition(schema.components && schema.components.responses);
-  Object.entries(schema.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
+  output += generateSchemasDefinition(specs.components && specs.components.schemas);
+  output += generateResponsesDefinition(specs.components && specs.components.responses);
+  Object.entries(specs.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
       if (["get", "post", "patch", "put", "delete"].includes(verb)) {
         output += generateRestfulComponent(
@@ -590,7 +627,7 @@ const importOpenApi = async ({
           route,
           operationIds,
           verbs.parameters,
-          schema.components,
+          specs.components,
           customProps,
         );
       }
