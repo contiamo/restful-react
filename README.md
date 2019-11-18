@@ -141,7 +141,7 @@ const MyComponent = () => {
 export default MyComponent;
 ```
 
-Naturally, the request will be sent to the full path `https://dog.ceo/api/breeds/image/random`. The full API of the `RestfulProvider` is outlined below. Each configuration option is composable and _can be_ overriden by `Get` components further down the tree.
+Naturally, the request will be sent to the full path `https://dog.ceo/api/breeds/image/random`. The full API of the `RestfulProvider` is outlined below. Each configuration option is composable and _can be_ overridden by `Get` components further down the tree.
 
 #### `RestfulProvider` API
 
@@ -338,7 +338,7 @@ const SearchThis = props => {
 
 ### TypeScript Integration
 
-One of the most poweful features of `restful-react` is that each component exported is strongly typed, empowering developers through self-documenting APIs.
+One of the most powerful features of `restful-react` is that each component exported is strongly typed, empowering developers through self-documenting APIs.
 
 ![Using restful-react in VS Code](assets/labs.gif)
 
@@ -472,7 +472,7 @@ Below is a more convoluted example that employs nearly the full power of the `Po
 </Poll>
 ```
 
-Note from the previous example, `Poll` also exposes more states: `finished`, and `polling` that allow better flow control, as well as lazy-start polls that can also be programatically stopped at a later stage.
+Note from the previous example, `Poll` also exposes more states: `finished`, and `polling` that allow better flow control, as well as lazy-start polls that can also be programmatically stopped at a later stage.
 
 #### Long Polling
 
