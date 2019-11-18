@@ -38,6 +38,8 @@ export interface RestfulReactProviderProps<T = any> {
  displayName?: String;
 }
 
+const contextName = "RestfulReactContext";
+
 export const Context = React.createContext<Required<RestfulReactProviderProps>>({
   base: "",
   parentPath: "",
@@ -45,7 +47,7 @@ export const Context = React.createContext<Required<RestfulReactProviderProps>>(
   requestOptions: {},
   onError: noop,
   queryParams: {},
-  displayName: "",
+  displayName: contextName,
 });
 
 export interface InjectedProps {
@@ -63,7 +65,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           requestOptions: {},
           parentPath: "",
           queryParams: value.queryParams || {},
-          displayName: value.displayName || "",
+          displayName: contextName,
           ...value,
         }}
       >
