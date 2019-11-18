@@ -13,6 +13,7 @@ const log = console.log; // tslint:disable-line:no-console
 export interface Options {
   output: string;
   file?: string;
+  url?: string;
   github?: string;
   transformer?: string;
   validation?: boolean;
@@ -31,6 +32,7 @@ export interface ExternalConfigFile {
 
 program.option("-o, --output [value]", "output file destination");
 program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
+program.option("-u, --url [value]", "url to spec (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.option("-t, --transformer [value]", "transformer function path");
 program.option("--validation", "add the validation step (provided by ibm-openapi-validator)");
@@ -49,8 +51,8 @@ const successWithoutOutputMessage = chalk.yellow("Success! No output path specif
 const importSpecs = async (options: AdvancedOptions) => {
   const transformer = options.transformer ? require(join(process.cwd(), options.transformer)) : undefined;
 
-  if (!options.file && !options.github) {
-    throw new Error("You need to provide an input specification with `--file` or `--github`");
+  if (!options.file && !options.url && !options.github) {
+    throw new Error("You need to provide an input specification with `--file`, '--url', or `--github`");
   }
 
   if (options.file) {
@@ -66,6 +68,44 @@ const importSpecs = async (options: AdvancedOptions) => {
       customImport: options.customImport,
       customProps: options.customProps,
     });
+  } else if (options.url) {
+    const { url } = options;
+
+    const urlSpecReq = {
+      method: "GET",
+      url,
+      headers: {
+        "user-agent": "restful-react-importer",
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      request(urlSpecReq, async (error, response, body) => {
+        if (error) {
+          return reject(error);
+        }
+
+        // Attempt to determine format
+        // will default to yaml as it
+        // also supports json fully
+        let format: 'json' | 'yaml' = 'yaml';
+        if (url.endsWith('.json') || response.headers['content-type'] === 'application/json') {
+          format = 'json';
+        }
+
+        resolve(
+          importOpenApi({
+            data: body,
+            format,
+            transformer,
+            validation: options.validation,
+            customImport: options.customImport,
+            customProps: options.customProps,
+          }),
+        );
+      });
+    });
+
   } else if (options.github) {
     const { github } = options;
 
@@ -153,7 +193,7 @@ const importSpecs = async (options: AdvancedOptions) => {
       });
     });
   } else {
-    return Promise.reject("Please provide a file (--file) or a github (--github) input");
+    return Promise.reject("Please provide a file (--file), a url (--url), or a github (--github) input");
   }
 };
 
