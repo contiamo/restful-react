@@ -195,8 +195,10 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     return true;
   };
 
-  private getRequestOptions = () =>
-    typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
+  private getRequestOptions = async () =>
+    typeof this.props.requestOptions === "function"
+      ? await this.props.requestOptions()
+      : this.props.requestOptions || {};
 
   // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
   private isResponseOk = (response: Response) => response.ok || response.status === 304;
@@ -219,7 +221,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     // If we should keep going,
     const { base, path, interval, wait } = this.props;
     const { lastPollIndex } = this.state;
-    const requestOptions = this.getRequestOptions();
+    const requestOptions = await this.getRequestOptions();
 
     let url = composeUrl(base!, "", path);
 
