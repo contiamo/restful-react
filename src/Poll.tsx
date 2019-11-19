@@ -358,7 +358,7 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
             {...contextProps}
             {...props}
             queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
-            requestOptions={merge(contextRequestOptions, propsRequestOptions)}
+            requestOptions={async () => merge(contextRequestOptions, propsRequestOptions)}
           />
         );
       }}
