@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-import { ComponentsObject, OperationObject, ResponseObject } from "openapi3-ts";
+import { ComponentsObject, OpenAPIObject, OperationObject, ResponseObject } from "openapi3-ts";
 
 import importOpenApi, {
   generateResponsesDefinition,
@@ -15,6 +15,7 @@ import importOpenApi, {
   getScalar,
   isReference,
   reactPropsValueToObjectValue,
+  resolveDiscriminator,
 } from "../import-open-api";
 
 describe("scripts/import-open-api", () => {
@@ -268,6 +269,99 @@ describe("scripts/import-open-api", () => {
         ],
       };
       expect(getObject(item)).toEqual(`Foo & {name: string}`);
+    });
+  });
+
+  describe("resolveDiscriminator", () => {
+    it("should propagate any discrimator value as enum", () => {
+      const specs: OpenAPIObject = {
+        openapi: "3.0.0",
+        info: {
+          title: "Test",
+          description: "Test",
+          version: "0.0.1",
+          contact: {
+            name: "Fabien Bernard",
+            url: "https://fabien0102.com",
+            email: "fabien@contiamo.com",
+          },
+        },
+        paths: {},
+        components: {
+          schemas: {
+            Error: {
+              oneOf: [{ $ref: "#/components/schemas/GeneralError" }, { $ref: "#/components/schemas/FieldError" }],
+              discriminator: {
+                propertyName: "type",
+                mapping: {
+                  GeneralError: "#/components/schemas/GeneralError",
+                  FieldError: "#/components/schemas/FieldError",
+                },
+              },
+            },
+            GeneralError: {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                },
+                message: {
+                  type: "string",
+                },
+              },
+              required: ["type", "message"],
+            },
+            FieldError: {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                },
+                message: {
+                  type: "string",
+                },
+                key: {
+                  type: "string",
+                },
+              },
+              required: ["type", "message", "key"],
+            },
+          },
+        },
+      };
+
+      resolveDiscriminator(specs);
+
+      expect(specs.components.schemas.GeneralError).toEqual({
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            enum: ["GeneralError"],
+          },
+          message: {
+            type: "string",
+          },
+        },
+        required: ["type", "message"],
+      });
+
+      expect(specs.components.schemas.FieldError).toEqual({
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            enum: ["FieldError"],
+          },
+          message: {
+            type: "string",
+          },
+          key: {
+            type: "string",
+          },
+        },
+        required: ["type", "message", "key"],
+      });
     });
   });
 
