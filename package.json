@@ -104,8 +104,8 @@
     "swagger2openapi": "^3.2.14",
     "url": "^0.11.0",
     "yamljs": "^0.3.0"
-  },
-  "peerDependencies": {
-    "react": ">=16.8.5"
+  },	
+  "peerDependencies": {	
+    "react": "^16.8.5"
   }
-}
+} 
