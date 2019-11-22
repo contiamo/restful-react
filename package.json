@@ -1,7 +1,7 @@
 {
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
-  "version": "9.2.0",
+  "version": "9.3.0",
   "main": "lib/index.js",
   "license": "MIT",
   "files": [
@@ -104,8 +104,8 @@
     "swagger2openapi": "^3.2.14",
     "url": "^0.11.0",
     "yamljs": "^0.3.0"
-  },	
-  "peerDependencies": {	
+  },
+  "peerDependencies": {
     "react": "^16.8.5"
   }
-} 
+}
