@@ -4,6 +4,7 @@ import openApiValidator from "ibm-openapi-validator";
 import get from "lodash/get";
 import groupBy from "lodash/groupBy";
 import isEmpty from "lodash/isEmpty";
+import set from "lodash/set";
 import uniq from "lodash/uniq";
 
 import {
@@ -126,24 +127,29 @@ export const getObject = (item: SchemaObject): string => {
     return item.oneOf.map(resolveValue).join(" | ");
   }
 
+  // Consolidation of item.properties & item.additionalProperties
+  let output = "{";
   if (item.properties) {
-    return (
-      "{" +
-      Object.entries(item.properties)
-        .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
-          const isRequired = (item.required || []).includes(key);
-          return `${key}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
-        })
-        .join("; ") +
-      "}"
-    );
+    output += Object.entries(item.properties)
+      .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
+        const isRequired = (item.required || []).includes(key);
+        return `${key}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
+      })
+      .join("; ");
   }
 
   if (item.additionalProperties) {
-    return `{[key: string]: ${resolveValue(item.additionalProperties)}}`;
+    if (item.properties) {
+      output += "; ";
+    }
+    output += `[key: string]: ${item.additionalProperties === true ? "any" : resolveValue(item.additionalProperties)}`;
   }
 
-  return item.type === "object" ? "{}" : "any";
+  if (output !== "{") {
+    return output + "}";
+  }
+
+  return item.type === "object" ? "{[key: string]: any}" : "any";
 };
 
 /**
@@ -428,19 +434,13 @@ export const Poll${componentName} = (${
 
 /**
  * Generate the interface string
- * A tslint comment is insert if the resulted object is empty
  *
  * @param name interface name
  * @param schema
  */
 export const generateInterface = (name: string, schema: SchemaObject) => {
   const scalar = getScalar(schema);
-  const isEmptyObject = scalar === "{}";
-
-  return isEmptyObject
-    ? `// tslint:disable-next-line:no-empty-interface
-export interface ${pascal(name)} ${scalar}`
-    : `export interface ${pascal(name)} ${scalar}`;
+  return `export interface ${pascal(name)} ${scalar}`;
 };
 
 /**
@@ -453,7 +453,7 @@ export interface ${pascal(name)} ${scalar}`
 export const resolveDiscriminator = (specs: OpenAPIObject) => {
   if (specs.components && specs.components.schemas) {
     Object.values(specs.components.schemas).forEach(schema => {
-      if (!schema.discriminator || !schema.discriminator.mapping) {
+      if (isReference(schema) || !schema.discriminator || !schema.discriminator.mapping) {
         return;
       }
       const { mapping, propertyName } = schema.discriminator;
@@ -462,17 +462,9 @@ export const resolveDiscriminator = (specs: OpenAPIObject) => {
         if (!ref.startsWith("#/components/schemas/")) {
           throw new Error("Discriminator mapping outside of `#/components/schemas` is not supported");
         }
-        if (
-          specs.components &&
-          specs.components.schemas &&
-          specs.components.schemas[ref.slice("#/components/schemas/".length)] &&
-          specs.components.schemas[ref.slice("#/components/schemas/".length)].properties &&
-          specs.components.schemas[ref.slice("#/components/schemas/".length)].properties![propertyName] &&
-          !specs.components.schemas[ref.slice("#/components/schemas/".length)].properties![propertyName].$ref
-        ) {
-          // @ts-ignore This is check on runtime
-          specs.components.schemas[ref.slice("#/components/schemas/".length)].properties![propertyName].enum = [name];
-        }
+        set(specs, `components.schemas.${ref.slice("#/components/schemas/".length)}.properties.${propertyName}.enum`, [
+          name,
+        ]);
       });
     });
   }
@@ -491,6 +483,7 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
   return (
     Object.entries(schemas)
       .map(([name, schema]) =>
+        !isReference(schema) &&
         (!schema.type || schema.type === "object") &&
         !schema.allOf &&
         !schema.oneOf &&
