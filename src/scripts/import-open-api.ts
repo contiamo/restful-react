@@ -127,7 +127,7 @@ export const getObject = (item: SchemaObject): string => {
     return item.oneOf.map(resolveValue).join(" | ");
   }
 
-  // Consolidation of item.propeties & item.additionalProperties
+  // Consolidation of item.properties & item.additionalProperties
   let output = "{";
   if (item.properties) {
     output += Object.entries(item.properties)
