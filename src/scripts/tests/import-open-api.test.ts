@@ -60,7 +60,7 @@ describe("scripts/import-open-api", () => {
       { item: { type: "array", items: { type: "integer" } }, expected: "number[]" },
       { item: { type: "array", items: { type: "customType" } }, expected: "any[]" },
       { item: { type: "object", properties: { value: { type: "integer" } } }, expected: "{value?: number}" },
-      { item: { type: "object" }, expected: "{}" },
+      { item: { type: "object" }, expected: "{[key: string]: any}" },
       { item: { type: "object", $ref: "#/components/schemas/Foo" }, expected: "Foo" },
       { item: { type: "string" }, expected: "string" },
       { item: { type: "byte" }, expected: "string" },
@@ -74,7 +74,7 @@ describe("scripts/import-open-api", () => {
       { item: { type: "integer", nullable: true }, expected: "number | null" },
       { item: { type: "boolean", nullable: true }, expected: "boolean | null" },
       { item: { type: "string", nullable: true }, expected: "string | null" },
-      { item: { type: "object", nullable: true }, expected: "{} | null" },
+      { item: { type: "object", nullable: true }, expected: "{[key: string]: any} | null" },
       { item: { type: "object", $ref: "#/components/schemas/Foo", nullable: true }, expected: "Foo | null" },
     ].map(({ item, expected }) =>
       it(`should return ${expected} as type for ${item.type}`, () => {
@@ -220,6 +220,14 @@ describe("scripts/import-open-api", () => {
       expect(getObject(item)).toEqual(`{[key: string]: Foo}`);
     });
 
+    it("should deal with true as additionalProperties", () => {
+      const item = {
+        type: "object",
+        additionalProperties: true,
+      };
+      expect(getObject(item)).toEqual(`{[key: string]: any}`);
+    });
+
     it("should deal with ref additionalProperties", () => {
       const item = {
         type: "object",
@@ -252,6 +260,20 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(getObject(item)).toEqual(`{[key: string]: string[]}`);
+    });
+
+    it("should deal with additionalProperties on top of define properties", () => {
+      const item = {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+          },
+        },
+        additionalProperties: true,
+      };
+
+      expect(getObject(item)).toEqual(`{name?: string; [key: string]: any}`);
     });
 
     it("should deal with allOf", () => {
@@ -455,17 +477,6 @@ describe("scripts/import-open-api", () => {
 
       expect(generateSchemasDefinition(schema)).toContain(`export type Wolf = Dog;`);
     });
-    it("should add a tslint ignore for empty object", () => {
-      const schema = {
-        Empty: {
-          type: "object",
-        },
-      };
-
-      expect(generateSchemasDefinition(schema)).toContain(`// tslint:disable-next-line:no-empty-interface
-export interface Empty {}
-`);
-    });
   });
 
   describe("generateResponsesDefinition", () => {
@@ -552,25 +563,6 @@ export interface Empty {}
       expect(generateResponsesDefinition(responses)).toContain(
         "export type JobRunResponse = {executionID?: string} | ExecutionID",
       );
-    });
-
-    it("should add a tslint ignore for empty object", () => {
-      const responses: ComponentsObject["responses"] = {
-        JobRun: {
-          description: "Job is starting",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-              },
-            },
-          },
-        },
-      };
-
-      expect(generateResponsesDefinition(responses)).toContain(`// tslint:disable-next-line:no-empty-interface
-export interface JobRunResponse {}
-`);
     });
   });
 
