@@ -194,6 +194,13 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   const abortController = useRef(new AbortController());
 
+  // refetch function  with the same dependency array as the fetchData deep effect
+  const refetch = (options: RefetchOptions<TData, TQueryParams> = {}) =>
+    fetchData({ ...props, ...options }, state, setState, context, abortController);
+
+  // Memoise refetch
+  const refetchMemo = useCallback((options: RefetchOptions<TData, TQueryParams> = {}) => refetch(options), []);
+
   useDeepCompareEffect(() => {
     if (!props.lazy) {
       fetchData(props, state, setState, context, abortController);
@@ -219,7 +226,6 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       abortController.current.abort();
       abortController.current = new AbortController();
     },
-    refetch: (options: RefetchOptions<TData, TQueryParams> = {}) =>
-      fetchData({ ...props, ...options }, state, setState, context, abortController),
+    refetch: refetchMemo,
   };
 }
