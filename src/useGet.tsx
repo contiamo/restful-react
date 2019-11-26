@@ -194,11 +194,11 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   const abortController = useRef(new AbortController());
 
-  // refetch function  with the same dependency array as the fetchData deep effect
+  // combine refetch options defined at the component level to the fetchData request
   const refetch = (options: RefetchOptions<TData, TQueryParams> = {}) =>
     fetchData({ ...props, ...options }, state, setState, context, abortController);
 
-  // Memoise refetch
+  // Memoise refetch to ensure referential equality
   const refetchMemo = useCallback((options: RefetchOptions<TData, TQueryParams> = {}) => refetch(options), []);
 
   useDeepCompareEffect(() => {
