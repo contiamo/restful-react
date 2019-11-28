@@ -505,6 +505,31 @@ describe("scripts/import-open-api", () => {
       );
     });
 
+    it("should give double quotes for special properties", () => {
+      const responses: ComponentsObject["responses"] = {
+        JobRun: {
+          description: "Job is starting",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  "execution-id": {
+                    description: "ID of the job execution",
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateResponsesDefinition(responses)).toContain(
+        `export interface JobRunResponse {"execution-id"?: string}`,
+      );
+    });
+
     it("should declare a a type for composed object", () => {
       const responses: ComponentsObject["responses"] = {
         JobRun: {
