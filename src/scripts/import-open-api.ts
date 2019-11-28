@@ -128,12 +128,14 @@ export const getObject = (item: SchemaObject): string => {
   }
 
   // Consolidation of item.properties & item.additionalProperties
+  const IdentifierRegexp = /^[a-zA-Z_\$][a-zA-Z0-9_\$]*$/
   let output = "{";
   if (item.properties) {
     output += Object.entries(item.properties)
       .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
         const isRequired = (item.required || []).includes(key);
-        return `${key}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
+        const processedKey = (IdentifierRegexp.test(key) ? key : `"${key}"`)
+        return `${processedKey}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
       })
       .join("; ");
   }
