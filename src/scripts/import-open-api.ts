@@ -24,6 +24,8 @@ import swagger2openapi from "swagger2openapi";
 import YAML from "yamljs";
 import { AdvancedOptions } from "../bin/restful-react-import";
 
+const IdentifierRegexp = /^[a-zA-Z_\$][a-zA-Z0-9_\$]*$/
+
 /**
  * Discriminator helper for `ReferenceObject`
  *
@@ -128,7 +130,6 @@ export const getObject = (item: SchemaObject): string => {
   }
 
   // Consolidation of item.properties & item.additionalProperties
-  const IdentifierRegexp = /^[a-zA-Z_\$][a-zA-Z0-9_\$]*$/
   let output = "{";
   if (item.properties) {
     output += Object.entries(item.properties)
@@ -330,7 +331,10 @@ export const generateRestfulComponent = (
     .join("; ");
 
   const queryParamsType = queryParams
-    .map(p => `${p.name}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`)
+    .map(p => {
+      const processedName = IdentifierRegexp.test(p.name) ? p.name : `"${p.name}"`
+      return `${processedName}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`
+    })
     .join("; ");
 
   const genericsTypes =
