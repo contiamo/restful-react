@@ -122,6 +122,11 @@ async function _fetchData<TData, TError, TQueryParams>(
 
     setState({ ...state, error: null, loading: false, data: resolve(data) });
   } catch (e) {
+    // avoid state updates when component has been unmounted
+    // and when fetch/processResponse threw an error
+    if (signal.aborted) {
+      return;
+    }
     setState({
       ...state,
       loading: false,

@@ -126,6 +126,12 @@ export function useMutate<
       try {
         data = resolve ? resolve(rawData) : rawData;
       } catch (e) {
+        // avoid state updates when component has been unmounted
+        // and when fetch/processResponse threw an error
+        if (signal.aborted) {
+          return;
+        }
+
         const error = {
           data: e.message,
           message: `Failed to resolve: ${e.message}`,
