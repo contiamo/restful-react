@@ -48,6 +48,8 @@ export interface InjectedProps {
 }
 
 export default class RestfulReactProvider<T> extends React.Component<RestfulReactProviderProps<T>> {
+  static displayName = "RestfulProviderContext";
+
   public render() {
     const { children, ...value } = this.props;
     return (
