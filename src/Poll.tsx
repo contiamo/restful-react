@@ -343,20 +343,20 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
-      {async contextProps => {
+      {contextProps => {
         const contextRequestOptions =
           typeof contextProps.requestOptions === "function"
-            ? await contextProps.requestOptions()
+            ? contextProps.requestOptions()
             : contextProps.requestOptions || {};
         const propsRequestOptions =
-          typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions || {};
+          typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions || {};
 
         return (
           <ContextlessPoll
             {...contextProps}
             {...props}
             queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
-            requestOptions={merge(contextRequestOptions, propsRequestOptions)}
+            requestOptions={async () => merge(await contextRequestOptions, await propsRequestOptions)}
           />
         );
       }}
