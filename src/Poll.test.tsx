@@ -787,6 +787,30 @@ describe("Poll", () => {
       expect(children.mock.calls[1][0]).toEqual({ id: 1 });
     });
 
+    it("should add a promised custom header with the requestOptions method", async () => {
+      nock("https://my-awesome-api.fake", { reqheaders: { foo: "bar" } })
+        .get("/")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll
+            path=""
+            requestOptions={() => new Promise(res => setTimeout(() => res({ headers: { foo: "bar" } }), 1000))}
+          >
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(children.mock.calls[1][1].loading).toEqual(false);
+      expect(children.mock.calls[1][0]).toEqual({ id: 1 });
+    });
+
     it("should merge headers with providers", async () => {
       nock("https://my-awesome-api.fake", { reqheaders: { foo: "bar", baz: "qux" } })
         .get("/")
