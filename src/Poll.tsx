@@ -346,7 +346,7 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
       {async contextProps => {
         const contextRequestOptions =
           typeof contextProps.requestOptions === "function"
-            ? contextProps.requestOptions()
+            ? await contextProps.requestOptions()
             : contextProps.requestOptions || {};
         const propsRequestOptions =
           typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions || {};
