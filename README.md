@@ -683,7 +683,7 @@ All contributions are welcome – especially:
 
 ### Code
 
-If you'd like to actively develop or help maintain this project, clone the repo and then `yarn watch` to get into dev mode. There are existing tests against which you can test the library. Typically, this looks like
+If you'd like to actively develop or help maintain this project then there are existing tests against which you can test the library with. Typically, this looks like
 
 - `git clone git@github.com:contiamo/restful-react.git`
 - `cd restful-react`
