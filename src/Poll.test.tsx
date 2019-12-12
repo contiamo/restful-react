@@ -11,6 +11,7 @@ describe("Poll", () => {
     cleanup();
     nock.cleanAll();
   });
+
   describe("classic usage", () => {
     it("should call the url set in provider", async () => {
       nock("https://my-awesome-api.fake", {
