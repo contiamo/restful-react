@@ -13,6 +13,7 @@ describe("Get", () => {
     cleanup();
     nock.cleanAll();
   });
+
   describe("classic usage", () => {
     it("should call the url set in provider", async () => {
       nock("https://my-awesome-api.fake")
@@ -635,6 +636,7 @@ describe("Get", () => {
       );
       await wait(() => expect(apiCalls).toEqual(1));
     });
+
     it("should call the API only 10 times without debounce", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
@@ -642,13 +644,16 @@ describe("Get", () => {
         .get("/?test=XXX")
         .reply(200, () => ++apiCalls)
         .persist();
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="?test=1">{children}</Get>
         </RestfulProvider>,
       );
+
       times(10, i =>
         rerender(
           <RestfulProvider base="https://my-awesome-api.fake">
@@ -656,9 +661,11 @@ describe("Get", () => {
           </RestfulProvider>,
         ),
       );
-      expect(apiCalls).toEqual(10);
+
+      await wait(() => expect(apiCalls).toEqual(10));
     });
   });
+
   describe("refetch after update", () => {
     it("should not refetch when base, path or resolve don't change", async () => {
       let apiCalls = 0;
@@ -666,18 +673,22 @@ describe("Get", () => {
         .get("/")
         .reply(200, () => ++apiCalls)
         .persist();
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={data => data}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
+
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={data => data}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(apiCalls).toEqual(1));
     });
 
@@ -685,7 +696,6 @@ describe("Get", () => {
       nock("https://my-other-api.fake")
         .get("/")
         .reply(200, { id: 1 });
-
       nock("https://my-awesome-api.fake/eaegae")
         .post("/LOL")
         .reply(200, { id: 1 });
@@ -707,21 +717,26 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
-    it("should refetch when base changes", () => {
+
+    it("should refetch when base changes", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, () => ++apiCalls);
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
+
       nock("https://my-new-api.fake")
         .get("/")
         .reply(200, () => ++apiCalls);
+
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get base="https://my-new-api.fake" path="">
@@ -729,44 +744,55 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
-      expect(apiCalls).toEqual(2);
+
+      await wait(() => expect(apiCalls).toEqual(2));
     });
-    it("should refetch when path changes", () => {
+
+    it("should refetch when path changes", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .filteringPath(/test=[^&]*/g, "test=XXX")
         .get("/?test=XXX")
         .reply(200, () => ++apiCalls)
         .persist();
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="/?test=0">{children}</Get>
         </RestfulProvider>,
       );
+
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="/?test=1">{children}</Get>
         </RestfulProvider>,
       );
-      expect(apiCalls).toEqual(2);
+
+      await wait(() => expect(apiCalls).toEqual(2));
     });
-    it("should refetch when resolve changes", () => {
+
+    it("should refetch when resolve changes", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, () => ++apiCalls)
         .persist();
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
       const providerResolve = a => a;
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={providerResolve}>
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
+
       const newResolve = () => "hello";
+
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={newResolve}>
           <Get path="" resolve={newResolve}>
@@ -774,17 +800,21 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
-      expect(apiCalls).toEqual(2);
+
+      await wait(() => expect(apiCalls).toEqual(2));
     });
-    it("should NOT refetch when queryParams are the same", () => {
+
+    it("should NOT refetch when queryParams are the same", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .get("/")
         .query({ page: 2 })
         .reply(200, () => ++apiCalls)
         .persist();
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="" queryParams={{ page: 2 }}>
@@ -792,6 +822,7 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
+
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="" queryParams={{ page: 2 }}>
@@ -799,9 +830,11 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
-      expect(apiCalls).toEqual(1);
+
+      await wait(() => expect(apiCalls).toEqual(1));
     });
-    it("should refetch when queryParams changes", () => {
+
+    it("should refetch when queryParams changes", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -812,13 +845,16 @@ describe("Get", () => {
         .query({ page: 2 })
         .reply(200, () => ++apiCalls)
         .persist();
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
+
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="" queryParams={{ page: 2 }}>
@@ -826,23 +862,29 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
-      expect(apiCalls).toEqual(2);
+
+      await wait(() => expect(apiCalls).toEqual(2));
     });
   });
+
   describe("Compose paths and urls", () => {
     it("should compose the url with the base", async () => {
       nock("https://my-awesome-api.fake")
         .get("/plop")
         .reply(200);
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="/plop">{children}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+
     it("should compose absolute urls", async () => {
       nock("https://my-awesome-api.fake")
         .get("/people")
@@ -850,15 +892,19 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake")
         .get("/absolute")
         .reply(200);
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="/people">{() => <Get path="/absolute">{children}</Get>}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(3));
     });
+
     it("should compose relative urls", async () => {
       nock("https://my-awesome-api.fake")
         .get("/people")
@@ -866,16 +912,20 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake")
         .get("/people/relative")
         .reply(200, { path: "/people/relative" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
           <Get path="/people">{() => <Get path="relative">{children}</Get>}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(3));
       expect(children.mock.calls[2][0]).toEqual({ path: "/people/relative" });
     });
+
     it("should compose absolute urls with base subpath", async () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/people")
@@ -883,16 +933,20 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/absolute")
         .reply(200, { path: "/absolute" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE">
           <Get path="/people">{() => <Get path="/absolute">{children}</Get>}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(3));
       expect(children.mock.calls[2][0]).toEqual({ path: "/absolute" });
     });
+
     it("should compose relative urls with base subpath", async () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/people")
@@ -900,6 +954,7 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/people/relative")
         .reply(200, { path: "/people/relative" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
       render(
@@ -907,9 +962,11 @@ describe("Get", () => {
           <Get path="/people">{() => <Get path="relative">{children}</Get>}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(3));
       expect(children.mock.calls[2][0]).toEqual({ path: "/people/relative" });
     });
+
     it("should compose properly when base contains a trailing slash", async () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/people")
@@ -917,16 +974,20 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/people/relative")
         .reply(200, { path: "/people/relative" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE/">
           <Get path="/people">{() => <Get path="relative">{children}</Get>}</Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(3));
       expect(children.mock.calls[2][0]).toEqual({ path: "/people/relative" });
     });
+
     it("should compose more nested absolute and relative urls", async () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/absolute-1")
@@ -943,8 +1004,10 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake/MY_SUBROUTE")
         .get("/absolute-2/relative-2/relative-3")
         .reply(200, { path: "/absolute-2/relative-2/relative-3" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake/MY_SUBROUTE/">
           <Get path="/absolute-1">
@@ -960,9 +1023,11 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(6));
       expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-2/relative-2/relative-3" });
     });
+
     it("should compose properly when one of the paths is empty string", async () => {
       nock("https://my-awesome-api.fake")
         .get("/absolute-1")
@@ -979,8 +1044,10 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake")
         .get("/absolute-1/absolute-2/relative-2/relative-3")
         .reply(200, { path: "/absolute-1/absolute-2/relative-2/relative-3" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake/absolute-1">
           <Get path="">
@@ -996,9 +1063,11 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(6));
       expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-1/absolute-2/relative-2/relative-3" });
     });
+
     it("should compose properly when one of the paths is lone slash and base has trailing slash", async () => {
       nock("https://my-awesome-api.fake")
         .get("/absolute-1")
@@ -1015,8 +1084,10 @@ describe("Get", () => {
       nock("https://my-awesome-api.fake")
         .get("/absolute-1/absolute-2/relative-2/relative-3")
         .reply(200, { path: "/absolute-1/absolute-2/relative-2/relative-3" });
+
       const children = jest.fn();
       children.mockReturnValue(<div />);
+
       render(
         <RestfulProvider base="https://my-awesome-api.fake/absolute-1/">
           <Get path="/">
@@ -1032,6 +1103,7 @@ describe("Get", () => {
           </Get>
         </RestfulProvider>,
       );
+
       await wait(() => expect(children.mock.calls.length).toBe(6));
       expect(children.mock.calls[5][0]).toEqual({ path: "/absolute-1/absolute-2/relative-2/relative-3" });
     });
@@ -1059,6 +1131,7 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+
     it("should inherit provider's queryParams if none specified", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -1078,6 +1151,7 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+
     it("should override provider's queryParams if own specified", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -1099,6 +1173,7 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+
     it("should merge provider's queryParams with own", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
