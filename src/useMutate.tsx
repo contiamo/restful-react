@@ -78,10 +78,10 @@ export function useMutate<
       const signal = abortController.current.signal;
 
       const propsRequestOptions =
-        (typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions) || {};
+        (typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions) || {};
 
       const contextRequestOptions =
-        (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
+        (typeof context.requestOptions === "function" ? await context.requestOptions() : context.requestOptions) || {};
 
       const options: RequestInit = {
         method: verb,

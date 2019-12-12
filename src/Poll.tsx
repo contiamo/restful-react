@@ -219,7 +219,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     // If we should keep going,
     const { base, path, interval, wait } = this.props;
     const { lastPollIndex } = this.state;
-    const requestOptions = this.getRequestOptions();
+    const requestOptions = await this.getRequestOptions();
 
     let url = composeUrl(base!, "", path);
 
@@ -343,13 +343,13 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
   // Compose Contexts to allow for URL nesting
   return (
     <RestfulReactConsumer>
-      {contextProps => {
+      {async contextProps => {
         const contextRequestOptions =
           typeof contextProps.requestOptions === "function"
             ? contextProps.requestOptions()
             : contextProps.requestOptions || {};
         const propsRequestOptions =
-          typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions || {};
+          typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions || {};
 
         return (
           <ContextlessPoll

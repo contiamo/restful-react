@@ -87,10 +87,10 @@ async function _fetchData<TData, TError, TQueryParams>(
   }
 
   const requestOptions =
-    (typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions) || {};
+    (typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions) || {};
 
   const contextRequestOptions =
-    (typeof context.requestOptions === "function" ? context.requestOptions() : context.requestOptions) || {};
+    (typeof context.requestOptions === "function" ? await context.requestOptions() : context.requestOptions) || {};
 
   const request = new Request(
     resolvePath(base, path, { ...context.queryParams, ...queryParams }),

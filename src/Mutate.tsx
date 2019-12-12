@@ -166,7 +166,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
       headers: {
         "content-type": typeof body === "object" ? "application/json" : "text/plain",
         ...(typeof providerRequestOptions === "function"
-          ? providerRequestOptions().headers
+          ? (await providerRequestOptions()).headers
           : (providerRequestOptions || {}).headers),
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },

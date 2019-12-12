@@ -204,20 +204,21 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
     this.abortController.abort();
   }
 
-  public getRequestOptions = (
+  public getRequestOptions = async (
     extraOptions?: Partial<RequestInit>,
     extraHeaders?: boolean | { [key: string]: string },
   ) => {
     const { requestOptions } = this.props;
 
     if (typeof requestOptions === "function") {
+      const options = (await requestOptions()) || {};
       return {
         ...extraOptions,
-        ...requestOptions(),
+        ...options,
         headers: new Headers({
           ...(typeof extraHeaders !== "boolean" ? extraHeaders : {}),
           ...(extraOptions || {}).headers,
-          ...(requestOptions() || {}).headers,
+          ...options.headers,
         }),
       };
     }
@@ -254,7 +255,7 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
       return url;
     };
 
-    const request = new Request(makeRequestPath(), this.getRequestOptions(thisRequestOptions));
+    const request = new Request(makeRequestPath(), await this.getRequestOptions(thisRequestOptions));
     try {
       const response = await fetch(request, { signal: this.signal });
       const { data, responseError } = await processResponse(response);
