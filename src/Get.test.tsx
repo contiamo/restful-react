@@ -660,7 +660,7 @@ describe("Get", () => {
     });
   });
   describe("refetch after update", () => {
-    it("should not refetch when base, path or resolve don't change", () => {
+    it("should not refetch when base, path or resolve don't change", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -678,7 +678,7 @@ describe("Get", () => {
           <Get path="">{children}</Get>
         </RestfulProvider>,
       );
-      expect(apiCalls).toEqual(1);
+      await wait(() => expect(apiCalls).toEqual(1));
     });
 
     it("should rewrite the base and handle path accordingly", async () => {
