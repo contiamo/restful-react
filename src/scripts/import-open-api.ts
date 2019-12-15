@@ -130,26 +130,30 @@ export const getObject = (item: SchemaObject): string => {
   }
 
   // Consolidation of item.properties & item.additionalProperties
-  let output = "{";
+  let output = "{\n";
   if (item.properties) {
-    output += Object.entries(item.properties)
-      .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
-        const isRequired = (item.required || []).includes(key);
-        const processedKey = IdentifierRegexp.test(key) ? key : `"${key}"`;
-        return `${processedKey}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
-      })
-      .join("; ");
+    output +=
+      Object.entries(item.properties)
+        .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
+          const doc = isReference(prop) ? "" : formatDescription(prop.description, 2);
+          const isRequired = (item.required || []).includes(key);
+          const processedKey = IdentifierRegexp.test(key) ? key : `"${key}"`;
+          return `  ${doc}${processedKey}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
+        })
+        .join(";\n") + ";";
   }
 
   if (item.additionalProperties) {
     if (item.properties) {
-      output += "; ";
+      output += "\n";
     }
-    output += `[key: string]: ${item.additionalProperties === true ? "any" : resolveValue(item.additionalProperties)}`;
+    output += `  [key: string]: ${
+      item.additionalProperties === true ? "any" : resolveValue(item.additionalProperties)
+    };`;
   }
 
-  if (output !== "{") {
-    return output + "}";
+  if (output !== "{\n") {
+    return output + "\n}";
   }
 
   return item.type === "object" ? "{[key: string]: any}" : "any";
@@ -376,8 +380,11 @@ export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "p
     verb === "get" ? "" : ` | "verb"`
   }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
-${operation.summary ? "// " + operation.summary : ""}
-export const ${componentName} = (${
+${formatDescription(
+  operation.summary && operation.description
+    ? `${operation.summary}\n\n${operation.description}`
+    : `${operation.summary || ""}${operation.description || ""}`,
+)}export const ${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: ${componentName}Props) => (
   <${Component}<${genericsTypes}>${
@@ -538,12 +545,12 @@ export interface ${pascal(name)}Response ${type}`;
  *
  * @param description
  */
-export const formatDescription = (description?: string) =>
+export const formatDescription = (description?: string, tabSize = 0) =>
   description
     ? `/**\n${description
         .split("\n")
-        .map(i => ` * ${i}`)
-        .join("\n")}\n */\n`
+        .map(i => `${" ".repeat(tabSize)} * ${i}`)
+        .join("\n")}\n${" ".repeat(tabSize)} */\n${" ".repeat(tabSize)}`
     : "";
 
 /**

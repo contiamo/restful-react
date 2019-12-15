@@ -59,7 +59,7 @@ describe("scripts/import-open-api", () => {
       { item: { type: "array", items: { type: "string" } }, expected: "string[]" },
       { item: { type: "array", items: { type: "integer" } }, expected: "number[]" },
       { item: { type: "array", items: { type: "customType" } }, expected: "any[]" },
-      { item: { type: "object", properties: { value: { type: "integer" } } }, expected: "{value?: number}" },
+      { item: { type: "object", properties: { value: { type: "integer" } } }, expected: "{\n  value?: number;\n}" },
       { item: { type: "object" }, expected: "{[key: string]: any}" },
       { item: { type: "object", $ref: "#/components/schemas/Foo" }, expected: "Foo" },
       { item: { type: "string" }, expected: "string" },
@@ -181,7 +181,12 @@ describe("scripts/import-open-api", () => {
           },
         },
       };
-      expect(getObject(item)).toEqual(`{name: string; age: number}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  name: string;
+                                                  age: number;
+                                                }"
+                                    `);
     });
 
     it("should return the type of an object with optional values", () => {
@@ -197,7 +202,12 @@ describe("scripts/import-open-api", () => {
           },
         },
       };
-      expect(getObject(item)).toEqual(`{name: string; age?: number}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  name: string;
+                                                  age?: number;
+                                                }"
+                                    `);
     });
 
     it("should deal with additionalProperties", () => {
@@ -207,7 +217,11 @@ describe("scripts/import-open-api", () => {
           type: "string",
         },
       };
-      expect(getObject(item)).toEqual(`{[key: string]: string}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  [key: string]: string;
+                                                }"
+                                    `);
     });
 
     it("should deal with ref additionalProperties", () => {
@@ -217,7 +231,11 @@ describe("scripts/import-open-api", () => {
           $ref: "#/components/schemas/foo",
         },
       };
-      expect(getObject(item)).toEqual(`{[key: string]: Foo}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                        "{
+                                          [key: string]: Foo;
+                                        }"
+                              `);
     });
 
     it("should deal with true as additionalProperties", () => {
@@ -225,7 +243,11 @@ describe("scripts/import-open-api", () => {
         type: "object",
         additionalProperties: true,
       };
-      expect(getObject(item)).toEqual(`{[key: string]: any}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  [key: string]: any;
+                                                }"
+                                    `);
     });
 
     it("should deal with ref additionalProperties", () => {
@@ -235,7 +257,11 @@ describe("scripts/import-open-api", () => {
           $ref: "#/components/schemas/foo",
         },
       };
-      expect(getObject(item)).toEqual(`{[key: string]: Foo}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  [key: string]: Foo;
+                                                }"
+                                    `);
     });
 
     it("should deal with oneOf additionalProperties", () => {
@@ -245,7 +271,11 @@ describe("scripts/import-open-api", () => {
           oneOf: [{ $ref: "#/components/schemas/foo" }, { $ref: "#/components/schemas/bar" }],
         },
       };
-      expect(getObject(item)).toEqual(`{[key: string]: Foo | Bar}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  [key: string]: Foo | Bar;
+                                                }"
+                                    `);
     });
 
     it("should deal with array as additionalProperties", () => {
@@ -259,7 +289,11 @@ describe("scripts/import-open-api", () => {
         },
       };
 
-      expect(getObject(item)).toEqual(`{[key: string]: string[]}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  [key: string]: string[];
+                                                }"
+                                    `);
     });
 
     it("should deal with additionalProperties on top of define properties", () => {
@@ -273,7 +307,12 @@ describe("scripts/import-open-api", () => {
         additionalProperties: true,
       };
 
-      expect(getObject(item)).toEqual(`{name?: string; [key: string]: any}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "{
+                                                  name?: string;
+                                                  [key: string]: any;
+                                                }"
+                                    `);
     });
 
     it("should deal with allOf", () => {
@@ -290,7 +329,11 @@ describe("scripts/import-open-api", () => {
           },
         ],
       };
-      expect(getObject(item)).toEqual(`Foo & {name: string}`);
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                "Foo & {
+                                                  name: string;
+                                                }"
+                                    `);
     });
   });
 
@@ -402,7 +445,13 @@ describe("scripts/import-open-api", () => {
           },
         },
       };
-      expect(generateSchemasDefinition(schema)).toContain(`export interface NewPet {name: string; tag?: string}`);
+      expect(generateSchemasDefinition(schema)).toMatchInlineSnapshot(`
+        "export interface NewPet {
+          name: string;
+          tag?: string;
+        }
+        "
+      `);
     });
 
     it("should declare an interface for simple object (nullable)", () => {
@@ -420,7 +469,13 @@ describe("scripts/import-open-api", () => {
           },
         },
       };
-      expect(generateSchemasDefinition(schema)).toContain(`export type NewPet = {name: string; tag?: string} | null`);
+      expect(generateSchemasDefinition(schema)).toMatchInlineSnapshot(`
+        "export type NewPet = {
+          name: string;
+          tag?: string;
+        } | null;
+        "
+      `);
     });
 
     it("should declare a type for union object", () => {
@@ -432,7 +487,12 @@ describe("scripts/import-open-api", () => {
           ],
         },
       };
-      expect(generateSchemasDefinition(schema)).toContain(`export type Pet = NewPet & {id: number};`);
+      expect(generateSchemasDefinition(schema)).toMatchInlineSnapshot(`
+        "export type Pet = NewPet & {
+          id: number;
+        };
+        "
+      `);
     });
 
     it("should declare a discriminate object", () => {
@@ -444,7 +504,12 @@ describe("scripts/import-open-api", () => {
           ],
         },
       };
-      expect(generateSchemasDefinition(schema)).toContain(`export type Pet = NewPet | {id: number};`);
+      expect(generateSchemasDefinition(schema)).toMatchInlineSnapshot(`
+        "export type Pet = NewPet | {
+          id: number;
+        };
+        "
+      `);
     });
 
     it("should declare a type for all others types", () => {
@@ -501,13 +566,18 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateResponsesDefinition(responses)).toMatchInlineSnapshot(`
-                "
-                /**
-                 * Job is starting
-                 */
-                export interface JobRunResponse {executionID?: string}
-                "
-            `);
+                                                        "
+                                                        /**
+                                                         * Job is starting
+                                                         */
+                                                        export interface JobRunResponse {
+                                                          /**
+                                                           * ID of the job execution
+                                                           */
+                                                          executionID?: string;
+                                                        }
+                                                        "
+                                          `);
     });
 
     it("should give double quotes for special properties", () => {
@@ -531,13 +601,18 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateResponsesDefinition(responses)).toMatchInlineSnapshot(`
-                "
-                /**
-                 * Job is starting
-                 */
-                export interface JobRunResponse {\\"execution-id\\"?: string}
-                "
-            `);
+                                                        "
+                                                        /**
+                                                         * Job is starting
+                                                         */
+                                                        export interface JobRunResponse {
+                                                          /**
+                                                           * ID of the job execution
+                                                           */
+                                                          \\"execution-id\\"?: string;
+                                                        }
+                                                        "
+                                          `);
     });
 
     it("should declare a a type for composed object", () => {
@@ -566,13 +641,18 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateResponsesDefinition(responses)).toMatchInlineSnapshot(`
-        "
-        /**
-         * Job is starting
-         */
-        export type JobRunResponse = {executionID?: string} & ExecutionID;
-        "
-      `);
+                                                        "
+                                                        /**
+                                                         * Job is starting
+                                                         */
+                                                        export type JobRunResponse = {
+                                                          /**
+                                                           * ID of the job execution
+                                                           */
+                                                          executionID?: string;
+                                                        } & ExecutionID;
+                                                        "
+                                          `);
     });
 
     it("should declare a a type for union object", () => {
@@ -601,13 +681,18 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateResponsesDefinition(responses)).toMatchInlineSnapshot(`
-        "
-        /**
-         * Job is starting
-         */
-        export type JobRunResponse = {executionID?: string} | ExecutionID;
-        "
-      `);
+                                                        "
+                                                        /**
+                                                         * Job is starting
+                                                         */
+                                                        export type JobRunResponse = {
+                                                          /**
+                                                           * ID of the job execution
+                                                           */
+                                                          executionID?: string;
+                                                        } | ExecutionID;
+                                                        "
+                                          `);
     });
   });
 
@@ -662,7 +747,11 @@ describe("scripts/import-open-api", () => {
         ],
       ];
 
-      expect(getResReqTypes(responses)).toEqual("FieldListResponse | {id: string}");
+      expect(getResReqTypes(responses)).toMatchInlineSnapshot(`
+                                        "FieldListResponse | {
+                                          id: string;
+                                        }"
+                              `);
     });
 
     it("should not generate type duplication", () => {
@@ -711,24 +800,65 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                                                        "
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = (props: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, void>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
+    });
+
+    it("should have a nice documentation with summary and description", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        description: "This is a longer description to describe my endpoint",
+        operationId: "listFields",
+        tags: ["schema"],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
+                "
+                export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown, void>, \\"path\\">;
+
+                /**
+                 * List all fields for the use case schema
+                 * 
+                 * This is a longer description to describe my endpoint
+                 */
+                export const ListFields = (props: ListFieldsProps) => (
+                  <Get<FieldListResponse, unknown, void>
+                    path={\`/fields\`}
+                    {...props}
+                  />
+                );
+
+                export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+
+                // List all fields for the use case schema
+                export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void>(\`/fields\`, props);
+
+                "
+            `);
     });
 
     it("should add a fallback if the error is not defined", () => {
@@ -745,24 +875,26 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                                                        "
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, unknown, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = (props: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, unknown, void>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, unknown, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void>(\`/fields\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
 
     it("should remove duplicate types", () => {
@@ -792,24 +924,26 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                                                        "
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = (props: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, void>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
 
     it("should deal with parameters in query", () => {
@@ -854,26 +988,28 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                                                        "
-                                                        export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
+                        "
+                        export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
 
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = (props: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, ListFieldsQueryParams>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, ListFieldsQueryParams>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
     it("should deal with parameters in query (root level)", () => {
       const operation: OperationObject = {
@@ -924,26 +1060,28 @@ describe("scripts/import-open-api", () => {
           ],
         ),
       ).toMatchInlineSnapshot(`
-                                                        "
-                                                        export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
+                        "
+                        export interface ListFieldsQueryParams {tenantId: string; projectId?: string}
 
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, ListFieldsQueryParams>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = (props: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, ListFieldsQueryParams>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, ListFieldsQueryParams>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams>(\`/fields\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
 
     it("should deal with parameters in path", () => {
@@ -989,24 +1127,26 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields/{id}", [])).toMatchInlineSnapshot(`
-                                                        "
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = ({id, ...props}: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, void>
-                                                            path={\`/fields/\${id}\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = ({id, ...props}: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields/\${id}\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
 
     it("should deal with parameters in path (root level)", () => {
@@ -1059,24 +1199,26 @@ describe("scripts/import-open-api", () => {
           ],
         ),
       ).toMatchInlineSnapshot(`
-                                                        "
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\"> & {id: string};
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = ({id, ...props}: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, void>
-                                                            path={\`/fields/\${id}\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = ({id, ...props}: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields/\${id}\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\"> & {id: string};
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields/\${id}\`, props);
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
 
     it("should generate a Mutate type component", () => {
@@ -1122,25 +1264,27 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
-                                        "
-                                        export type UpdateUseCaseProps = Omit<MutateProps<UseCaseResponse, APIError, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        "
+                        export type UpdateUseCaseProps = Omit<MutateProps<UseCaseResponse, APIError, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Update use case details
-                                        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
-                                          <Mutate<UseCaseResponse, APIError, void, UseCaseInstance>
-                                            verb=\\"PUT\\"
-                                            path={\`/use-cases/\${useCaseId}\`}
-                                            {...props}
-                                          />
-                                        );
+                        /**
+                         * Update use case details
+                         */
+                        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
+                          <Mutate<UseCaseResponse, APIError, void, UseCaseInstance>
+                            verb=\\"PUT\\"
+                            path={\`/use-cases/\${useCaseId}\`}
+                            {...props}
+                          />
+                        );
 
-                                        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Update use case details
-                                        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
+                        // Update use case details
+                        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
 
-                                        "
-                              `);
+                        "
+                  `);
     });
     it("should generate a proper ComponentResponse type if the type is custom", () => {
       const operation: OperationObject = {
@@ -1200,27 +1344,32 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
-                                        "
-                                        export interface UpdateUseCaseResponse {id: string; name?: string}
+                        "
+                        export interface UpdateUseCaseResponse {
+                          id: string;
+                          name?: string;
+                        }
 
-                                        export type UpdateUseCaseProps = Omit<MutateProps<UpdateUseCaseResponse, APIError, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        export type UpdateUseCaseProps = Omit<MutateProps<UpdateUseCaseResponse, APIError, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Update use case details
-                                        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
-                                          <Mutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>
-                                            verb=\\"PUT\\"
-                                            path={\`/use-cases/\${useCaseId}\`}
-                                            {...props}
-                                          />
-                                        );
+                        /**
+                         * Update use case details
+                         */
+                        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
+                          <Mutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>
+                            verb=\\"PUT\\"
+                            path={\`/use-cases/\${useCaseId}\`}
+                            {...props}
+                          />
+                        );
 
-                                        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Update use case details
-                                        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
+                        // Update use case details
+                        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
 
-                                        "
-                              `);
+                        "
+                  `);
     });
 
     it("should ignore 3xx responses", () => {
@@ -1284,27 +1433,32 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
-                                        "
-                                        export interface UpdateUseCaseResponse {id: string; name?: string}
+                        "
+                        export interface UpdateUseCaseResponse {
+                          id: string;
+                          name?: string;
+                        }
 
-                                        export type UpdateUseCaseProps = Omit<MutateProps<UpdateUseCaseResponse, APIError, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        export type UpdateUseCaseProps = Omit<MutateProps<UpdateUseCaseResponse, APIError, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Update use case details
-                                        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
-                                          <Mutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>
-                                            verb=\\"PUT\\"
-                                            path={\`/use-cases/\${useCaseId}\`}
-                                            {...props}
-                                          />
-                                        );
+                        /**
+                         * Update use case details
+                         */
+                        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
+                          <Mutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>
+                            verb=\\"PUT\\"
+                            path={\`/use-cases/\${useCaseId}\`}
+                            {...props}
+                          />
+                        );
 
-                                        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Update use case details
-                                        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
+                        // Update use case details
+                        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
 
-                                        "
-                              `);
+                        "
+                  `);
     });
 
     it("should ignore the last param of a delete call (the id is give after)", () => {
@@ -1345,25 +1499,27 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
-                                        "
-                                        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, string>, \\"path\\" | \\"verb\\">;
+                        "
+                        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, string>, \\"path\\" | \\"verb\\">;
 
-                                        // Delete use case
-                                        export const DeleteUseCase = (props: DeleteUseCaseProps) => (
-                                          <Mutate<void, APIError, void, string>
-                                            verb=\\"DELETE\\"
-                                            path={\`/use-cases\`}
-                                            {...props}
-                                          />
-                                        );
+                        /**
+                         * Delete use case
+                         */
+                        export const DeleteUseCase = (props: DeleteUseCaseProps) => (
+                          <Mutate<void, APIError, void, string>
+                            verb=\\"DELETE\\"
+                            path={\`/use-cases\`}
+                            {...props}
+                          />
+                        );
 
-                                        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, string>, \\"path\\" | \\"verb\\">;
+                        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, string>, \\"path\\" | \\"verb\\">;
 
-                                        // Delete use case
-                                        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string>(\\"DELETE\\", \`/use-cases\`, props);
+                        // Delete use case
+                        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string>(\\"DELETE\\", \`/use-cases\`, props);
 
-                                        "
-                              `);
+                        "
+                  `);
     });
     it("should only remove the last params in delete operation", () => {
       const operation: OperationObject = {
@@ -1403,25 +1559,27 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}/secret", [])).toMatchInlineSnapshot(`
-                                        "
-                                        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        "
+                        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Delete use case
-                                        export const DeleteUseCase = ({useCaseId, ...props}: DeleteUseCaseProps) => (
-                                          <Mutate<void, APIError, void, void>
-                                            verb=\\"DELETE\\"
-                                            path={\`/use-cases/\${useCaseId}/secret\`}
-                                            {...props}
-                                          />
-                                        );
+                        /**
+                         * Delete use case
+                         */
+                        export const DeleteUseCase = ({useCaseId, ...props}: DeleteUseCaseProps) => (
+                          <Mutate<void, APIError, void, void>
+                            verb=\\"DELETE\\"
+                            path={\`/use-cases/\${useCaseId}/secret\`}
+                            {...props}
+                          />
+                        );
 
-                                        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+                        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, void>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
 
-                                        // Delete use case
-                                        export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, void>(\\"DELETE\\", \`/use-cases/\${useCaseId}/secret\`, props);
+                        // Delete use case
+                        export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, void>(\\"DELETE\\", \`/use-cases/\${useCaseId}/secret\`, props);
 
-                                        "
-                              `);
+                        "
+                  `);
     });
 
     it("should generate a Poll compoment if the `prefer` token is present", () => {
@@ -1456,34 +1614,36 @@ describe("scripts/import-open-api", () => {
       };
 
       expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                                                        "
-                                                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        "
+                        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const ListFields = (props: ListFieldsProps) => (
-                                                          <Get<FieldListResponse, APIError, void>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        /**
+                         * List all fields for the use case schema
+                         */
+                        export const ListFields = (props: ListFieldsProps) => (
+                          <Get<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
+                        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema
-                                                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
+                        // List all fields for the use case schema
+                        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void>(\`/fields\`, props);
 
-                                                        export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void>, \\"path\\">;
+                        export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void>, \\"path\\">;
 
-                                                        // List all fields for the use case schema (long polling)
-                                                        export const PollListFields = (props: PollListFieldsProps) => (
-                                                          <Poll<FieldListResponse, APIError, void>
-                                                            path={\`/fields\`}
-                                                            {...props}
-                                                          />
-                                                        );
+                        // List all fields for the use case schema (long polling)
+                        export const PollListFields = (props: PollListFieldsProps) => (
+                          <Poll<FieldListResponse, APIError, void>
+                            path={\`/fields\`}
+                            {...props}
+                          />
+                        );
 
-                                                        "
-                                          `);
+                        "
+                  `);
     });
   });
   it("should deal with no 2xx response case", () => {
@@ -1507,24 +1667,26 @@ describe("scripts/import-open-api", () => {
     };
 
     expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-                                          "
-                                          export type ListFieldsProps = Omit<GetProps<void, APIError, void>, \\"path\\">;
+                  "
+                  export type ListFieldsProps = Omit<GetProps<void, APIError, void>, \\"path\\">;
 
-                                          // List all fields for the use case schema
-                                          export const ListFields = (props: ListFieldsProps) => (
-                                            <Get<void, APIError, void>
-                                              path={\`/fields\`}
-                                              {...props}
-                                            />
-                                          );
+                  /**
+                   * List all fields for the use case schema
+                   */
+                  export const ListFields = (props: ListFieldsProps) => (
+                    <Get<void, APIError, void>
+                      path={\`/fields\`}
+                      {...props}
+                    />
+                  );
 
-                                          export type UseListFieldsProps = Omit<UseGetProps<void, void>, \\"path\\">;
+                  export type UseListFieldsProps = Omit<UseGetProps<void, void>, \\"path\\">;
 
-                                          // List all fields for the use case schema
-                                          export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void>(\`/fields\`, props);
+                  // List all fields for the use case schema
+                  export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void>(\`/fields\`, props);
 
-                                          "
-                            `);
+                  "
+            `);
   });
 
   describe("reactPropsValueToObjectValue", () => {
