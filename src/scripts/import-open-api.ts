@@ -409,8 +409,11 @@ ${formatDescription(
     verb === "get" ? "" : ` | "verb"`
   }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
-${operation.summary ? "// " + operation.summary : ""}
-export const use${componentName} = (${
+${formatDescription(
+  operation.summary && operation.description
+    ? `${operation.summary}\n\n${operation.description}`
+    : `${operation.summary || ""}${operation.description || ""}`,
+)}export const use${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
