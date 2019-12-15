@@ -24,7 +24,7 @@ import swagger2openapi from "swagger2openapi";
 import YAML from "yamljs";
 import { AdvancedOptions } from "../bin/restful-react-import";
 
-const IdentifierRegexp = /^[a-zA-Z_\$][a-zA-Z0-9_\$]*$/
+const IdentifierRegexp = /^[a-zA-Z_\$][a-zA-Z0-9_\$]*$/;
 
 /**
  * Discriminator helper for `ReferenceObject`
@@ -135,7 +135,7 @@ export const getObject = (item: SchemaObject): string => {
     output += Object.entries(item.properties)
       .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
         const isRequired = (item.required || []).includes(key);
-        const processedKey = (IdentifierRegexp.test(key) ? key : `"${key}"`)
+        const processedKey = IdentifierRegexp.test(key) ? key : `"${key}"`;
         return `${processedKey}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
       })
       .join("; ");
@@ -332,8 +332,8 @@ export const generateRestfulComponent = (
 
   const queryParamsType = queryParams
     .map(p => {
-      const processedName = IdentifierRegexp.test(p.name) ? p.name : `"${p.name}"`
-      return `${processedName}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`
+      const processedName = IdentifierRegexp.test(p.name) ? p.name : `"${p.name}"`;
+      return `${processedName}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`;
     })
     .join("; ");
 
@@ -516,21 +516,35 @@ export const generateResponsesDefinition = (responses: ComponentsObject["respons
     "\n" +
     Object.entries(responses)
       .map(([name, response]) => {
+        const doc = isReference(response) ? "" : formatDescription(response.description);
         const type = getResReqTypes([["", response]]);
         const isEmptyInterface = type === "{}";
         if (isEmptyInterface) {
           return `// tslint:disable-next-line:no-empty-interface
 export interface ${pascal(name)}Response ${type}`;
         } else if (type.includes("{") && !type.includes("|") && !type.includes("&")) {
-          return `export interface ${pascal(name)}Response ${type}`;
+          return `${doc}export interface ${pascal(name)}Response ${type}`;
         } else {
-          return `export type ${pascal(name)}Response = ${type};`;
+          return `${doc}export type ${pascal(name)}Response = ${type};`;
         }
       })
       .join("\n\n") +
     "\n"
   );
 };
+
+/**
+ * Format a description to code documentation.
+ *
+ * @param description
+ */
+export const formatDescription = (description?: string) =>
+  description
+    ? `/**\n${description
+        .split("\n")
+        .map(i => ` * ${i}`)
+        .join("\n")}\n */\n`
+    : "";
 
 /**
  * Validate the spec with ibm-openapi-validator (with a custom pretty logger).
