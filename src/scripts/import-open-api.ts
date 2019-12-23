@@ -228,11 +228,11 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
 
   return new Promise((resolve, reject) => {
     if (!schema.openapi || !schema.openapi.startsWith("3.0")) {
-      swagger2openapi.convertObj(schema, {}, (err, { openapi }) => {
+      swagger2openapi.convertObj(schema, {}, (err, convertedObj) => {
         if (err) {
           reject(err);
         } else {
-          resolve(openapi);
+          resolve(convertedObj.openapi);
         }
       });
     } else {
