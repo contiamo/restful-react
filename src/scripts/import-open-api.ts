@@ -337,9 +337,11 @@ export const generateRestfulComponent = (
   const queryParamsType = queryParams
     .map(p => {
       const processedName = IdentifierRegexp.test(p.name) ? p.name : `"${p.name}"`;
-      return `${processedName}${p.required ? "" : "?"}: ${resolveValue(p.schema!)}`;
+      return `${formatDescription(p.description, 2)}${processedName}${p.required ? "" : "?"}: ${resolveValue(
+        p.schema!,
+      )}`;
     })
-    .join("; ");
+    .join(";\n  ");
 
   const genericsTypes =
     verb === "get"
@@ -372,7 +374,9 @@ export ${
   }${
     queryParamsType
       ? `
-export interface ${componentName}QueryParams {${queryParamsType}}
+export interface ${componentName}QueryParams {
+  ${queryParamsType};
+}
 `
       : ""
   }
