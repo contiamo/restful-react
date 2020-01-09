@@ -125,6 +125,7 @@ paths:
 components:
   schemas:
     Pet:
+      description: A pet.
       allOf:
         - $ref: "#/components/schemas/NewPet"
         - required:
@@ -135,6 +136,7 @@ components:
               format: int64
 
     NewPet:
+      description: A new pet.
       required:
         - name
       properties:
@@ -155,6 +157,7 @@ components:
            dog: "#/components/schemas/Dog"
 
     Cat:
+      description: A cat, meow.
       type: object
       properties:
         type:
@@ -170,6 +173,7 @@ components:
         - breed
 
     Dog:
+      description: A dog, wooof.
       type: object
       properties:
         type:
@@ -185,6 +189,7 @@ components:
         - breed
 
     Error:
+      description: An error :(
       required:
         - code
         - message

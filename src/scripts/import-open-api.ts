@@ -460,7 +460,7 @@ export const Poll${componentName} = (${
  */
 export const generateInterface = (name: string, schema: SchemaObject) => {
   const scalar = getScalar(schema);
-  return `export interface ${pascal(name)} ${scalar}`;
+  return `${formatDescription(schema.description)}export interface ${pascal(name)} ${scalar}`;
 };
 
 /**
@@ -510,7 +510,9 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
         !isReference(schema) &&
         !schema.nullable
           ? generateInterface(name, schema)
-          : `export type ${pascal(name)} = ${resolveValue(schema)};`,
+          : `${formatDescription(isReference(schema) ? undefined : schema.description)}export type ${pascal(
+              name,
+            )} = ${resolveValue(schema)};`,
       )
       .join("\n\n") + "\n"
   );
