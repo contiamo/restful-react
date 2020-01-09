@@ -34,7 +34,16 @@ export interface Error {
   message: string;
 }
 
-export interface FindPetsQueryParams {tags?: string[]; limit?: number}
+export interface FindPetsQueryParams {
+  /**
+   * tags to filter by
+   */
+  tags?: string[];
+  /**
+   * maximum number of results to return
+   */
+  limit?: number;
+}
 
 export type FindPetsProps = Omit<GetProps<Pet[], Error, FindPetsQueryParams>, \\"path\\">;
 
