@@ -519,6 +519,37 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
 };
 
 /**
+ * Extract all types from #/components/requestBodies
+ *
+ * @param requestBodies
+ */
+export const generateRequestBodiesDefinition = (requestBodies: ComponentsObject["requestBodies"] = {}) => {
+  if (isEmpty(requestBodies)) {
+    return "";
+  }
+
+  return (
+    "\n" +
+    Object.entries(requestBodies)
+      .map(([name, requestBody]) => {
+        const doc = isReference(requestBody) ? "" : formatDescription(requestBody.description);
+        const type = getResReqTypes([["", requestBody]]);
+        const isEmptyInterface = type === "{}";
+        if (isEmptyInterface) {
+          return `// tslint:disable-next-line:no-empty-interface
+export interface ${pascal(name)}RequestBody ${type}`;
+        } else if (type.includes("{") && !type.includes("|") && !type.includes("&")) {
+          return `${doc}export interface ${pascal(name)}RequestBody ${type}`;
+        } else {
+          return `${doc}export type ${pascal(name)}RequestBody = ${type};`;
+        }
+      })
+      .join("\n\n") +
+    "\n"
+  );
+};
+
+/**
  * Extract all types from #/components/responses
  *
  * @param responses
@@ -646,6 +677,7 @@ const importOpenApi = async ({
   let output = "";
 
   output += generateSchemasDefinition(specs.components && specs.components.schemas);
+  output += generateRequestBodiesDefinition(specs.components && specs.components.requestBodies);
   output += generateResponsesDefinition(specs.components && specs.components.responses);
   Object.entries(specs.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
