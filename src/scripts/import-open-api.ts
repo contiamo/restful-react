@@ -132,15 +132,14 @@ export const getObject = (item: SchemaObject): string => {
   // Consolidation of item.properties & item.additionalProperties
   let output = "{\n";
   if (item.properties) {
-    output +=
-      Object.entries(item.properties)
-        .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
-          const doc = isReference(prop) ? "" : formatDescription(prop.description, 2);
-          const isRequired = (item.required || []).includes(key);
-          const processedKey = IdentifierRegexp.test(key) ? key : `"${key}"`;
-          return `  ${doc}${processedKey}${isRequired ? "" : "?"}: ${resolveValue(prop)}`;
-        })
-        .join(";\n") + ";";
+    output += Object.entries(item.properties)
+      .map(([key, prop]: [string, ReferenceObject | SchemaObject]) => {
+        const doc = isReference(prop) ? "" : formatDescription(prop.description, 2);
+        const isRequired = (item.required || []).includes(key);
+        const processedKey = IdentifierRegexp.test(key) ? key : `"${key}"`;
+        return `  ${doc}${processedKey}${isRequired ? "" : "?"}: ${resolveValue(prop)};`;
+      })
+      .join("\n");
   }
 
   if (item.additionalProperties) {

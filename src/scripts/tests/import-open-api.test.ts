@@ -335,6 +335,12 @@ describe("scripts/import-open-api", () => {
                                                                 }"
                                                 `);
     });
+    it("should handle empty properties", () => {
+      const item = {
+        properties: {},
+      };
+      expect(getObject(item)).toMatchInlineSnapshot(`"any"`);
+    });
   });
 
   describe("resolveDiscriminator", () => {
