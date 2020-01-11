@@ -122,7 +122,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    patch:
+      description: Updates a pet in the store.
+      operationId: updatePet
+      parameters:
+        - name: id
+          in: path
+          description: ID of pet to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: "#/components/requestBodies/updatePetRequest"
+      responses:
+        "200":
+          description: pet response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
+  requestBodies:
+    updatePetRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NewPet"
+      required: true
   schemas:
     Pet:
       description: A pet.
@@ -153,8 +186,8 @@ components:
       discriminator:
         propertyName: type
         mapping:
-           cat: "#/components/schemas/Cat"
-           dog: "#/components/schemas/Dog"
+          cat: "#/components/schemas/Cat"
+          dog: "#/components/schemas/Dog"
 
     Cat:
       description: A cat, meow.
@@ -181,9 +214,9 @@ components:
         breed:
           type: string
           enum:
-           - saimois
-           - bengal
-           - british shorthair
+            - saimois
+            - bengal
+            - british shorthair
       required:
         - type
         - breed

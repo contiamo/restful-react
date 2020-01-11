@@ -52,6 +52,8 @@ export interface Error {
   message: string;
 }
 
+export type UpdatePetRequestRequestBody = NewPet;
+
 export interface FindPetsQueryParams {
   /**
    * tags to filter by
@@ -151,6 +153,27 @@ export type UseDeletePetProps = Omit<UseMutateProps<void, void, string>, \\"path
  * deletes a single pet based on the ID supplied
  */
 export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, string>(\\"DELETE\\", \`/pets\`, props);
+
+
+export type UpdatePetProps = Omit<MutateProps<Pet, Error, void, UpdatePetRequestRequestBody>, \\"path\\" | \\"verb\\"> & {id: number};
+
+/**
+ * Updates a pet in the store.
+ */
+export const UpdatePet = ({id, ...props}: UpdatePetProps) => (
+  <Mutate<Pet, Error, void, UpdatePetRequestRequestBody>
+    verb=\\"PATCH\\"
+    path={\`/pets/\${id}\`}
+    {...props}
+  />
+);
+
+export type UseUpdatePetProps = Omit<UseMutateProps<Pet, void, UpdatePetRequestRequestBody>, \\"path\\" | \\"verb\\"> & {id: number};
+
+/**
+ * Updates a pet in the store.
+ */
+export const useUpdatePet = ({id, ...props}: UseUpdatePetProps) => useMutate<Pet, Error, void, UpdatePetRequestRequestBody>(\\"PATCH\\", \`/pets/\${id}\`, props);
 
 "
 `;
