@@ -1,9 +1,9 @@
+import "@testing-library/jest-dom/extend-expect";
+import { cleanup, fireEvent, render, wait, waitForElement } from "@testing-library/react";
 import "isomorphic-fetch";
-import "jest-dom/extend-expect";
 import times from "lodash/times";
 import nock from "nock";
 import React, { useState } from "react";
-import { cleanup, fireEvent, render, wait, waitForElement } from "react-testing-library";
 
 import { RestfulProvider, useGet } from "./index";
 import { Omit, UseGetProps } from "./useGet";

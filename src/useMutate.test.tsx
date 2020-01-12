@@ -1,7 +1,7 @@
+import { renderHook } from "@testing-library/react-hooks";
 import "isomorphic-fetch";
 import nock from "nock";
 import React from "react";
-import { renderHook } from "react-hooks-testing-library";
 import { RestfulProvider, useMutate } from ".";
 import { Omit } from "./useGet";
 import { UseMutateProps } from "./useMutate";
