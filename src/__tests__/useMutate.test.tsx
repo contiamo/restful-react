@@ -2,9 +2,9 @@ import { renderHook } from "@testing-library/react-hooks";
 import "isomorphic-fetch";
 import nock from "nock";
 import React from "react";
-import { RestfulProvider, useMutate } from ".";
-import { Omit } from "./useGet";
-import { UseMutateProps } from "./useMutate";
+import { RestfulProvider, useMutate } from "..";
+import { Omit } from "../useGet";
+import { UseMutateProps } from "../useMutate";
 
 describe("useMutate", () => {
   // Mute console.error -> https://github.com/kentcdodds/react-testing-library/issues/281

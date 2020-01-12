@@ -1,4 +1,4 @@
-import { composePath, composeUrl } from "./composeUrl";
+import { composePath, composeUrl } from "../composeUrl";
 
 describe("compose paths and urls", () => {
   it("should handle empty parentPath with absolute path", () => {

@@ -4,8 +4,8 @@ import "isomorphic-fetch";
 import nock from "nock";
 import React from "react";
 
-import Get from "./Get";
-import { Mutate, RestfulProvider } from "./index";
+import Get from "../Get";
+import { Mutate, RestfulProvider } from "../index";
 
 describe("Mutate", () => {
   afterEach(() => {

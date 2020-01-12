@@ -4,7 +4,7 @@ import "isomorphic-fetch";
 import nock from "nock";
 import React from "react";
 
-import { Poll, RestfulProvider } from "./index";
+import { Poll, RestfulProvider } from "../index";
 
 describe("Poll", () => {
   afterEach(() => {

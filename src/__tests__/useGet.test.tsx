@@ -5,8 +5,8 @@ import times from "lodash/times";
 import nock from "nock";
 import React, { useState } from "react";
 
-import { RestfulProvider, useGet } from "./index";
-import { Omit, UseGetProps } from "./useGet";
+import { RestfulProvider, useGet } from "../index";
+import { Omit, UseGetProps } from "../useGet";
 
 describe("useGet hook", () => {
   // Mute console.error -> https://github.com/kentcdodds/react-testing-library/issues/281

@@ -5,8 +5,8 @@ import times from "lodash/times";
 import nock from "nock";
 import React from "react";
 
-import { Get, RestfulProvider } from "./index";
-import Mutate from "./Mutate";
+import { Get, RestfulProvider } from "../index";
+import Mutate from "../Mutate";
 
 describe("Get", () => {
   afterEach(() => {
