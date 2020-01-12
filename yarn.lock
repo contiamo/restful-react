@@ -992,7 +992,7 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@operational/scripts@2.0.0":
+"@operational/scripts@^2.0.0":
   version "2.0.0"
   resolved "http://verdaccio.bowerytree.co:4873/@operational%2fscripts/-/scripts-2.0.0.tgz#18fd518d5dc99d997460e4b58449a38a168c341e"
   integrity sha512-vj/u7NQHAKwezP1t67LNn8X4gesZV/XcvALhyYPS29Ap4FcUwUrJ0cjFkSXHCZugS19If/ptbWIMfMajN6t1jg==
