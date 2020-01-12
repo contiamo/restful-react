@@ -2,14 +2,18 @@
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
   "version": "9.7.0",
-  "main": "lib/index.js",
-  "license": "MIT",
+  "main": "dist/restful-react.cjs.js",
+  "module": "dist/restful-react.esm.js",
+  "umd:main": "dist/restful-react.umd.js",
   "files": [
+    "dist",
     "lib"
   ],
+  "types": "dist/index.d.ts",
   "bin": {
-    "restful-react": "lib/bin/restful-react.js"
+    "restful-react": "lib/restful-react.js"
   },
+  "license": "MIT",
   "keywords": [
     "rest",
     "restful",
@@ -41,17 +45,22 @@
   "scripts": {
     "start": "operational-scripts start",
     "test": "operational-scripts test",
-    "build": "operational-scripts build --for npm && rollup -c rollup.config.js",
+    "build:cjs": "BUILD_SIZE_SNAPSHOT=true BUILD_FORMAT=cjs rollup --config --sourcemap",
+    "build:esm": "BUILD_SIZE_SNAPSHOT=true BUILD_FORMAT=esm rollup --config --sourcemap",
+    "build:umd": "BUILD_SIZE_SNAPSHOT=true BUILD_FORMAT=umd rollup --config --sourcemap",
+    "build:umd:min": "BUILD_FORMAT=umd BUILD_MINIFY=true rollup --config",
+    "build:tools": "rollup --config tools.rollup.config.js",
+    "build": "npm-run-all build:cjs build:esm build:umd build:umd:min",
     "preversion": "npm run build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
     "lint": "tslint src/**/*{ts,tsx} --project .",
-    "prepublishOnly": "operational-scripts prepare && rollup -c rollup.config.js",
+    "prepublishOnly": "operational-scripts prepare && yarn run build:tools",
     "ci": "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\"",
     "examples": "run-p example:*",
-    "example:github": "node lib/bin/restful-react.js import --github OAI:OpenAPI-Specification:master:examples/v3.0/petstore.yaml --output examples/petstoreFromGithubSpec.tsx",
-    "example:url": "node lib/bin/restful-react.js import --url https://petstore.swagger.io/v2/swagger.json --output examples/petstoreFromUrlSpec.tsx",
-    "example:file": "node lib/bin/restful-react.js import --file examples/petstore.yaml --output examples/petstoreFromFileSpec.tsx",
-    "example:advanced": "node lib/bin/restful-react.js import --config examples/restful-react.config.js"
+    "example:github": "node lib/restful-react.js import --github OAI:OpenAPI-Specification:master:examples/v3.0/petstore.yaml --output examples/petstoreFromGithubSpec.tsx",
+    "example:url": "node lib/restful-react.js import --url https://petstore.swagger.io/v2/swagger.json --output examples/petstoreFromUrlSpec.tsx",
+    "example:file": "node lib/restful-react.js import --file examples/petstore.yaml --output examples/petstoreFromFileSpec.tsx",
+    "example:advanced": "node lib/restful-react.js import --config examples/restful-react.config.js"
   },
   "husky": {
     "hooks": {
@@ -60,6 +69,8 @@
   },
   "devDependencies": {
     "@operational/scripts": "^2.0.0",
+    "@rollup/plugin-json": "^4.0.1",
+    "@rollup/plugin-replace": "^2.3.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
@@ -88,8 +99,16 @@
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
     "react-test-renderer": "^16.8.5",
+    "read-pkg-up": "^7.0.1",
     "rollup": "^1.29.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-size-snapshot": "^0.10.0",
+    "rollup-plugin-terser": "^5.2.0",
     "rollup-plugin-typescript2": "^0.25.3",
+    "rollup-plugin-uglify": "^6.0.4",
     "ts-jest": "^24.3.0",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",

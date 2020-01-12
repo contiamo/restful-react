@@ -1,0 +1,26 @@
+{
+  "dist/restful-react.cjs.js": {
+    "bundled": 48084,
+    "minified": 19323,
+    "gzipped": 5012
+  },
+  "dist/restful-react.esm.js": {
+    "bundled": 47068,
+    "minified": 18393,
+    "gzipped": 4934,
+    "treeshaked": {
+      "rollup": {
+        "code": 10576,
+        "import_statements": 408
+      },
+      "webpack": {
+        "code": 12556
+      }
+    }
+  },
+  "dist/restful-react.umd.js": {
+    "bundled": 357563,
+    "minified": 80049,
+    "gzipped": 27073
+  }
+}
