@@ -53,6 +53,11 @@
     "example:file": "node lib/bin/restful-react.js import --file examples/petstore.yaml --output examples/petstoreFromFileSpec.tsx",
     "example:advanced": "node lib/bin/restful-react.js import --config examples/restful-react.config.js"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "operational-scripts precommit"
+    }
+  },
   "devDependencies": {
     "@operational/scripts": "2.0.0",
     "@testing-library/jest-dom": "^4.2.4",
@@ -89,7 +94,7 @@
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-blank-line": "^0.0.9",
-    "typescript": "^3.3.4000"
+    "typescript": "^3.7.4"
   },
   "dependencies": {
     "case": "^1.6.2",
