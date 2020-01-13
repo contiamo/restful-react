@@ -102,7 +102,3 @@ package-lock.json
 
 # examples artefacts
 examples/*.tsx
-
-# Files managed by operational-scripts
-tslint.json
-.prettierrc

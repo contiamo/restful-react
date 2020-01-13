@@ -1,5 +1,4 @@
 {
-  "exclude": ["node_modules", "dist", "lib", "__tests__", "**/*.test*", "**/*.spec*"],
   "include": ["src"],
   "compilerOptions": {
     "skipLibCheck": true,
