@@ -8,7 +8,7 @@ module.exports = readdirSync("lib/bin")
   .map(file => ({
     input: `lib/bin/${file}`,
     output: {
-      file: `lib/bin/${file}`,
+      file: `dist/bin/${file}`,
       format: "cjs",
       banner: "#!/usr/bin/env node",
     },
