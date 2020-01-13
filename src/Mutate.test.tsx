@@ -288,7 +288,7 @@ describe("Mutate", () => {
       expect(children.mock.calls[0][0]).toBeDefined();
 
       // post action
-      return children.mock.calls[0][0]().catch(error => {
+      return children.mock.calls[0][0]().catch((error: any) => {
         expect(error).toEqual({
           data: { error: "oh no… not again…" },
           message: "Failed to fetch: 500 Internal Server Error",
@@ -484,8 +484,8 @@ describe("Mutate", () => {
       // put action
       children.mock.calls[0]
         [0]()
-        .then(data => expect(data).toBe(undefined))
-        .catch(e => expect("should not").toBe("called"));
+        .then((data: any) => expect(data).toBe(undefined))
+        .catch(() => expect("should not").toBe("called"));
       await wait(() => expect(children.mock.calls.length).toBe(3));
 
       // transition state

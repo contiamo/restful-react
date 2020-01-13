@@ -104,7 +104,7 @@ describe("Get", () => {
     });
 
     it("shouldn't resolve after component unmounts", async () => {
-      let requestResolves;
+      let requestResolves: () => void;
       const pendingRequestFinishes = new Promise(resolvePromise => {
         requestResolves = resolvePromise;
       });
@@ -127,7 +127,7 @@ describe("Get", () => {
       );
 
       unmount();
-      requestResolves();
+      requestResolves!();
       await wait(() => expect(resolve).not.toHaveBeenCalled());
     });
   });
@@ -361,7 +361,7 @@ describe("Get", () => {
 
       render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="" resolve={data => Promise.reject("nogood")}>
+          <Get path="" resolve={() => Promise.reject("nogood")}>
             {children}
           </Get>
         </RestfulProvider>,
@@ -807,7 +807,7 @@ describe("Get", () => {
 
       const children = jest.fn();
       children.mockReturnValue(<div />);
-      const providerResolve = a => a;
+      const providerResolve = (a: any) => a;
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={providerResolve}>

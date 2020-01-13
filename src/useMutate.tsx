@@ -177,6 +177,7 @@ export function useMutate<
 
       return data;
     },
+    /* eslint-disable react-hooks/exhaustive-deps */
     [context.base, context.requestOptions, context.resolve, state.error, state.loading, path],
   );
 
