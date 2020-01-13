@@ -91,8 +91,7 @@ export interface PollProps<TData, TError, TQueryParams> {
    */
   lazy?: GetProps<TData, TError, TQueryParams>["lazy"];
   /**
-   * Are we going to wait to start the poll?
-   * Use this with { start, stop } actions.
+   * Are we going to wait to skip the poll?
    */
   skip?: GetProps<TData, TError, TQueryParams>["skip"];
   /**

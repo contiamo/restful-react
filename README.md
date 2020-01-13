@@ -242,6 +242,20 @@ export default MyComponent;
 
 The above example will display your UI, and then load good boyes on demand.
 
+### Skip Fetching
+
+In cases where a parameter to a request may not yet be available, a request can be skipped with the `skip` boolean property. Skipping is supported by both `Get` and `Poll`.
+
+```jsx
+const { data: randomDogImage, loading } = useGet({
+  path: "https://api/user",
+  skip: id === undefined,
+  queryParams: {
+    userId: id,
+  },
+});
+```
+
 ### Response Resolution
 
 Sometimes, your backend responses arrive in a shape that you might want to adapt, validate, or restructure. Other times, maybe your data consistently arrives in a `{ data: {} }` shape, with `data` containing the stuff you want.

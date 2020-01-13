@@ -102,7 +102,7 @@ export interface GetProps<TData, TError, TQueryParams> {
    */
   lazy?: boolean;
   /**
-   * Should we skip this request
+   * Should we skip this request?
    */
   skip?: boolean;
   /**
