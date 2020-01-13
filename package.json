@@ -2,13 +2,15 @@
   "name": "restful-react",
   "description": "A declarative client from RESTful React Apps",
   "version": "9.7.1",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "module": "dist/restful-react.esm.js",
   "license": "MIT",
   "files": [
-    "lib"
+    "dist"
   ],
   "bin": {
-    "restful-react": "lib/bin/restful-react.js"
+    "restful-react": "dist/bin/restful-react.js"
   },
   "keywords": [
     "rest",
@@ -39,13 +41,12 @@
     "url": "https://github.com/contiamo/restful-react"
   },
   "scripts": {
-    "start": "operational-scripts start",
-    "test": "operational-scripts test",
-    "build": "operational-scripts build --for npm && rollup -c rollup.config.js",
-    "preversion": "npm run build",
+    "start": "tsdx watch",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "build": "tsdx build",
+    "prepare": "tsdx build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
-    "lint": "tslint src/**/*{ts,tsx} --project .",
-    "prepublishOnly": "operational-scripts prepare && rollup -c rollup.config.js",
     "ci": "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\"",
     "examples": "run-p example:*",
     "example:github": "node lib/bin/restful-react.js import --github OAI:OpenAPI-Specification:master:examples/v3.0/petstore.yaml --output examples/petstoreFromGithubSpec.tsx",
@@ -55,17 +56,17 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "operational-scripts precommit"
+      "pre-commit": "tsdx lint"
     }
   },
   "devDependencies": {
-    "@operational/scripts": "^2.0.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
     "@types/chalk": "^2.2.0",
     "@types/commander": "^2.12.2",
     "@types/inquirer": "6.5.0",
+    "@types/jest": "^24.0.25",
     "@types/lodash": "^4.14.149",
     "@types/nock": "^11.1.0",
     "@types/node": "^13.1.6",
@@ -74,14 +75,11 @@
     "@types/react-dom": "^16.8.5",
     "@types/request": "^2.48.4",
     "@types/yamljs": "^0.2.30",
-    "@wessberg/rollup-plugin-ts": "^1.2.6",
     "auto-changelog": "^1.16.2",
     "danger": "^9.2.10",
     "doctoc": "^1.4.0",
     "husky": "^4.0.7",
     "isomorphic-fetch": "^2.2.1",
-    "jest": "^24.9.0",
-    "lint-staged": "^9.5.0",
     "nock": "^11.7.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^1.19.1",
@@ -90,10 +88,9 @@
     "react-test-renderer": "^16.8.5",
     "rollup": "^1.29.0",
     "rollup-plugin-typescript2": "^0.25.3",
-    "ts-jest": "^24.3.0",
+    "tsdx": "^0.12.1",
+    "tslib": "^1.10.0",
     "tslint": "^5.20.1",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-blank-line": "^0.0.9",
     "typescript": "^3.7.4"
   },
   "dependencies": {
