@@ -102,6 +102,10 @@ export interface GetProps<TData, TError, TQueryParams> {
    */
   lazy?: boolean;
   /**
+   * Should we skip this request
+   */
+  skip?: boolean;
+  /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
    *

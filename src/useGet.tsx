@@ -38,6 +38,10 @@ export interface UseGetProps<TData, TQueryParams> {
    */
   lazy?: boolean;
   /**
+   * Should we skip this request?
+   */
+  skip?: boolean;
+  /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
    *
@@ -193,14 +197,14 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   const [state, setState] = useState<GetState<TData, TError>>({
     data: null,
     response: null,
-    loading: !props.lazy,
+    loading: !(props.lazy || props.skip),
     error: null,
   });
 
   const abortController = useRef(new AbortController());
 
   useDeepCompareEffect(() => {
-    if (!props.lazy) {
+    if (!props.lazy && !props.skip) {
       fetchData(props, state, setState, context, abortController);
     }
 
@@ -208,7 +212,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       abortController.current.abort();
       abortController.current = new AbortController();
     };
-  }, [props.lazy, props.path, props.base, props.resolve, props.queryParams, props.requestOptions]);
+  }, [props.lazy, props.skip, props.path, props.base, props.resolve, props.queryParams, props.requestOptions]);
 
   return {
     ...state,

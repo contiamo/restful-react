@@ -662,6 +662,25 @@ describe("Poll", () => {
     });
   });
 
+  describe("with skip", () => {
+    it("should not fetch on mount", async () => {
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Poll path="" skip>
+            {children}
+          </Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toBe(false);
+      expect(children.mock.calls[0][0]).toBe(null);
+    });
+  });
+
   describe("with base", () => {
     it("should override the base url", async () => {
       nock("https://my-awesome-api.fake")

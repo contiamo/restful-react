@@ -91,6 +91,11 @@ export interface PollProps<TData, TError, TQueryParams> {
    */
   lazy?: GetProps<TData, TError, TQueryParams>["lazy"];
   /**
+   * Are we going to wait to start the poll?
+   * Use this with { start, stop } actions.
+   */
+  skip?: GetProps<TData, TError, TQueryParams>["skip"];
+  /**
    * Should the data be transformed in any way?
    */
   resolve?: (data: any, prevData: TData | null) => TData;
@@ -162,9 +167,9 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
   public readonly state: Readonly<PollState<TData, TError>> = {
     data: null,
     previousData: null,
-    loading: !this.props.lazy,
+    loading: !(this.props.lazy || this.props.skip),
     lastResponse: null,
-    polling: !this.props.lazy,
+    polling: !(this.props.lazy || this.props.skip),
     finished: false,
     error: null,
   };
@@ -177,7 +182,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     queryParams: {},
   };
 
-  private keepPolling = !this.props.lazy;
+  private keepPolling = !(this.props.lazy || this.props.skip);
 
   /**
    * Abort controller to cancel the current fetch query
@@ -290,7 +295,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
   };
 
   public componentDidMount() {
-    const { path, lazy } = this.props;
+    const { path, lazy, skip } = this.props;
 
     if (path === undefined) {
       throw new Error(
@@ -298,7 +303,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
       );
     }
 
-    if (!lazy) {
+    if (!lazy && !skip) {
       this.start();
     }
   }
