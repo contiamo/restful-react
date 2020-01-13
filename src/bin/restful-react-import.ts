@@ -40,11 +40,7 @@ program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
 const createSuccessMessage = (backend?: string) =>
-  chalk.green(
-    `${
-      backend || ""
-    }🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
-  );
+  chalk.green(`${backend || ""}🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`);
 
 const successWithoutOutputMessage = chalk.yellow("Success! No output path specified; printed to standard output.");
 
@@ -88,9 +84,9 @@ const importSpecs = async (options: AdvancedOptions) => {
         // Attempt to determine format
         // will default to yaml as it
         // also supports json fully
-        let format: 'json' | 'yaml' = 'yaml';
-        if (url.endsWith('.json') || response.headers['content-type'] === 'application/json') {
-          format = 'json';
+        let format: "json" | "yaml" = "yaml";
+        if (url.endsWith(".json") || response.headers["content-type"] === "application/json") {
+          format = "json";
         }
 
         resolve(
@@ -105,7 +101,6 @@ const importSpecs = async (options: AdvancedOptions) => {
         );
       });
     });
-
   } else if (options.github) {
     const { github } = options;
 

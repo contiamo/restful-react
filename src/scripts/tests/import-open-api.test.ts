@@ -403,7 +403,7 @@ describe("scripts/import-open-api", () => {
 
       resolveDiscriminator(specs);
 
-      expect(specs.components.schemas.GeneralError).toEqual({
+      expect(specs?.components?.schemas?.GeneralError).toEqual({
         type: "object",
         properties: {
           type: {
@@ -417,7 +417,7 @@ describe("scripts/import-open-api", () => {
         required: ["type", "message"],
       });
 
-      expect(specs.components.schemas.FieldError).toEqual({
+      expect(specs?.components?.schemas?.FieldError).toEqual({
         type: "object",
         properties: {
           type: {

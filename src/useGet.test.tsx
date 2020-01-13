@@ -30,7 +30,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/" });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -50,7 +50,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/" });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -72,7 +72,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>("/");
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -87,7 +87,7 @@ describe("useGet hook", () => {
     });
 
     it("shouldn't resolve after component unmount", async () => {
-      let requestResolves;
+      let requestResolves: () => void;
       const pendingRequestFinishes = new Promise(resolvePromise => {
         requestResolves = resolvePromise;
       });
@@ -100,7 +100,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/", resolve });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { unmount } = render(
@@ -110,7 +110,7 @@ describe("useGet hook", () => {
       );
 
       unmount();
-      requestResolves();
+      requestResolves!();
       await wait(() => expect(resolve).not.toHaveBeenCalled());
     });
   });
@@ -138,7 +138,7 @@ describe("useGet hook", () => {
           .reply(200, { oh: "my god 😍" });
         const MyAwesomeComponent = () => {
           const { data, loading } = useGet<{ oh: string }>({ path });
-          return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+          return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
         };
 
         const { getByTestId } = render(
@@ -165,7 +165,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -190,7 +190,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -219,7 +219,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -248,7 +248,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -283,7 +283,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div>Loading…</div> : <div data-testid="data">{data.message}</div>;
+        return loading ? <div>Loading…</div> : <div data-testid="data">{data?.message}</div>;
       };
 
       const App = () => {
@@ -319,7 +319,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const [page, setPage] = useState(1);
         const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams: { page } });
 
@@ -364,7 +364,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.message}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.message}</div>;
       };
 
       const { getByTestId } = render(
@@ -388,7 +388,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/", resolve: res => ({ oh: res.oh + "🎉" }) });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -418,7 +418,7 @@ describe("useGet hook", () => {
         if (error) {
           return <div data-testid="error">{error.message}</div>;
         }
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -464,7 +464,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/", base: "https://my-awesome-api.fake" });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -485,7 +485,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/plop", base: "https://my-awesome-api.fake" });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -508,7 +508,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/", requestOptions: { headers: { foo: "bar" } } });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -530,7 +530,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/", requestOptions: { headers: { foo: "bar" } } });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { getByTestId } = render(
@@ -643,7 +643,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }>({ path, debounce: true });
         return children(params);
       };
@@ -676,7 +676,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }>({ path });
         return children(params);
       };
@@ -707,7 +707,7 @@ describe("useGet hook", () => {
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/", resolve, debounce: true });
 
-        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data.oh}</div>;
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
       const { unmount } = render(
@@ -735,7 +735,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }>({ path });
         return children(params);
       };
@@ -767,7 +767,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }>({ path });
         return children(params);
       };
@@ -798,20 +798,20 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path, resolve }) => {
+      const MyAwesomeComponent: React.FC<{ path: string; resolve: () => { id: number } }> = ({ path, resolve }) => {
         const params = useGet<{ id: number }>({ path, resolve });
         return children(params);
       };
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="" resolve={() => "plop"} />
+          <MyAwesomeComponent path="" resolve={() => ({ id: 1 })} />
         </RestfulProvider>,
       );
 
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="" resolve={() => "hello"} />
+          <MyAwesomeComponent path="" resolve={() => ({ id: 2 })} />
         </RestfulProvider>,
       );
 
@@ -828,20 +828,20 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path, resolve }) => {
+      const MyAwesomeComponent: React.FC<{ path: string; resolve: () => { id: number } }> = ({ path, resolve }) => {
         const params = useGet<{ id: number }>({ path, resolve });
         return children(params);
       };
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="" resolve={() => "plop"} />
+          <MyAwesomeComponent path="" resolve={() => ({ id: 1 })} />
         </RestfulProvider>,
       );
 
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="" resolve={() => "plop"} />
+          <MyAwesomeComponent path="" resolve={() => ({ id: 1 })} />
         </RestfulProvider>,
       );
 
@@ -860,14 +860,14 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path, queryParams }) => {
+      const MyAwesomeComponent: React.FC<{ path: string; queryParams: { page: number } }> = ({ path, queryParams }) => {
         const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams });
         return children(params);
       };
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="" queryParams={null} />
+          <MyAwesomeComponent path="" queryParams={{ page: 1 }} />
         </RestfulProvider>,
       );
 
@@ -893,7 +893,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path, queryParams }) => {
+      const MyAwesomeComponent: React.FC<{ path: string; queryParams: { page: number } }> = ({ path, queryParams }) => {
         const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams });
         return children(params);
       };
@@ -925,7 +925,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path, queryParams }) => {
+      const MyAwesomeComponent: React.FC<{ path: string; queryParams: { page: number } }> = ({ path, queryParams }) => {
         const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams });
         return children(params);
       };
@@ -951,7 +951,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }, any>({ path });
         return children(params);
       };
@@ -977,7 +977,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }, any, { apiKey: string }>({ path, queryParams: { apiKey: "safer" } });
         return children(params);
       };
@@ -1003,7 +1003,7 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent = ({ path }) => {
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const params = useGet<{ id: number }, any, { cheese: string }>({ path, queryParams: { cheese: "nice" } });
         return children(params);
       };

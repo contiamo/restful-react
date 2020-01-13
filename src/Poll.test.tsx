@@ -619,8 +619,8 @@ describe("Poll", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const resolve = data => ({ ...data, too: "bar" });
-      const newResolve = data => ({ ...data, foo: "bar" });
+      const resolve = (data: any) => ({ ...data, too: "bar" });
+      const newResolve = (data: any) => ({ ...data, foo: "bar" });
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">

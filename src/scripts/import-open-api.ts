@@ -24,7 +24,7 @@ import swagger2openapi from "swagger2openapi";
 import YAML from "yamljs";
 import { AdvancedOptions } from "../bin/restful-react-import";
 
-const IdentifierRegexp = /^[a-zA-Z_\$][a-zA-Z0-9_\$]*$/;
+const IdentifierRegexp = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
 /**
  * Discriminator helper for `ReferenceObject`
@@ -435,7 +435,7 @@ ${formatDescription(
       paramsInPath.length ? ` & {${paramsTypes}}` : ""
     };
 
-${operation.summary ? "// " + `${operation.summary} (long polling)` : ""}
+${operation.summary ? `// ${operation.summary} (long polling)` : ""}
 export const Poll${componentName} = (${
       paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
     }: Poll${componentName}Props) => (
