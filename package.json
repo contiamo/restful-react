@@ -1,17 +1,7 @@
 {
   "name": "restful-react",
-  "description": "A declarative client from RESTful React Apps",
   "version": "9.8.0",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "module": "dist/restful-react.esm.js",
-  "license": "MIT",
-  "files": [
-    "dist"
-  ],
-  "bin": {
-    "restful-react": "dist/bin/restful-react.js"
-  },
+  "description": "A declarative client from RESTful React Apps",
   "keywords": [
     "rest",
     "restful",
@@ -20,22 +10,30 @@
     "fetch",
     "data fetching"
   ],
-  "bugs": {
-    "email": "tejas@tejas.qa",
-    "url": "https://twitter.com/tejaskumar_"
-  },
-  "author": {
-    "name": "Tejas Kumar",
-    "email": "tejas@tejas.qa",
-    "url": "https://twitter.com/tejaskumar_"
-  },
+  "homepage": "https://github.com/contiamo/restful-react",
+  "bugs": "https://github.com/contiamo/restful-react/issues",
+  "license": "MIT",
   "contributors": [
+    {
+      "name": "Tejas Kumar",
+      "email": "tejas@tejas.qa",
+      "url": "https://twitter.com/tejaskumar_"
+    },
     {
       "name": "Fabien Bernard",
       "email": "fabien@contiamo.com",
       "url": "https://fabien0102.com/en"
     }
   ],
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "restful-react": "dist/bin/restful-react.js"
+  },
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "module": "dist/restful-react.esm.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/contiamo/restful-react"
@@ -56,10 +54,21 @@
     "example:file": "node dist/bin/restful-react.js import --file examples/petstore.yaml --output examples/petstoreFromFileSpec.tsx",
     "example:advanced": "node dist/bin/restful-react.js import --config examples/restful-react.config.js"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
+  "dependencies": {
+    "case": "^1.6.2",
+    "chalk": "^3.0.0",
+    "commander": "^4.1.0",
+    "ibm-openapi-validator": "^0.16.0",
+    "inquirer": "^7.0.3",
+    "lodash": "^4.17.15",
+    "lodash-es": "^4.17.15",
+    "openapi3-ts": "^1.3.0",
+    "qs": "^6.9.1",
+    "react-fast-compare": "^2.0.4",
+    "request": "^2.88.0",
+    "swagger2openapi": "^5.3.2",
+    "url": "^0.11.0",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^4.2.4",
@@ -95,23 +104,12 @@
     "tslint": "^5.20.1",
     "typescript": "^3.7.4"
   },
-  "dependencies": {
-    "case": "^1.6.2",
-    "chalk": "^3.0.0",
-    "commander": "^4.1.0",
-    "ibm-openapi-validator": "^0.16.0",
-    "inquirer": "^7.0.3",
-    "lodash": "^4.17.15",
-    "lodash-es": "^4.17.15",
-    "openapi3-ts": "^1.3.0",
-    "qs": "^6.9.1",
-    "react-fast-compare": "^2.0.4",
-    "request": "^2.88.0",
-    "swagger2openapi": "^5.3.2",
-    "url": "^0.11.0",
-    "yamljs": "^0.3.0"
-  },
   "peerDependencies": {
     "react": "^16.8.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
   }
 }
