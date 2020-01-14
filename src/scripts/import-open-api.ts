@@ -477,7 +477,7 @@ export const resolveDiscriminator = (specs: OpenAPIObject) => {
       }
       const { mapping, propertyName } = schema.discriminator;
 
-      Object.entries(mapping).map(([name, ref]) => {
+      Object.entries(mapping).forEach(([name, ref]) => {
         if (!ref.startsWith("#/components/schemas/")) {
           throw new Error("Discriminator mapping outside of `#/components/schemas` is not supported");
         }

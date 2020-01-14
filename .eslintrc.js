@@ -8,8 +8,5 @@ module.exports = {
     "react": {
       "version": "detect"
     }
-  },
-  "rules": {
-    "array-callback-return": "off"
   }
 }
