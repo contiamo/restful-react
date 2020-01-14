@@ -279,7 +279,7 @@ export const generateRestfulComponent = (
   // Remove the last param of the route if we are in the DELETE case
   let lastParamInTheRoute: string | null = null;
   if (verb === "delete") {
-    const lastParamInTheRouteRegExp = /\/\$\{(\w+)\}$/;
+    const lastParamInTheRouteRegExp = /\/\$\{(\w+)\}\/?$/;
     lastParamInTheRoute = (route.match(lastParamInTheRouteRegExp) || [])[1];
     route = route.replace(lastParamInTheRouteRegExp, ""); // `/pet/${id}` => `/pet`
   }
