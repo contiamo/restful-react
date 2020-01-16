@@ -1,5 +1,8 @@
 # `restful-react`
 
+[![npm](https://img.shields.io/npm/v/restful-react.svg)](https://www.npmjs.com/package/restful-react)
+[![Build Status](https://img.shields.io/travis/contiamo/restful-react.svg)](https://travis-ci.org/contiamo/restful-react)
+
 Building React apps that interact with a RESTful API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.
 
 As an abstraction, this tool allows for greater consistency and maintainability of dynamic codebases.
