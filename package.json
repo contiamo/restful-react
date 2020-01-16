@@ -1,7 +1,7 @@
 {
   "name": "restful-react",
   "version": "9.8.0",
-  "description": "A declarative client from RESTful React Apps",
+  "description": "A consistent, declarative way of interacting with RESTful backends, featuring code-generation from Swagger and OpenAPI specs",
   "keywords": [
     "rest",
     "restful",
@@ -45,7 +45,6 @@
     "build": "run-p build:*",
     "build:project": "tsdx build",
     "build:bin": "tsc && rollup -c rollup.config.js",
-    "prepare": "tsdx build",
     "version": "auto-changelog -p && git add CHANGELOG.md",
     "ci": "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\"",
     "examples": "run-p example:*",
