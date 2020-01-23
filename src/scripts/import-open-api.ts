@@ -265,6 +265,7 @@ export const generateRestfulComponent = (
   parameters: Array<ReferenceObject | ParameterObject> = [],
   schemasComponents?: ComponentsObject,
   customProps: AdvancedOptions["customProps"] = {},
+  customGenerator?: AdvancedOptions["customGenerator"],
 ) => {
   if (!operation.operationId) {
     throw new Error(`Every path must have a operationId - No operationId set for ${verb} ${route}`);
@@ -375,6 +376,12 @@ export const generateRestfulComponent = (
 
   const customPropsEntries = Object.entries(customProps);
 
+  const description = formatDescription(
+    operation.summary && operation.description
+      ? `${operation.summary}\n\n${operation.description}`
+      : `${operation.summary || ""}${operation.description || ""}`,
+  );
+
   let output = `${
     needAResponseComponent
       ? `
@@ -402,11 +409,7 @@ export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "p
     verb === "get" ? "" : ` | "verb"`
   }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
-${formatDescription(
-  operation.summary && operation.description
-    ? `${operation.summary}\n\n${operation.description}`
-    : `${operation.summary || ""}${operation.description || ""}`,
-)}export const ${componentName} = (${
+${description}export const ${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: ${componentName}Props) => (
   <${Component}<${genericsTypes}>${
@@ -431,11 +434,7 @@ ${formatDescription(
     verb === "get" ? "" : ` | "verb"`
   }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
 
-${formatDescription(
-  operation.summary && operation.description
-    ? `${operation.summary}\n\n${operation.description}`
-    : `${operation.summary || ""}${operation.description || ""}`,
-)}export const use${componentName} = (${
+${description}export const use${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
@@ -448,6 +447,18 @@ ${formatDescription(
   });
 
 `;
+
+  // Custom version
+  if (customGenerator) {
+    output += customGenerator({
+      componentName,
+      verb,
+      route,
+      description,
+      genericsTypes,
+      operation,
+    });
+  }
 
   if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
     output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
@@ -672,6 +683,7 @@ const importOpenApi = async ({
   validation,
   customImport,
   customProps,
+  customGenerator,
 }: {
   data: string;
   format: "yaml" | "json";
@@ -679,6 +691,7 @@ const importOpenApi = async ({
   validation?: boolean;
   customImport?: AdvancedOptions["customImport"];
   customProps?: AdvancedOptions["customProps"];
+  customGenerator?: AdvancedOptions["customGenerator"];
 }) => {
   const operationIds: string[] = [];
   let specs = await importSpecs(data, format);
@@ -708,6 +721,7 @@ const importOpenApi = async ({
           verbs.parameters,
           specs.components,
           customProps,
+          customGenerator,
         );
       }
     });
