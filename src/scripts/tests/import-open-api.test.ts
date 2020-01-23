@@ -243,11 +243,7 @@ describe("scripts/import-open-api", () => {
         type: "object",
         additionalProperties: true,
       };
-      expect(getObject(item)).toMatchInlineSnapshot(`
-                                                                "{
-                                                                  [key: string]: any;
-                                                                }"
-                                                `);
+      expect(getObject(item)).toMatchInlineSnapshot(`"{[key: string]: any}"`);
     });
 
     it("should deal with ref additionalProperties", () => {
@@ -335,11 +331,35 @@ describe("scripts/import-open-api", () => {
                                                                 }"
                                                 `);
     });
-    it("should handle empty properties", () => {
+    it("should handle empty properties (1)", () => {
       const item = {
         properties: {},
       };
-      expect(getObject(item)).toMatchInlineSnapshot(`"any"`);
+      expect(getObject(item)).toMatchInlineSnapshot(`"{}"`);
+    });
+    it("should handle empty properties (2)", () => {
+      const item = {};
+      expect(getObject(item)).toMatchInlineSnapshot(`"{}"`);
+    });
+    it("should handle free form object (1)", () => {
+      const item = {
+        type: "object",
+      };
+      expect(getObject(item)).toMatchInlineSnapshot(`"{[key: string]: any}"`);
+    });
+    it("should handle free form object (2)", () => {
+      const item = {
+        type: "object",
+        additionalProperties: true,
+      };
+      expect(getObject(item)).toMatchInlineSnapshot(`"{[key: string]: any}"`);
+    });
+    it("should handle free form object (3)", () => {
+      const item = {
+        type: "object",
+        additionalProperties: {},
+      };
+      expect(getObject(item)).toMatchInlineSnapshot(`"{[key: string]: any}"`);
     });
   });
 

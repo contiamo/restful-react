@@ -129,6 +129,19 @@ export const getObject = (item: SchemaObject): string => {
     return item.oneOf.map(resolveValue).join(" | ");
   }
 
+  if (!item.type && !item.properties && !item.additionalProperties) {
+    return "{}";
+  }
+
+  // Free form object (https://swagger.io/docs/specification/data-models/data-types/#free-form)
+  if (
+    item.type === "object" &&
+    !item.properties &&
+    (!item.additionalProperties || item.additionalProperties === true || isEmpty(item.additionalProperties))
+  ) {
+    return "{[key: string]: any}";
+  }
+
   // Consolidation of item.properties & item.additionalProperties
   let output = "{\n";
   if (item.properties) {
@@ -151,7 +164,8 @@ export const getObject = (item: SchemaObject): string => {
     };`;
   }
 
-  if (output !== "{\n") {
+  if (item.properties || item.additionalProperties) {
+    if (output === "{\n") return "{}";
     return output + "\n}";
   }
 
