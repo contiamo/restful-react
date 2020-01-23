@@ -7,6 +7,7 @@ import { join, parse } from "path";
 import request from "request";
 
 import importOpenApi from "../scripts/import-open-api";
+import { OperationObject } from "openapi3-ts";
 
 const log = console.log; // tslint:disable-line:no-console
 
@@ -24,6 +25,14 @@ export type AdvancedOptions = Options & {
   customProps?: {
     base?: string;
   };
+  customGenerator?: (data: {
+    componentName: string;
+    verb: string;
+    route: string;
+    description: string;
+    genericsTypes: string;
+    operation: OperationObject;
+  }) => string;
 };
 
 export interface ExternalConfigFile {
@@ -67,6 +76,7 @@ const importSpecs = async (options: AdvancedOptions) => {
       validation: options.validation,
       customImport: options.customImport,
       customProps: options.customProps,
+      customGenerator: options.customGenerator,
     });
   } else if (options.url) {
     const { url } = options;
@@ -101,6 +111,7 @@ const importSpecs = async (options: AdvancedOptions) => {
             validation: options.validation,
             customImport: options.customImport,
             customProps: options.customProps,
+            customGenerator: options.customGenerator,
           }),
         );
       });
@@ -187,6 +198,7 @@ const importSpecs = async (options: AdvancedOptions) => {
             validation: options.validation,
             customImport: options.customImport,
             customProps: options.customProps,
+            customGenerator: options.customGenerator,
           }),
         );
       });
