@@ -470,6 +470,8 @@ ${description}export const use${componentName} = (${
       route,
       description,
       genericsTypes,
+      paramsInPath,
+      paramsTypes,
       operation,
     });
   }
