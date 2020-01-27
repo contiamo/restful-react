@@ -1330,6 +1330,92 @@ describe("scripts/import-open-api", () => {
                 "
             `);
     });
+
+    it("should generate a request body type if it's inline in the specs", () => {
+      const operation: OperationObject = {
+        summary: "Update use case details",
+        operationId: "updateUseCase",
+        tags: ["use-case"],
+        parameters: [
+          {
+            name: "useCaseId",
+            in: "path",
+            required: true,
+            description: "The id of the use case",
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name"],
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "The use case name",
+                  },
+                  description: {
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "204": {
+            description: "Use case updated",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/UseCaseResponse" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
+        "
+        export interface UpdateUseCaseRequestBody {
+          /**
+           * The use case name
+           */
+          name: string;
+          description?: string;
+        }
+
+        export type UpdateUseCaseProps = Omit<MutateProps<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+
+        /**
+         * Update use case details
+         */
+        export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
+          <Mutate<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody>
+            verb=\\"PUT\\"
+            path={\`/use-cases/\${useCaseId}\`}
+            {...props}
+          />
+        );
+
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void, UpdateUseCaseRequestBody>, \\"path\\" | \\"verb\\"> & {useCaseId: string};
+
+        /**
+         * Update use case details
+         */
+        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody>(\\"PUT\\", \`/use-cases/\${useCaseId}\`, props);
+
+        "
+      `);
+    });
+
     it("should generate a proper ComponentResponse type if the type is custom", () => {
       const operation: OperationObject = {
         summary: "Update use case details",
