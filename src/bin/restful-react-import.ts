@@ -40,7 +40,11 @@ program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
 const createSuccessMessage = (backend?: string) =>
-  chalk.green(`${backend || ""}🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`);
+  chalk.green(
+    `${
+      backend ? `[${backend}] ` : ""
+    }🎉  Your OpenAPI spec has been converted into ready to use restful-react components!`,
+  );
 
 const successWithoutOutputMessage = chalk.yellow("Success! No output path specified; printed to standard output.");
 
