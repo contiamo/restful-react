@@ -293,6 +293,7 @@ export const generateRestfulComponent = (
   const responseTypes = getResReqTypes(Object.entries(operation.responses).filter(isOk)) || "void";
   const errorTypes = getResReqTypes(Object.entries(operation.responses).filter(isError)) || "unknown";
   const requestBodyTypes = getResReqTypes([["body", operation.requestBody!]]);
+  const needARequestBodyComponent = requestBodyTypes.includes("{");
   const needAResponseComponent = responseTypes.includes("{");
 
   /**
@@ -349,7 +350,13 @@ export const generateRestfulComponent = (
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${verb === "delete" && lastParamInTheRoute ? "string" : requestBodyTypes}`;
+        }, ${
+          verb === "delete" && lastParamInTheRoute
+            ? "string"
+            : needARequestBodyComponent
+            ? componentName + "RequestBody"
+            : requestBodyTypes
+        }`;
 
   const genericsTypesForHooksProps =
     verb === "get"
@@ -358,7 +365,13 @@ export const generateRestfulComponent = (
         }`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${verb === "delete" && lastParamInTheRoute ? "string" : requestBodyTypes}`;
+        }, ${
+          verb === "delete" && lastParamInTheRoute
+            ? "string"
+            : needARequestBodyComponent
+            ? componentName + "RequestBody"
+            : requestBodyTypes
+        }`;
 
   const customPropsEntries = Object.entries(customProps);
 
@@ -376,6 +389,12 @@ export ${
 export interface ${componentName}QueryParams {
   ${queryParamsType};
 }
+`
+      : ""
+  }${
+    needARequestBodyComponent
+      ? `
+export interface ${componentName}RequestBody ${requestBodyTypes}
 `
       : ""
   }
