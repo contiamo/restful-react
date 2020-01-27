@@ -32,6 +32,8 @@ export type AdvancedOptions = Options & {
     description: string;
     genericsTypes: string;
     operation: OperationObject;
+    paramsInPath: string[];
+    paramsTypes: string;
   }) => string;
 };
 
