@@ -639,6 +639,16 @@ interface RestfulReactConfig {
     customProps?: {
       base?: string;
     };
+    customGenerator?: (data: {
+    componentName: string;
+    verb: string;
+    route: string;
+    description: string;
+    genericsTypes: string;
+    operation: OperationObject;
+    paramsInPath: string[];
+    paramsTypes: string;
+  }) => string;
   };
 }
 ```
@@ -675,6 +685,16 @@ module.exports = {
   }
 }
 ```
+
+##### Custom generator
+
+To support even more advanced usecases (like a promise base API, mock generator or anything else that can infer from your specs), you can define your own template in `customGenerator`. This function will be call for each route with some useful computed values (see the types above) and the resulted string will be added to the generated file.
+
+You can see a concrete usage inside the `examples` folder and try yourself in this repository with the following command:
+- `yarn build`
+- `yarn example:advanced petstore-custom-fetch`
+
+You can inspect the result inside `/examples/petstoreFromFileSpecWithCustomFetch.tsx`
 
 ## Contributing
 
