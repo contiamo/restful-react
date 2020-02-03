@@ -737,6 +737,22 @@ describe("scripts/import-open-api", () => {
       expect(getResReqTypes(responses)).toEqual("FieldListResponse");
     });
 
+    it("should return the type of application/json;charset=utf-8", () => {
+      const responses: Array<[string, ResponseObject]> = [
+        [
+          "200",
+          {
+            description: "An array of schema fields",
+            content: {
+              "application/json;charset=utf-8": { schema: { $ref: "#/components/schemas/FieldListResponse" } },
+            },
+          },
+        ],
+      ];
+
+      expect(getResReqTypes(responses)).toEqual("FieldListResponse");
+    });
+
     it("should return the type of application/octet-stream if we don't have application/json response", () => {
       const responses: Array<[string, ResponseObject]> = [
         [
