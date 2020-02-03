@@ -195,12 +195,14 @@ export const getResReqTypes = (
       if (isReference(res)) {
         return getRef(res.$ref);
       } else {
-        if (res.content && res.content["application/json"]) {
-          const schema = res.content["application/json"].schema!;
-          return resolveValue(schema);
-        } else if (res.content && res.content["application/octet-stream"]) {
-          const schema = res.content["application/octet-stream"].schema!;
-          return resolveValue(schema);
+        if (res.content) {
+          for (let contentType of Object.keys(res.content)) {
+            if (contentType.startsWith("application/json") || contentType.startsWith("application/octet-stream")) {
+              const schema = res.content[contentType].schema!;
+              return resolveValue(schema);
+            }
+          }
+          return "void";
         } else {
           return "void";
         }
