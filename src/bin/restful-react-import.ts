@@ -133,7 +133,7 @@ const importSpecs = async (options: AdvancedOptions) => {
           type: "input",
           name: "githubToken",
           message:
-            "Please provide a GitHub token with `repo` rules checked (https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)",
+            "Please provide a GitHub token with `repo` rules checked ( https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line )",
         },
         {
           type: "confirm",
