@@ -194,19 +194,19 @@ export const getResReqTypes = (
 
       if (isReference(res)) {
         return getRef(res.$ref);
-      } else {
-        if (res.content) {
-          for (let contentType of Object.keys(res.content)) {
-            if (contentType.startsWith("application/json") || contentType.startsWith("application/octet-stream")) {
-              const schema = res.content[contentType].schema!;
-              return resolveValue(schema);
-            }
-          }
-          return "void";
-        } else {
-          return "void";
-        }
       }
+
+      if (res.content) {
+        for (let contentType of Object.keys(res.content)) {
+          if (contentType.startsWith("application/json") || contentType.startsWith("application/octet-stream")) {
+            const schema = res.content[contentType].schema!;
+            return resolveValue(schema);
+          }
+        }
+        return "void";
+      }
+
+      return "void";
     }),
   ).join(" | ");
 
