@@ -5,6 +5,8 @@ import inquirer from "inquirer";
 import difference from "lodash/difference";
 import { join, parse } from "path";
 import request from "request";
+import { homedir } from "os";
+import slash from "slash";
 
 import importOpenApi from "../scripts/import-open-api";
 import { OperationObject } from "openapi3-ts";
@@ -122,7 +124,7 @@ const importSpecs = async (options: AdvancedOptions) => {
     const { github } = options;
 
     let accessToken: string;
-    const githubTokenPath = join(__dirname, ".githubToken");
+    const githubTokenPath = join(homedir(), ".restful-react");
     if (existsSync(githubTokenPath)) {
       accessToken = readFileSync(githubTokenPath, "utf-8");
     } else {
@@ -136,7 +138,7 @@ const importSpecs = async (options: AdvancedOptions) => {
         {
           type: "confirm",
           name: "saveToken",
-          message: "Would you like to store your token for the next time? (stored in your node_modules)",
+          message: `Would you like to store your token for the next time? (stored in your ${slash(githubTokenPath)})`,
         },
       ]);
       if (answers.saveToken) {
