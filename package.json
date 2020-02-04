@@ -1,6 +1,6 @@
 {
   "name": "restful-react",
-  "version": "9.10.1",
+  "version": "9.11.0",
   "description": "A consistent, declarative way of interacting with RESTful backends, featuring code-generation from Swagger and OpenAPI specs",
   "keywords": [
     "rest",
