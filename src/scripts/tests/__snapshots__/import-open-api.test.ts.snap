@@ -52,6 +52,13 @@ export interface Error {
   message: string;
 }
 
+/**
+ * Request description
+ */
+export interface Request {
+  action?: (\\"create\\" | \\"read\\" | \\"update\\" | \\"delete\\")[];
+}
+
 export type UpdatePetRequestRequestBody = NewPet;
 
 export interface FindPetsQueryParams {
