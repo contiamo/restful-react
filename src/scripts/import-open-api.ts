@@ -101,7 +101,7 @@ export const getRef = ($ref: ReferenceObject["$ref"]) => {
  */
 export const getArray = (item: SchemaObject): string => {
   if (item.items) {
-    if (!isReference(item.items) && (item.items.oneOf || item.items.allOf)) {
+    if (!isReference(item.items) && (item.items.oneOf || item.items.allOf || item.items.enum)) {
       return `(${resolveValue(item.items)})[]`;
     } else {
       return `${resolveValue(item.items)}[]`;
