@@ -47,7 +47,6 @@
     "build:bin": "tsc && rollup -c rollup.config.js",
     "postbuild": "rimraf dist/**/*.test.*",
     "version": "auto-changelog -p && git add CHANGELOG.md",
-    "prepare": "npm run build",
     "ci": "[ ! -z $DANGER_GITHUB_API_TOKEN ] && yarn danger ci || echo \"Skipping Danger for External Contributor\"",
     "examples": "run-p example:*",
     "example:github": "node dist/bin/restful-react.js import --github OAI:OpenAPI-Specification:master:examples/v3.0/petstore.yaml --output examples/petstoreFromGithubSpec.tsx",
