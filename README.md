@@ -1,7 +1,6 @@
 # `restful-react`
 
 [![npm](https://img.shields.io/npm/v/restful-react.svg)](https://www.npmjs.com/package/restful-react)
-[![Build Status](https://img.shields.io/travis/contiamo/restful-react.svg)](https://travis-ci.org/contiamo/restful-react)
 
 Building React apps that interact with a RESTful API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.
 
@@ -640,15 +639,15 @@ interface RestfulReactConfig {
       base?: string;
     };
     customGenerator?: (data: {
-    componentName: string;
-    verb: string;
-    route: string;
-    description: string;
-    genericsTypes: string;
-    operation: OperationObject;
-    paramsInPath: string[];
-    paramsTypes: string;
-  }) => string;
+      componentName: string;
+      verb: string;
+      route: string;
+      description: string;
+      genericsTypes: string;
+      operation: OperationObject;
+      paramsInPath: string[];
+      paramsTypes: string;
+    }) => string;
   };
 }
 ```
@@ -691,6 +690,7 @@ module.exports = {
 To support even more advanced usecases (like a promise base API, mock generator or anything else that can infer from your specs), you can define your own template in `customGenerator`. This function will be call for each route with some useful computed values (see the types above) and the resulted string will be added to the generated file.
 
 You can see a concrete usage inside the `examples` folder and try yourself in this repository with the following command:
+
 - `yarn build`
 - `yarn example:advanced petstore-custom-fetch`
 
@@ -714,6 +714,20 @@ If you'd like to actively develop or help maintain this project then there are e
 - `yarn test --watch`
 
 From there, you should be able to start developing without problems.
+
+### How to publish to npm
+
+Just update the `version` in `package.json`!
+
+As soon as your branch will be merged to master, a new npm version will be automatically published for you.
+
+## `@without-cli` npm package
+
+If for any reasons you don't want to use our CLI to generate restful-react components, we provide a `without-cli` version of the package.
+
+Just `npm install restful-react@without-cli` to have this light version.
+
+This version will follow `latest` but without the cli part (more details into `publish-without-cli.js`).
 
 ## Next Steps
 
