@@ -12,6 +12,3 @@ jobs:
           node-version: 12
       - run: yarn
       - run: yarn test
-      - run: yarn ci
-        env:
-          GITHUB_TOKEN: ${{secrets.DANGER_GITHUB_API_TOKEN}}
