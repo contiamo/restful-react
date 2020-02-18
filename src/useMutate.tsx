@@ -95,7 +95,12 @@ export function useMutate<
       }
 
       const request = new Request(
-        resolvePath(base, isDelete ? `${path}/${body}` : path, { ...context.queryParams, ...queryParams }),
+        resolvePath(
+          base,
+          isDelete ? `${path}/${body}` : path,
+          { ...context.queryParams, ...queryParams },
+          props.queryParamStringifyOptions,
+        ),
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );
 

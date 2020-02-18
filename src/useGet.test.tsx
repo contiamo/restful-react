@@ -1020,6 +1020,39 @@ describe("useGet hook", () => {
     });
   });
 
+  describe("querystring custom params", () => {
+    it("should parse the querystring regarding the options", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query(i => {
+          return i["anArray[]"] === "nice";
+        })
+        .reply(200, () => ({ id: 42 }));
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }, any, { anArray: string[] }>({
+          path,
+          queryParams: { anArray: ["nice"] },
+          queryParamStringifyOptions: { arrayFormat: "brackets" },
+        });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
+    });
+  });
+
   describe("generation pattern", () => {
     it("should call the correct endpoint", async () => {
       nock("https://my-awesome-api.fake")
