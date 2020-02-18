@@ -187,7 +187,38 @@ describe("useMutate", () => {
       });
       expect(res).toEqual({ vegan: true });
     });
+
+    it("should parse the querystring regarding the options", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query(i => {
+          return i["anArray[]"] === "nice";
+        })
+        .reply(200, () => ({ vegan: true }));
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useMutate("DELETE", "", {
+            queryParams: { anArray: ["nice"] },
+            queryParamStringifyOptions: { arrayFormat: "brackets" },
+          }),
+        {
+          wrapper,
+        },
+      );
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: true });
+    });
   });
+
   it("should merge with the provider's query parameters if both specified", async () => {
     nock("https://my-awesome-api.fake")
       .delete("/")
