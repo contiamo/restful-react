@@ -1,17 +1,25 @@
 import { useCallback, useState } from "react";
 
 export function useAbort() {
-  const [abortController, setAbortController] = useState(AbortController ? new AbortController() : null);
+  let abortController;
+
+  try {
+    abortController = new AbortController();
+  } catch {
+    abortController = null;
+  }
+
+  const [instance, setInstance] = useState(abortController);
 
   const abort = useCallback(() => {
-    if (abortController) {
-      abortController.abort();
-      setAbortController(new AbortController());
+    if (instance) {
+      instance.abort();
+      setInstance(new AbortController());
     }
-  }, [abortController]);
+  }, [instance]);
 
   return {
     abort,
-    signal: abortController?.signal,
+    signal: instance?.signal,
   };
 }
