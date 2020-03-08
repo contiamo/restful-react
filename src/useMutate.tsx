@@ -1,9 +1,10 @@
 import merge from "lodash/merge";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Context } from "./Context";
 import { MutateMethod, MutateState } from "./Mutate";
 import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
+import { useAbort } from "./useAbort";
 
 export interface UseMutateProps<TData, TQueryParams, TRequestBody>
   extends Omit<UseGetProps<TData, TQueryParams>, "lazy" | "debounce"> {
@@ -59,10 +60,10 @@ export function useMutate<
     loading: false,
   });
 
-  const abortController = useRef(new AbortController());
+  const { abort, signal } = useAbort();
 
   // Cancel the fetch on unmount
-  useEffect(() => () => abortController.current.abort(), []);
+  useEffect(() => () => abort(), [abort]);
 
   const mutate = useCallback<MutateMethod<TData, TRequestBody>>(
     async (body: TRequestBody, mutateRequestOptions?: RequestInit) => {
@@ -72,10 +73,8 @@ export function useMutate<
 
       if (state.loading) {
         // Abort previous requests
-        abortController.current.abort();
-        abortController.current = new AbortController();
+        abort();
       }
-      const signal = abortController.current.signal;
 
       const propsRequestOptions =
         (typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions) || {};
@@ -128,7 +127,7 @@ export function useMutate<
       } catch (e) {
         // avoid state updates when component has been unmounted
         // and when fetch/processResponse threw an error
-        if (signal.aborted) {
+        if (signal && signal.aborted) {
           return;
         }
 
@@ -145,7 +144,7 @@ export function useMutate<
         throw e;
       }
 
-      if (signal.aborted) {
+      if (signal && signal.aborted) {
         return;
       }
 
@@ -178,7 +177,7 @@ export function useMutate<
       return data;
     },
     /* eslint-disable react-hooks/exhaustive-deps */
-    [context.base, context.requestOptions, context.resolve, state.error, state.loading, path],
+    [context.base, context.requestOptions, context.resolve, state.error, state.loading, path, abort, signal],
   );
 
   return {
@@ -189,8 +188,7 @@ export function useMutate<
         ...prevState,
         loading: false,
       }));
-      abortController.current.abort();
-      abortController.current = new AbortController();
+      abort();
     },
   };
 }

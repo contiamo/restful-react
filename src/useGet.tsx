@@ -2,13 +2,14 @@ import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
 import qs from "qs";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import url from "url";
 
 import { Context, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
 import { useDeepCompareEffect } from "./util/useDeepCompareEffect";
+import { useAbort } from "./useAbort";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
@@ -71,16 +72,15 @@ async function _fetchData<TData, TError, TQueryParams>(
   state: GetState<TData, TError>,
   setState: (newState: GetState<TData, TError>) => void,
   context: RestfulReactProviderProps,
-  abortController: React.MutableRefObject<AbortController>,
+  abort: () => void,
+  signal?: AbortSignal,
 ) {
   const { base = context.base, path, resolve = (d: any) => d as TData, queryParams = {} } = props;
 
   if (state.loading) {
     // Abort previous requests
-    abortController.current.abort();
-    abortController.current = new AbortController();
+    abort();
   }
-  const signal = abortController.current.signal;
 
   if (state.error || !state.loading) {
     setState({ ...state, error: null, loading: true });
@@ -101,7 +101,7 @@ async function _fetchData<TData, TError, TQueryParams>(
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
 
-    if (signal.aborted) {
+    if (signal && signal.aborted) {
       return;
     }
 
@@ -115,7 +115,7 @@ async function _fetchData<TData, TError, TQueryParams>(
       setState({ ...state, loading: false, error });
 
       if (!props.localErrorOnly && context.onError) {
-        context.onError(error, () => _fetchData(props, state, setState, context, abortController), response);
+        context.onError(error, () => _fetchData(props, state, setState, context, abort, signal), response);
       }
       return;
     }
@@ -124,7 +124,7 @@ async function _fetchData<TData, TError, TQueryParams>(
   } catch (e) {
     // avoid state updates when component has been unmounted
     // and when fetch/processResponse threw an error
-    if (signal.aborted) {
+    if (signal && signal.aborted) {
       return;
     }
     setState({
@@ -197,18 +197,17 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     error: null,
   });
 
-  const abortController = useRef(new AbortController());
+  const { abort, signal } = useAbort();
 
   useDeepCompareEffect(() => {
     if (!props.lazy) {
-      fetchData(props, state, setState, context, abortController);
+      fetchData(props, state, setState, context, abort, signal);
     }
 
     return () => {
-      abortController.current.abort();
-      abortController.current = new AbortController();
+      abort();
     };
-  }, [props.lazy, props.path, props.base, props.resolve, props.queryParams, props.requestOptions]);
+  }, [props.lazy, props.path, props.base, props.resolve, props.queryParams, props.requestOptions, abort]);
 
   return {
     ...state,
@@ -221,10 +220,9 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
         ...state,
         loading: false,
       });
-      abortController.current.abort();
-      abortController.current = new AbortController();
+      abort();
     },
     refetch: (options: RefetchOptions<TData, TQueryParams> = {}) =>
-      fetchData({ ...props, ...options }, state, setState, context, abortController),
+      fetchData({ ...props, ...options }, state, setState, context, abort),
   };
 }
