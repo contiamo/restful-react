@@ -1,25 +1,27 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef } from "react";
+
+function createAbortController() {
+  try {
+    return new AbortController();
+  } catch {
+    return undefined;
+  }
+}
 
 export function useAbort() {
-  let abortController;
-
-  try {
-    abortController = new AbortController();
-  } catch {
-    abortController = null;
-  }
-
-  const [instance, setInstance] = useState(abortController);
+  const instance = useRef(createAbortController());
 
   const abort = useCallback(() => {
-    if (instance) {
-      instance.abort();
-      setInstance(new AbortController());
+    if (instance && instance.current) {
+      instance.current.abort();
+      instance.current = createAbortController();
     }
   }, [instance]);
 
   return {
     abort,
-    signal: instance?.signal,
+    getAbortSignal() {
+      return instance?.current?.signal;
+    },
   };
 }

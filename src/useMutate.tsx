@@ -60,7 +60,7 @@ export function useMutate<
     loading: false,
   });
 
-  const { abort, signal } = useAbort();
+  const { abort, getAbortSignal } = useAbort();
 
   // Cancel the fetch on unmount
   useEffect(() => () => abort(), [abort]);
@@ -92,6 +92,8 @@ export function useMutate<
       if (!isDelete) {
         options.body = typeof body === "object" ? JSON.stringify(body) : ((body as unknown) as string);
       }
+
+      const signal = getAbortSignal();
 
       const request = new Request(
         resolvePath(
@@ -182,7 +184,7 @@ export function useMutate<
       return data;
     },
     /* eslint-disable react-hooks/exhaustive-deps */
-    [context.base, context.requestOptions, context.resolve, state.error, state.loading, path, abort, signal],
+    [context.base, context.requestOptions, context.resolve, state.error, state.loading, path, abort, getAbortSignal],
   );
 
   return {

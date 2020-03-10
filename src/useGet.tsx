@@ -82,7 +82,7 @@ async function _fetchData<TData, TError, TQueryParams>(
   setState: (newState: GetState<TData, TError>) => void,
   context: RestfulReactProviderProps,
   abort: () => void,
-  signal?: AbortSignal,
+  getAbortSignal: () => AbortSignal | undefined,
 ) {
   const { base = context.base, path, resolve = (d: any) => d as TData, queryParams = {} } = props;
 
@@ -100,6 +100,8 @@ async function _fetchData<TData, TError, TQueryParams>(
 
   const contextRequestOptions =
     (typeof context.requestOptions === "function" ? await context.requestOptions() : context.requestOptions) || {};
+
+  const signal = getAbortSignal();
 
   const request = new Request(
     resolvePath(base, path, { ...context.queryParams, ...queryParams }, props.queryParamStringifyOptions || {}),
@@ -124,7 +126,7 @@ async function _fetchData<TData, TError, TQueryParams>(
       setState({ ...state, loading: false, error });
 
       if (!props.localErrorOnly && context.onError) {
-        context.onError(error, () => _fetchData(props, state, setState, context, abort, signal), response);
+        context.onError(error, () => _fetchData(props, state, setState, context, abort, getAbortSignal), response);
       }
       return;
     }
@@ -206,11 +208,11 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     error: null,
   });
 
-  const { abort, signal } = useAbort();
+  const { abort, getAbortSignal } = useAbort();
 
   useDeepCompareEffect(() => {
     if (!props.lazy) {
-      fetchData(props, state, setState, context, abort, signal);
+      fetchData(props, state, setState, context, abort, getAbortSignal);
     }
 
     return () => {
@@ -237,6 +239,6 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       abort();
     },
     refetch: (options: RefetchOptions<TData, TQueryParams> = {}) =>
-      fetchData({ ...props, ...options }, state, setState, context, abort),
+      fetchData({ ...props, ...options }, state, setState, context, abort, getAbortSignal),
   };
 }
