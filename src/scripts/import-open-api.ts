@@ -360,6 +360,22 @@ export const generateRestfulComponent = (
     })
     .join(";\n  ");
 
+  // Retrieve the type of the param for delete verb
+  const lastParamInTheRouteDefinition = operation.parameters
+    ? (operation.parameters.find(p => {
+        if (isReference(p)) return false;
+        return p.name === lastParamInTheRoute;
+      }) as ParameterObject | undefined) // Reference is not possible
+    : { schema: { type: "string" } };
+
+  const lastParamInTheRouteType =
+    lastParamInTheRouteDefinition &&
+    !isReference(lastParamInTheRouteDefinition) &&
+    !isReference(lastParamInTheRouteDefinition.schema) &&
+    lastParamInTheRouteDefinition.schema
+      ? lastParamInTheRouteDefinition.schema.type
+      : "string";
+
   const genericsTypes =
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
@@ -369,7 +385,7 @@ export const generateRestfulComponent = (
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${
           verb === "delete" && lastParamInTheRoute
-            ? "string"
+            ? lastParamInTheRouteType
             : needARequestBodyComponent
             ? componentName + "RequestBody"
             : requestBodyTypes
@@ -384,7 +400,7 @@ export const generateRestfulComponent = (
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${
           verb === "delete" && lastParamInTheRoute
-            ? "string"
+            ? lastParamInTheRouteType
             : needARequestBodyComponent
             ? componentName + "RequestBody"
             : requestBodyTypes
