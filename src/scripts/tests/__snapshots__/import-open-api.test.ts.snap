@@ -141,25 +141,25 @@ export type UseFindPetByIdProps = Omit<UseGetProps<Pet, void>, \\"path\\"> & {id
 export const useFindPetById = ({id, ...props}: UseFindPetByIdProps) => useGet<Pet, Error, void>(\`/pets/\${id}\`, props);
 
 
-export type DeletePetProps = Omit<MutateProps<void, Error, void, string>, \\"path\\" | \\"verb\\">;
+export type DeletePetProps = Omit<MutateProps<void, Error, void, integer>, \\"path\\" | \\"verb\\">;
 
 /**
  * deletes a single pet based on the ID supplied
  */
 export const DeletePet = (props: DeletePetProps) => (
-  <Mutate<void, Error, void, string>
+  <Mutate<void, Error, void, integer>
     verb=\\"DELETE\\"
     path={\`/pets\`}
     {...props}
   />
 );
 
-export type UseDeletePetProps = Omit<UseMutateProps<void, void, string>, \\"path\\" | \\"verb\\">;
+export type UseDeletePetProps = Omit<UseMutateProps<void, void, integer>, \\"path\\" | \\"verb\\">;
 
 /**
  * deletes a single pet based on the ID supplied
  */
-export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, string>(\\"DELETE\\", \`/pets\`, props);
+export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, integer>(\\"DELETE\\", \`/pets\`, props);
 
 
 export type UpdatePetProps = Omit<MutateProps<Pet, Error, void, UpdatePetRequestRequestBody>, \\"path\\" | \\"verb\\"> & {id: number};
