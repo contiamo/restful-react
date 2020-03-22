@@ -361,19 +361,23 @@ export const generateRestfulComponent = (
     .join(";\n  ");
 
   // Retrieve the type of the param for delete verb
-  const lastParamInTheRouteDefinition = operation.parameters
-    ? (operation.parameters.find(p => {
-        if (isReference(p)) return false;
-        return p.name === lastParamInTheRoute;
-      }) as ParameterObject | undefined) // Reference is not possible
-    : { schema: { type: "string" } };
+  const lastParamInTheRouteDefinition =
+    operation.parameters && lastParamInTheRoute
+      ? (operation.parameters.find(p => {
+          if (isReference(p)) return false;
+          return p.name === lastParamInTheRoute;
+        }) as ParameterObject | undefined) // Reference is not possible
+      : { schema: { type: "string" } };
+
+  if (!lastParamInTheRouteDefinition) {
+    throw new Error(`The path params ${lastParamInTheRoute} can't be found in parameters (${operation.operationId})`);
+  }
 
   const lastParamInTheRouteType =
-    lastParamInTheRouteDefinition &&
-    !isReference(lastParamInTheRouteDefinition) &&
-    !isReference(lastParamInTheRouteDefinition.schema) &&
-    lastParamInTheRouteDefinition.schema
+    !isReference(lastParamInTheRouteDefinition.schema) && lastParamInTheRouteDefinition.schema
       ? lastParamInTheRouteDefinition.schema.type
+      : isReference(lastParamInTheRouteDefinition.schema)
+      ? getRef(lastParamInTheRouteDefinition.schema.$ref)
       : "string";
 
   const genericsTypes =
