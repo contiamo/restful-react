@@ -1755,6 +1755,7 @@ describe("scripts/import-open-api", () => {
                 "
             `);
     });
+
     it("should take the type from open-api specs", () => {
       const operation: OperationObject = {
         summary: "Delete use case",
@@ -1813,6 +1814,64 @@ describe("scripts/import-open-api", () => {
                  * Delete use case
                  */
                 export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, number>(\\"DELETE\\", \`/use-cases\`, props);
+
+                "
+            `);
+    });
+
+    it("should take the type from open-api specs (ref)", () => {
+      const operation: OperationObject = {
+        summary: "Delete use case",
+        operationId: "deleteUseCase",
+        tags: ["use-case"],
+        parameters: [
+          {
+            name: "useCaseId",
+            in: "path",
+            required: true,
+            description: "The id of the use case",
+            schema: {
+              $ref: "#/components/schemas/UseCaseId",
+            },
+          },
+        ],
+        responses: {
+          "204": {
+            description: "Empty response",
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
+                "
+                export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, UseCaseId>, \\"path\\" | \\"verb\\">;
+
+                /**
+                 * Delete use case
+                 */
+                export const DeleteUseCase = (props: DeleteUseCaseProps) => (
+                  <Mutate<void, APIError, void, UseCaseId>
+                    verb=\\"DELETE\\"
+                    path={\`/use-cases\`}
+                    {...props}
+                  />
+                );
+
+                export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, UseCaseId>, \\"path\\" | \\"verb\\">;
+
+                /**
+                 * Delete use case
+                 */
+                export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, UseCaseId>(\\"DELETE\\", \`/use-cases\`, props);
 
                 "
             `);
