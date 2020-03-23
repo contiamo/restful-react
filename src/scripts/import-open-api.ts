@@ -375,7 +375,7 @@ export const generateRestfulComponent = (
 
   const lastParamInTheRouteType =
     !isReference(lastParamInTheRouteDefinition.schema) && lastParamInTheRouteDefinition.schema
-      ? lastParamInTheRouteDefinition.schema.type
+      ? getScalar(lastParamInTheRouteDefinition.schema)
       : isReference(lastParamInTheRouteDefinition.schema)
       ? getRef(lastParamInTheRouteDefinition.schema.$ref)
       : "string";
