@@ -1774,7 +1774,7 @@ describe("scripts/import-open-api", () => {
             in: "path",
             required: true,
             description: "The id of the use case",
-            schema: { type: "number", format: "uuid" },
+            schema: { type: "integer", format: "uuid" },
           },
         ],
         responses: {
