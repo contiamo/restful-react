@@ -389,6 +389,49 @@ describe("Poll", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
     });
+
+    it("should call the provider onRequest", async () => {
+      const path = "https://my-awesome-api.fake";
+      nock(path)
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onRequest = jest.fn();
+      const request = new Request(path, { headers: { prefer: "wait=60s;" } });
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onRequest={onRequest}>
+          <Poll path="">{children}</Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(onRequest).toBeCalledWith(request);
+    });
+
+    it("should call the provider onResponse", async () => {
+      const path = "https://my-awesome-api.fake";
+      nock(path)
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onResponse = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
+          <Poll path="">{children}</Poll>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onResponse).toBeCalled();
+    });
   });
 
   describe("with error", () => {

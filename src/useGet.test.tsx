@@ -113,6 +113,52 @@ describe("useGet hook", () => {
       requestResolves!();
       await wait(() => expect(resolve).not.toHaveBeenCalled());
     });
+
+    it("should call provider onRequest", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { data, loading } = useGet<{ oh: string }>({ path: "/" });
+
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
+      };
+
+      const onRequest = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onRequest={onRequest}>
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      expect(onRequest).toBeCalled();
+    });
+
+    it("should call provider onResponse", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { data, loading } = useGet<{ oh: string }>({ path: "/" });
+
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
+      };
+
+      const onResponse = jest.fn();
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("data"));
+
+      expect(onResponse).toBeCalled();
+    });
   });
 
   describe("url composition", () =>

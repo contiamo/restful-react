@@ -235,7 +235,8 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
   };
 
   public fetch = async (requestPath?: string, thisRequestOptions?: RequestInit) => {
-    const { base, __internal_hasExplicitBase, parentPath, path, resolve } = this.props;
+    const { base, __internal_hasExplicitBase, parentPath, path, resolve, onError, onRequest, onResponse } = this.props;
+
     if (this.state.error || !this.state.loading) {
       this.setState(() => ({ error: null, loading: true }));
     }
@@ -256,9 +257,11 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
     };
 
     const request = new Request(makeRequestPath(), await this.getRequestOptions(thisRequestOptions));
+    if (onRequest) onRequest(request);
     try {
       const response = await fetch(request, { signal: this.signal });
       const { data, responseError } = await processResponse(response);
+      if (onResponse) onResponse(response);
 
       // avoid state updates when component has been unmounted
       if (this.signal.aborted) {
@@ -277,8 +280,8 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
           error,
         });
 
-        if (!this.props.localErrorOnly && this.props.onError) {
-          this.props.onError(error, () => this.fetch(requestPath, thisRequestOptions), response);
+        if (!this.props.localErrorOnly && onError) {
+          onError(error, () => this.fetch(requestPath, thisRequestOptions), response);
         }
 
         return null;

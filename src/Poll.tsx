@@ -217,7 +217,7 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
     }
 
     // If we should keep going,
-    const { base, path, interval, wait } = this.props;
+    const { base, path, interval, wait, onError, onRequest, onResponse } = this.props;
     const { lastPollIndex } = this.state;
     const requestOptions = await this.getRequestOptions();
 
@@ -235,10 +235,12 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
         ...requestOptions.headers,
       },
     });
+    if (onRequest) onRequest(request);
 
     try {
       const response = await fetch(request, { signal: this.signal });
       const { data, responseError } = await processResponse(response);
+      if (onResponse) onResponse(response);
 
       if (!this.keepPolling || this.signal.aborted) {
         // Early return if we have stopped polling or component was unmounted
@@ -254,8 +256,8 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
         };
         this.setState({ loading: false, lastResponse: response, error });
 
-        if (!this.props.localErrorOnly && this.props.onError) {
-          this.props.onError(error, () => Promise.resolve(), response);
+        if (!this.props.localErrorOnly && onError) {
+          onError(error, () => Promise.resolve(), response);
         }
       } else if (this.isModified(response, data)) {
         this.setState(prevState => ({

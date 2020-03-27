@@ -104,10 +104,12 @@ export function useMutate<
         ),
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );
+      if (context.onRequest) context.onRequest(request);
 
       let response: Response;
       try {
         response = await fetch(request);
+        if (context.onResponse) context.onResponse(response);
       } catch (e) {
         const error = {
           message: `Failed to fetch: ${e.message}`,

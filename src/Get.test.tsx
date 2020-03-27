@@ -130,6 +130,49 @@ describe("Get", () => {
       requestResolves!();
       await wait(() => expect(resolve).not.toHaveBeenCalled());
     });
+
+    it("should call the provider onRequest", async () => {
+      const path = "https://my-awesome-api.fake";
+      nock(path)
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onRequest = jest.fn();
+      const request = new Request(path);
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onRequest={onRequest}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onRequest).toBeCalledWith(request);
+    });
+
+    it("should call the provider onResponse", async () => {
+      const path = "https://my-awesome-api.fake";
+      nock(path)
+        .get("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onResponse = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(2));
+      expect(onResponse).toBeCalled();
+    });
   });
 
   describe("with error", () => {
