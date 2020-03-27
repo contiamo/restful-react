@@ -2,7 +2,7 @@ import noop from "lodash/noop";
 import * as React from "react";
 import { ResolveFunction } from "./Get";
 
-export interface RestfulReactProviderProps<T = any> {
+export interface RestfulReactProviderProps<TData = any> {
   /** The backend URL where the RESTful resources live. */
   base: string;
   /**
@@ -14,7 +14,7 @@ export interface RestfulReactProviderProps<T = any> {
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
-  resolve?: ResolveFunction<T>;
+  resolve?: ResolveFunction<TData>;
   /**
    * Options passed to the fetch request.
    */
@@ -26,7 +26,15 @@ export interface RestfulReactProviderProps<T = any> {
    * Depending of your case, it can be easier to add a `localErrorOnly` on your `Mutate` component
    * to deal with your retry locally instead of in the provider scope.
    */
-  onError?: (err: any, retry: () => Promise<T | null>, response?: Response) => void;
+  onError?: (
+    err: {
+      message: string;
+      data: TData | string;
+      status?: number;
+    },
+    retry: () => Promise<TData | null>,
+    response?: Response,
+  ) => void;
   /**
    * Any global level query params?
    * **Warning:** it's probably not a good idea to put API keys here. Consider headers instead.
