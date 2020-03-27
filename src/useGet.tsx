@@ -138,14 +138,21 @@ async function _fetchData<TData, TError, TQueryParams>(
     if (signal && signal.aborted) {
       return;
     }
+
+    const error = {
+      message: `Failed to fetch: ${e.message}`,
+      data: e.message,
+    };
+
     setState({
       ...state,
       loading: false,
-      error: {
-        message: `Failed to fetch: ${e.message}`,
-        data: e.message,
-      },
+      error,
     });
+
+    if (!props.localErrorOnly && context.onError) {
+      context.onError(error, () => _fetchData(props, state, setState, context, abort, getAbortSignal));
+    }
   }
 }
 
