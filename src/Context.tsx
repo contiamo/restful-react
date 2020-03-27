@@ -36,6 +36,14 @@ export interface RestfulReactProviderProps<TData = any> {
     response?: Response,
   ) => void;
   /**
+   * Trigger on each request
+   */
+  onRequest?: (req: Request) => void;
+  /**
+   * Trigger on each response
+   */
+  onResponse?: (res: Response) => void;
+  /**
    * Any global level query params?
    * **Warning:** it's probably not a good idea to put API keys here. Consider headers instead.
    */
@@ -48,11 +56,15 @@ export const Context = React.createContext<Required<RestfulReactProviderProps>>(
   resolve: (data: any) => data,
   requestOptions: {},
   onError: noop,
+  onRequest: noop,
+  onResponse: noop,
   queryParams: {},
 });
 
 export interface InjectedProps {
   onError: RestfulReactProviderProps["onError"];
+  onRequest: RestfulReactProviderProps["onRequest"];
+  onResponse: RestfulReactProviderProps["onResponse"];
 }
 
 export default class RestfulReactProvider<T> extends React.Component<RestfulReactProviderProps<T>> {
@@ -64,6 +76,8 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
       <Context.Provider
         value={{
           onError: noop,
+          onRequest: noop,
+          onResponse: noop,
           resolve: (data: any) => data,
           requestOptions: {},
           parentPath: "",

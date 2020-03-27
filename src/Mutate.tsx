@@ -134,6 +134,9 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
       path,
       verb,
       requestOptions: providerRequestOptions,
+      onError,
+      onRequest,
+      onResponse,
     } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
@@ -171,10 +174,12 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
     } as RequestInit); // Type assertion for version of TypeScript that can't yet discriminate.
+    if (onRequest) onRequest(request);
 
     let response: Response;
     try {
       response = await fetch(request, { signal: this.signal });
+      if (onResponse) onResponse(response);
     } catch (e) {
       const error = {
         message: `Failed to fetch: ${e.message}`,
@@ -186,8 +191,8 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
         loading: false,
       });
 
-      if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error, () => this.mutate(body, mutateRequestOptions));
+      if (!this.props.localErrorOnly && onError) {
+        onError(error, () => this.mutate(body, mutateRequestOptions));
       }
 
       throw error;
@@ -211,8 +216,8 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
         loading: false,
       });
 
-      if (!this.props.localErrorOnly && this.props.onError) {
-        this.props.onError(error, () => this.mutate(body, mutateRequestOptions), response);
+      if (!this.props.localErrorOnly && onError) {
+        onError(error, () => this.mutate(body, mutateRequestOptions), response);
       }
 
       throw error;

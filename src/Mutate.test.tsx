@@ -902,5 +902,83 @@ describe("Mutate", () => {
       // after post state
       expect(children.mock.calls[2][1].loading).toEqual(false);
     });
+
+    it("should call the provider onRequest", async () => {
+      const path = "https://my-awesome-api.fake";
+      nock(path)
+        .post("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onRequest = jest.fn();
+      const request = new Request(path, {
+        method: "POST",
+        headers: { "content-type": "text/plain" },
+      });
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onRequest={onRequest}>
+          <Mutate<void, void, void> verb="POST" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+
+      // expect onRequest to be called
+      expect(onRequest).toBeCalledWith(request);
+    });
+
+    it("should call the provider onResponse", async () => {
+      const path = "https://my-awesome-api.fake";
+      nock(path)
+        .post("/")
+        .reply(200, { hello: "world" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const onResponse = jest.fn();
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
+          <Mutate<void, void, void> verb="POST" path="">
+            {children}
+          </Mutate>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children.mock.calls.length).toBe(1));
+      expect(children.mock.calls[0][1].loading).toEqual(false);
+      expect(children.mock.calls[0][0]).toBeDefined();
+
+      // post action
+      children.mock.calls[0][0]();
+      await wait(() => expect(children.mock.calls.length).toBe(3));
+
+      // transition state
+      expect(children.mock.calls[1][1].loading).toEqual(true);
+
+      // after post state
+      expect(children.mock.calls[2][1].loading).toEqual(false);
+
+      // expect onResponse to be called
+      expect(onResponse).toBeCalled();
+    });
   });
 });

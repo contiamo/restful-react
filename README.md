@@ -177,6 +177,14 @@ export interface RestfulReactProviderProps<T = any> {
    * to deal with your retry locally instead of in the provider scope.
    */
   onError?: (err: any, retry: () => Promise<T | null>, response?: Response) => void;
+  /**
+   * Trigger on each request.
+   */
+  onRequest?: (req: Request) => void;
+  /**
+   * Trigger on each response.
+   */
+  onResponse?: (req: Response) => void;
 }
 
 // Usage

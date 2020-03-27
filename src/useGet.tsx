@@ -107,10 +107,12 @@ async function _fetchData<TData, TError, TQueryParams>(
     resolvePath(base, path, { ...context.queryParams, ...queryParams }, props.queryParamStringifyOptions || {}),
     merge({}, contextRequestOptions, requestOptions, { signal }),
   );
+  if (context.onRequest) context.onRequest(request);
 
   try {
     const response = await fetch(request);
     const { data, responseError } = await processResponse(response);
+    if (context.onResponse) context.onResponse(response);
 
     if (signal && signal.aborted) {
       return;
