@@ -84,13 +84,21 @@ export function useMutate<
 
       const options: RequestInit = {
         method: verb,
-        headers: {
-          "content-type": typeof body === "object" ? "application/json" : "text/plain",
-        },
       };
 
+      // don't set content-type when body is of type FormData
+      if (!(body instanceof FormData)) {
+        options.headers = { "content-type": typeof body === "object" ? "application/json" : "text/plain" };
+      }
+
       if (!isDelete) {
-        options.body = typeof body === "object" ? JSON.stringify(body) : ((body as unknown) as string);
+        if (body instanceof FormData) {
+          options.body = body;
+        } else if (typeof body === "object") {
+          options.body = JSON.stringify(body);
+        } else {
+          options.body = (body as unknown) as string;
+        }
       }
 
       const signal = getAbortSignal();
