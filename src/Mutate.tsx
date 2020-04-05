@@ -16,9 +16,16 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
-export type MutateMethod<TData, TRequestBody> = (
+export interface MutateRequestOptions<TQueryParams> extends RequestInit {
+  /**
+   * Query parameters
+   */
+  queryParams?: TQueryParams;
+}
+
+export type MutateMethod<TData, TRequestBody, TQueryParams> = (
   data: TRequestBody,
-  mutateRequestOptions?: RequestInit,
+  mutateRequestOptions?: MutateRequestOptions<TQueryParams>,
 ) => Promise<TData>;
 
 /**
@@ -75,7 +82,11 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody> {
    *
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
-  children: (mutate: MutateMethod<TData, TRequestBody>, states: States<TData, TError>, meta: Meta) => React.ReactNode;
+  children: (
+    mutate: MutateMethod<TData, TRequestBody, TQueryParams>,
+    states: States<TData, TError>,
+    meta: Meta,
+  ) => React.ReactNode;
   /**
    * Callback called after the mutation is done.
    *
@@ -126,7 +137,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
     this.abortController.abort();
   }
 
-  public mutate = async (body: TRequestBody, mutateRequestOptions?: RequestInit) => {
+  public mutate = async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams>) => {
     const {
       __internal_hasExplicitBase,
       base,
@@ -156,7 +167,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
 
       // We use ! because it's in defaultProps
       if (Object.keys(this.props.queryParams!).length) {
-        url += `?${qs.stringify(this.props.queryParams)}`;
+        url += `?${qs.stringify({ ...this.props.queryParams, ...mutateRequestOptions?.queryParams })}`;
       }
       return url;
     };
