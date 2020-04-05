@@ -2,9 +2,8 @@ import { renderHook } from "@testing-library/react-hooks";
 import "isomorphic-fetch";
 import nock from "nock";
 import React from "react";
-import { RestfulProvider, useMutate } from ".";
+import { RestfulProvider, useMutate, UseMutateProps } from ".";
 import { Omit } from "./useGet";
-import { UseMutateProps } from "./useMutate";
 
 describe("useMutate", () => {
   // Mute console.error -> https://github.com/kentcdodds/react-testing-library/issues/281
@@ -188,6 +187,58 @@ describe("useMutate", () => {
       expect(res).toEqual({ vegan: true });
     });
 
+    it("should merge with the provider's query parameters if both specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query({
+          cheese: "yucky",
+          meat: "omg amazing",
+        })
+        .reply(200, { vegan: "confused" });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider queryParams={{ meat: "omg amazing" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "yucky" } }), {
+        wrapper,
+      });
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: "confused" });
+    });
+
+    it("should override query parameters if specified in mutate method", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query({
+          cheese: "yucky",
+          meat: "omg amazing",
+        })
+        .reply(200, { vegan: "confused" });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider queryParams={{ meat: "omg amazing" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "chucky" } }), {
+        wrapper,
+      });
+      const res = await result.current.mutate("", { queryParams: { cheese: "yucky" } });
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: "confused" });
+    });
+
     it("should parse the querystring regarding the options", async () => {
       nock("https://my-awesome-api.fake")
         .delete("/")
@@ -217,32 +268,6 @@ describe("useMutate", () => {
       });
       expect(res).toEqual({ vegan: true });
     });
-  });
-
-  it("should merge with the provider's query parameters if both specified", async () => {
-    nock("https://my-awesome-api.fake")
-      .delete("/")
-      .query({
-        cheese: "yucky",
-        meat: "omg amazing",
-      })
-      .reply(200, { vegan: "confused" });
-
-    const wrapper: React.FC = ({ children }) => (
-      <RestfulProvider queryParams={{ meat: "omg amazing" }} base="https://my-awesome-api.fake">
-        {children}
-      </RestfulProvider>
-    );
-    const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "yucky" } }), {
-      wrapper,
-    });
-    const res = await result.current.mutate("");
-
-    expect(result.current).toMatchObject({
-      error: null,
-      loading: false,
-    });
-    expect(res).toEqual({ vegan: "confused" });
   });
 
   describe("POST", () => {
@@ -466,7 +491,10 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(
-        () => useMutate<{ id: number }, unknown, {}, {}>("POST", "", { resolve: data => ({ id: data.id * 2 }) }),
+        () =>
+          useMutate<{ id: number }, unknown, {}, {}>("POST", "", {
+            resolve: (data: any) => ({ id: data.id * 2 }),
+          }),
         { wrapper },
       );
       const res = await result.current.mutate({});

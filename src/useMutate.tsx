@@ -1,7 +1,7 @@
 import merge from "lodash/merge";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Context } from "./Context";
-import { MutateMethod, MutateState } from "./Mutate";
+import { MutateMethod, MutateState, MutateRequestOptions } from "./Mutate";
 import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
 import { useAbort } from "./useAbort";
@@ -21,7 +21,7 @@ export interface UseMutateProps<TData, TQueryParams, TRequestBody>
   onMutate?: (body: TRequestBody, data: TData) => void;
 }
 
-export interface UseMutateReturn<TData, TError, TRequestBody> extends MutateState<TData, TError> {
+export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams> extends MutateState<TData, TError> {
   /**
    * Cancel the current fetch
    */
@@ -29,25 +29,25 @@ export interface UseMutateReturn<TData, TError, TRequestBody> extends MutateStat
   /**
    * Call the mutate endpoint
    */
-  mutate: MutateMethod<TData, TRequestBody>;
+  mutate: MutateMethod<TData, TRequestBody, TQueryParams>;
 }
 
 export function useMutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
   props: UseMutateProps<TData, TQueryParams, TRequestBody>,
-): UseMutateReturn<TData, TError, TRequestBody>;
+): UseMutateReturn<TData, TError, TRequestBody, TQueryParams>;
 
 export function useMutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
   verb: UseMutateProps<TData, TQueryParams, TRequestBody>["verb"],
   path: string,
   props?: Omit<UseMutateProps<TData, TQueryParams, TRequestBody>, "path" | "verb">,
-): UseMutateReturn<TData, TError, TRequestBody>;
+): UseMutateReturn<TData, TError, TRequestBody, TQueryParams>;
 
 export function useMutate<
   TData = any,
   TError = any,
   TQueryParams = { [key: string]: any },
   TRequestBody = any
->(): UseMutateReturn<TData, TError, TRequestBody> {
+>(): UseMutateReturn<TData, TError, TRequestBody, TQueryParams> {
   const props: UseMutateProps<TData, TQueryParams, TRequestBody> =
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
@@ -65,8 +65,8 @@ export function useMutate<
   // Cancel the fetch on unmount
   useEffect(() => () => abort(), [abort]);
 
-  const mutate = useCallback<MutateMethod<TData, TRequestBody>>(
-    async (body: TRequestBody, mutateRequestOptions?: RequestInit) => {
+  const mutate = useCallback<MutateMethod<TData, TRequestBody, TQueryParams>>(
+    async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams>) => {
       if (state.error || !state.loading) {
         setState(prevState => ({ ...prevState, loading: true, error: null }));
       }
@@ -99,7 +99,7 @@ export function useMutate<
         resolvePath(
           base,
           isDelete ? `${path}/${body}` : path,
-          { ...context.queryParams, ...queryParams },
+          { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
           props.queryParamStringifyOptions,
         ),
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
