@@ -408,7 +408,7 @@ describe("Poll", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children.mock.calls.length).toBe(1));
+      await wait(() => expect(children.mock.calls.length > 0).toBe(true));
       expect(onRequest).toBeCalledWith(request);
     });
 
