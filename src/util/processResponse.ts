@@ -14,9 +14,21 @@ export const processResponse = async (response: Response) => {
         responseError: true,
       };
     }
+  } else if ((response.headers.get("content-type") || "").includes("text/plain")) {
+    try {
+      return {
+        data: await response.text(),
+        responseError: false,
+      };
+    } catch (e) {
+      return {
+        data: e.message,
+        responseError: true,
+      };
+    }
   } else {
     return {
-      data: await response.text(),
+      data: response,
       responseError: false,
     };
   }
