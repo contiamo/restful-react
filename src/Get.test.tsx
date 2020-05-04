@@ -500,7 +500,7 @@ describe("Get", () => {
     it("should render if we have an error", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
-        .reply(401, "Go away!");
+        .reply(401, "Go away!", { "content-type": "text/plain" });
 
       const children = jest.fn();
       children.mockReturnValue(<div />);
