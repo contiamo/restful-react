@@ -498,7 +498,7 @@ describe("Poll", () => {
         },
       })
         .get("/")
-        .reply(200, { data: "hello" }, { "x-polling-index": "1" });
+        .reply(200, { data: "hello" }, { "x-polling-index": "1", "content-type": "application/json" });
 
       const children = jest.fn();
       children.mockReturnValue(<div />);
