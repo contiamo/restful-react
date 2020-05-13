@@ -349,7 +349,7 @@ export const generateRestfulComponent = (
         throw new Error(`The path params ${p} can't be found in parameters (${operation.operationId})`);
       }
     })
-    .join("; ");
+    .join(";\n  ");
 
   const queryParamsType = queryParams
     .map(p => {
@@ -399,7 +399,7 @@ export const generateRestfulComponent = (
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }`
+        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${
@@ -408,7 +408,7 @@ export const generateRestfulComponent = (
             : needARequestBodyComponent
             ? componentName + "RequestBody"
             : requestBodyTypes
-        }`;
+        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
 
   const customPropsEntries = Object.entries(customProps);
 
@@ -431,6 +431,14 @@ export ${
       ? `
 export interface ${componentName}QueryParams {
   ${queryParamsType};
+}
+`
+      : ""
+  }${
+    paramsInPath.length
+      ? `
+export interface ${componentName}PathParams {
+  ${paramsTypes}
 }
 `
       : ""
@@ -468,19 +476,19 @@ ${description}export const ${componentName} = (${
   // Hooks version
   output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
     verb === "get" ? "" : ` | "verb"`
-  }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
+  }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
 
 ${description}export const use${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
-  }\`${route}\`, ${
+  }${paramsInPath.length ? `({ ${paramsInPath.join(", ")} }) => \`${route}\`` : `\`${route}\``}, { ${
     customPropsEntries.length
       ? `{ ${customPropsEntries
           .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
-          .join(", ")}, ...props}`
-      : "props"
-  });
+          .join(", ")}, `
+      : ""
+  }${paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} }, ` : ""}...props });
 
 `;
 

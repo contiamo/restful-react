@@ -6,8 +6,8 @@ import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
 import { useAbort } from "./useAbort";
 
-export interface UseMutateProps<TData, TQueryParams, TRequestBody>
-  extends Omit<UseGetProps<TData, TQueryParams>, "lazy" | "debounce"> {
+export interface UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>
+  extends Omit<UseGetProps<TData, TQueryParams, TPathParams>, "lazy" | "debounce"> {
   /**
    * What HTTP verb are we using?
    */
@@ -21,7 +21,8 @@ export interface UseMutateProps<TData, TQueryParams, TRequestBody>
   onMutate?: (body: TRequestBody, data: TData) => void;
 }
 
-export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams> extends MutateState<TData, TError> {
+export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>
+  extends MutateState<TData, TError> {
   /**
    * Cancel the current fetch
    */
@@ -29,30 +30,43 @@ export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams> exte
   /**
    * Call the mutate endpoint
    */
-  mutate: MutateMethod<TData, TRequestBody, TQueryParams>;
+  mutate: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>;
 }
-
-export function useMutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
-  props: UseMutateProps<TData, TQueryParams, TRequestBody>,
-): UseMutateReturn<TData, TError, TRequestBody, TQueryParams>;
-
-export function useMutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
-  verb: UseMutateProps<TData, TQueryParams, TRequestBody>["verb"],
-  path: string,
-  props?: Omit<UseMutateProps<TData, TQueryParams, TRequestBody>, "path" | "verb">,
-): UseMutateReturn<TData, TError, TRequestBody, TQueryParams>;
 
 export function useMutate<
   TData = any,
   TError = any,
   TQueryParams = { [key: string]: any },
-  TRequestBody = any
->(): UseMutateReturn<TData, TError, TRequestBody, TQueryParams> {
-  const props: UseMutateProps<TData, TQueryParams, TRequestBody> =
+  TRequestBody = any,
+  TPathParams = unknown
+>(
+  props: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>,
+): UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>;
+
+export function useMutate<
+  TData = any,
+  TError = any,
+  TQueryParams = { [key: string]: any },
+  TRequestBody = any,
+  TPathParams = unknown
+>(
+  verb: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>["verb"],
+  path: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>["path"],
+  props?: Omit<UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>, "path" | "verb">,
+): UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>;
+
+export function useMutate<
+  TData = any,
+  TError = any,
+  TQueryParams = { [key: string]: any },
+  TRequestBody = any,
+  TPathParams = unknown
+>(): UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams> {
+  const props: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams> =
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
   const context = useContext(Context);
-  const { verb, base = context.base, path, queryParams = {}, resolve } = props;
+  const { verb, base = context.base, path, queryParams = {}, resolve, pathParams = {} } = props;
   const isDelete = verb === "DELETE";
 
   const [state, setState] = useState<MutateState<TData, TError>>({
@@ -65,8 +79,8 @@ export function useMutate<
   // Cancel the fetch on unmount
   useEffect(() => () => abort(), [abort]);
 
-  const mutate = useCallback<MutateMethod<TData, TRequestBody, TQueryParams>>(
-    async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams>) => {
+  const mutate = useCallback<MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>>(
+    async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>) => {
       if (state.error || !state.loading) {
         setState(prevState => ({ ...prevState, loading: true, error: null }));
       }
@@ -75,6 +89,9 @@ export function useMutate<
         // Abort previous requests
         abort();
       }
+
+      const pathStr =
+        typeof path === "function" ? path(mutateRequestOptions?.pathParams || (pathParams as TPathParams)) : path;
 
       const propsRequestOptions =
         (typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions) || {};
@@ -106,7 +123,7 @@ export function useMutate<
       const request = new Request(
         resolvePath(
           base,
-          isDelete ? `${path}/${body}` : path,
+          isDelete ? `${pathStr}/${body}` : pathStr,
           { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
           props.queryParamStringifyOptions,
         ),

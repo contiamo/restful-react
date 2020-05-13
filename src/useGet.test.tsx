@@ -4,6 +4,7 @@ import "isomorphic-fetch";
 import times from "lodash/times";
 import nock from "nock";
 import React, { useState } from "react";
+import { renderHook } from "@testing-library/react-hooks";
 
 import { RestfulProvider, useGet } from "./index";
 import { Omit, UseGetProps } from "./useGet";
@@ -1117,7 +1118,10 @@ describe("useGet hook", () => {
         code: number;
       }
 
-      type UseGetMyCustomEndpoint = Omit<UseGetProps<MyCustomEndpointResponse, MyCustomEndpointQueryParams>, "path">;
+      type UseGetMyCustomEndpoint = Omit<
+        UseGetProps<MyCustomEndpointResponse, MyCustomEndpointQueryParams, {}>,
+        "path"
+      >;
       const useGetMyCustomEndpoint = (props: UseGetMyCustomEndpoint) =>
         useGet<MyCustomEndpointResponse, MyCustomEndpointError, MyCustomEndpointQueryParams>("/", props);
 
@@ -1138,6 +1142,64 @@ describe("useGet hook", () => {
       await wait(() => expect(children).toBeCalledTimes(2));
       expect(children.mock.calls[1][0].loading).toEqual(false);
       expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
+    });
+  });
+
+  describe("with pathParams", () => {
+    it("should resolve path parameters if specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/plop/one")
+        .reply(200, { id: 1 });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useGet<{ id: number }, {}, {}, { id: string }>(({ id }) => `plop/${id}`, {
+            pathParams: { id: "two" },
+            lazy: true,
+          }),
+        {
+          wrapper,
+        },
+      );
+      await result.current.refetch({ pathParams: { id: "one" } });
+
+      await wait(() =>
+        expect(result.current).toMatchObject({
+          error: null,
+          loading: false,
+        }),
+      );
+      expect(result.current.data).toEqual({ id: 1 });
+    });
+
+    it("should override path parameters if specified in refetch method", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/plop/one")
+        .reply(200, { id: 1 });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useGet<{ id: number }, {}, {}, { id: string }>(({ id }) => `plop/${id}`, {
+            pathParams: { id: "two" },
+            lazy: true,
+          }),
+        {
+          wrapper,
+        },
+      );
+      await result.current.refetch({ pathParams: { id: "one" } });
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(result.current.data).toEqual({ id: 1 });
     });
   });
 });

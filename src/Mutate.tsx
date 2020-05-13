@@ -16,16 +16,20 @@ export interface States<TData, TError> {
   error?: GetState<TData, TError>["error"];
 }
 
-export interface MutateRequestOptions<TQueryParams> extends RequestInit {
+export interface MutateRequestOptions<TQueryParams, TPathParams> extends RequestInit {
   /**
    * Query parameters
    */
   queryParams?: TQueryParams;
+  /**
+   * Path parameters
+   */
+  pathParams?: TPathParams;
 }
 
-export type MutateMethod<TData, TRequestBody, TQueryParams> = (
+export type MutateMethod<TData, TRequestBody, TQueryParams, TPathParams> = (
   data: TRequestBody,
-  mutateRequestOptions?: MutateRequestOptions<TQueryParams>,
+  mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>,
 ) => Promise<TData>;
 
 /**
@@ -40,7 +44,7 @@ export interface Meta {
 /**
  * Props for the <Mutate /> component.
  */
-export interface MutateProps<TData, TError, TQueryParams, TRequestBody> {
+export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams = unknown> {
   /**
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
@@ -83,7 +87,7 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody> {
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
   children: (
-    mutate: MutateMethod<TData, TRequestBody, TQueryParams>,
+    mutate: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>,
     states: States<TData, TError>,
     meta: Meta,
   ) => React.ReactNode;
@@ -111,8 +115,8 @@ export interface MutateState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React.Component<
-  MutateProps<TData, TError, TQueryParams, TRequestBody> & InjectedProps,
+class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams = unknown> extends React.Component<
+  MutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams> & InjectedProps,
   MutateState<TData, TError>
 > {
   public readonly state: Readonly<MutateState<TData, TError>> = {
@@ -137,7 +141,10 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody> extends React
     this.abortController.abort();
   }
 
-  public mutate = async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams>) => {
+  public mutate = async (
+    body: TRequestBody,
+    mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>,
+  ) => {
     const {
       __internal_hasExplicitBase,
       base,
