@@ -270,6 +270,60 @@ describe("useMutate", () => {
     });
   });
 
+  describe("Path Params", () => {
+    it("should resolve path parameters if specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/plop/one")
+        .reply(200, { id: 1 });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useMutate<{ id: number }, unknown, {}, {}, { id: string }>("POST", ({ id }) => `plop/${id}`, {
+            pathParams: { id: "one" },
+          }),
+        {
+          wrapper,
+        },
+      );
+      const res = await result.current.mutate({});
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ id: 1 });
+    });
+
+    it("should override path parameters if specified in mutate method", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/plop/one")
+        .reply(200, { id: 1 });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useMutate<{ id: number }, unknown, {}, {}, { id: string }>("POST", ({ id }) => `plop/${id}`, {
+            pathParams: { id: "two" },
+          }),
+        {
+          wrapper,
+        },
+      );
+      const res = await result.current.mutate({}, { pathParams: { id: "one" } });
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ id: 1 });
+    });
+  });
+
   describe("POST", () => {
     it("should set loading to true after a call", async () => {
       nock("https://my-awesome-api.fake")
@@ -593,7 +647,7 @@ describe("useMutate", () => {
       }
 
       type UseDeleteMyCustomEndpoint = Omit<
-        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}>,
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}, {}>,
         "path" | "verb"
       >;
       const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
@@ -640,7 +694,7 @@ describe("useMutate", () => {
       }
 
       type UseDeleteMyCustomEndpoint = Omit<
-        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}>,
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}, {}>,
         "path" | "verb"
       >;
       const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
