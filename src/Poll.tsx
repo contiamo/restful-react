@@ -52,11 +52,11 @@ interface Actions {
 /**
  * Props that can control the Poll component.
  */
-export interface PollProps<TData, TError, TQueryParams> {
+export interface PollProps<TData, TError, TQueryParams, TPathParams> {
   /**
    * What path are we polling on?
    */
-  path: GetProps<TData, TError, TQueryParams>["path"];
+  path: GetProps<TData, TError, TQueryParams, TPathParams>["path"];
   /**
    * A function that gets polled data, the current
    * states, meta information, and various actions
@@ -89,7 +89,7 @@ export interface PollProps<TData, TError, TQueryParams> {
    * Are we going to wait to start the poll?
    * Use this with { start, stop } actions.
    */
-  lazy?: GetProps<TData, TError, TQueryParams>["lazy"];
+  lazy?: GetProps<TData, TError, TQueryParams, TPathParams>["lazy"];
   /**
    * Should the data be transformed in any way?
    */
@@ -97,11 +97,11 @@ export interface PollProps<TData, TError, TQueryParams> {
   /**
    * We can request foreign URLs with this prop.
    */
-  base?: GetProps<TData, TError, TQueryParams>["base"];
+  base?: GetProps<TData, TError, TQueryParams, TPathParams>["base"];
   /**
    * Any options to be passed to this request.
    */
-  requestOptions?: GetProps<TData, TError, TQueryParams>["requestOptions"];
+  requestOptions?: GetProps<TData, TError, TQueryParams, TPathParams>["requestOptions"];
   /**
    * Query parameters
    */
@@ -155,8 +155,8 @@ export interface PollState<TData, TError> {
 /**
  * The <Poll /> component without context.
  */
-class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
-  PollProps<TData, TError, TQueryParams> & InjectedProps,
+class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extends React.Component<
+  PollProps<TData, TError, TQueryParams, TPathParams> & InjectedProps,
   Readonly<PollState<TData, TError>>
 > {
   public readonly state: Readonly<PollState<TData, TError>> = {
@@ -339,8 +339,8 @@ class ContextlessPoll<TData, TError, TQueryParams> extends React.Component<
   }
 }
 
-function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
-  props: PollProps<TData, TError, TQueryParams>,
+function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }, TPathParams = unknown>(
+  props: PollProps<TData, TError, TQueryParams, TPathParams>,
 ) {
   // Compose Contexts to allow for URL nesting
   return (
