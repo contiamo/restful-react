@@ -57,7 +57,7 @@ export interface Meta {
 /**
  * Props for the <Get /> component.
  */
-export interface GetProps<TData, TError, TQueryParams> {
+export interface GetProps<TData, TError, TQueryParams, TPathParams> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -78,6 +78,10 @@ export interface GetProps<TData, TError, TQueryParams> {
   children: (data: TData | null, states: States<TData, TError>, actions: Actions<TData>, meta: Meta) => React.ReactNode;
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
+  /**
+   * Query parameters
+   */
+  pathParams?: TPathParams;
   /**
    * Query parameters
    */
@@ -142,11 +146,11 @@ export interface GetState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
-  GetProps<TData, TError, TQueryParams> & InjectedProps,
+class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends React.Component<
+  GetProps<TData, TError, TQueryParams, TPathParams> & InjectedProps,
   Readonly<GetState<TData, TError>>
 > {
-  constructor(props: GetProps<TData, TError, TQueryParams> & InjectedProps) {
+  constructor(props: GetProps<TData, TError, TQueryParams, TPathParams> & InjectedProps) {
     super(props);
 
     if (typeof props.debounce === "object") {
@@ -184,7 +188,7 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
     }
   }
 
-  public componentDidUpdate(prevProps: GetProps<TData, TError, TQueryParams>) {
+  public componentDidUpdate(prevProps: GetProps<TData, TError, TQueryParams, TPathParams>) {
     const { base, parentPath, path, resolve, queryParams } = prevProps;
     if (
       base !== this.props.base ||
@@ -335,8 +339,8 @@ class ContextlessGet<TData, TError, TQueryParams> extends React.Component<
  * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Get<TData = any, TError = any, TQueryParams = { [key: string]: any }>(
-  props: GetProps<TData, TError, TQueryParams>,
+function Get<TData = any, TError = any, TQueryParams = { [key: string]: any }, TPathParams = unknown>(
+  props: GetProps<TData, TError, TQueryParams, TPathParams>,
 ) {
   return (
     <RestfulReactConsumer>

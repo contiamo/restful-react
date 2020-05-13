@@ -44,7 +44,7 @@ export interface Meta {
 /**
  * Props for the <Mutate /> component.
  */
-export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams = unknown> {
+export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams> {
   /**
    * The path at which to request data,
    * typically composed by parents or the RestfulProvider.
@@ -268,9 +268,13 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams =
  * in order to provide new `parentPath` props that contain
  * a segment of the path, creating composable URLs.
  */
-function Mutate<TData = any, TError = any, TQueryParams = { [key: string]: any }, TRequestBody = any>(
-  props: MutateProps<TData, TError, TQueryParams, TRequestBody>,
-) {
+function Mutate<
+  TData = any,
+  TError = any,
+  TQueryParams = { [key: string]: any },
+  TRequestBody = any,
+  TPathParams = unknown
+>(props: MutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>) {
   return (
     <RestfulReactConsumer>
       {contextProps => (

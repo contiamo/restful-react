@@ -384,7 +384,7 @@ export const generateRestfulComponent = (
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
-        }`
+        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${
@@ -393,7 +393,7 @@ export const generateRestfulComponent = (
             : needARequestBodyComponent
             ? componentName + "RequestBody"
             : requestBodyTypes
-        }`;
+        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
 
   const genericsTypesForHooksProps =
     verb === "get"
@@ -451,7 +451,7 @@ export interface ${componentName}RequestBody ${requestBodyTypes}
   }
 export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
     verb === "get" ? "" : ` | "verb"`
-  }>${paramsInPath.length ? ` & {${paramsTypes}}` : ""};
+  }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
 
 ${description}export const ${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
@@ -482,7 +482,11 @@ ${description}export const use${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
   }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
-  }${paramsInPath.length ? `({ ${paramsInPath.join(", ")} }) => \`${route}\`` : `\`${route}\``}, { ${
+  }${
+    paramsInPath.length
+      ? `({ ${paramsInPath.join(", ")} }: ${componentName}PathParams) => \`${route}\``
+      : `\`${route}\``
+  }, { ${
     customPropsEntries.length
       ? `{ ${customPropsEntries
           .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
