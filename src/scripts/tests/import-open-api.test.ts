@@ -860,7 +860,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, props);
 
         "
       `);
@@ -903,7 +903,7 @@ describe("scripts/import-open-api", () => {
          * 
          * This is a longer description to describe my endpoint
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void, void>(\`/fields\`, props);
 
         "
       `);
@@ -941,7 +941,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, unknown, void, void>(\`/fields\`, props);
 
         "
       `);
@@ -992,7 +992,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, props);
 
         "
       `);
@@ -1069,7 +1069,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams, void>(\`/fields\`, props);
 
         "
       `);
@@ -1152,7 +1152,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, ListFieldsQueryParams, void>(\`/fields\`, props);
 
         "
       `);
@@ -1203,6 +1203,9 @@ describe("scripts/import-open-api", () => {
       expect(generateRestfulComponent(operation, "get", "/fields/{id}", [])).toMatchInlineSnapshot(`
         "
         export interface ListFieldsPathParams {
+          /**
+           * The id of the project
+           */
           id: string
         }
 
@@ -1281,6 +1284,9 @@ describe("scripts/import-open-api", () => {
       ).toMatchInlineSnapshot(`
         "
         export interface ListFieldsPathParams {
+          /**
+           * The id of the project
+           */
           id: string
         }
 
@@ -1352,6 +1358,9 @@ describe("scripts/import-open-api", () => {
       expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
         "
         export interface UpdateUseCasePathParams {
+          /**
+           * The id of the use case
+           */
           useCaseId: string
         }
 
@@ -1433,6 +1442,9 @@ describe("scripts/import-open-api", () => {
       expect(generateRestfulComponent(operation, "put", "/use-cases/{useCaseId}", [])).toMatchInlineSnapshot(`
         "
         export interface UpdateUseCasePathParams {
+          /**
+           * The id of the use case
+           */
           useCaseId: string
         }
 
@@ -1533,6 +1545,9 @@ describe("scripts/import-open-api", () => {
         }
 
         export interface UpdateUseCasePathParams {
+          /**
+           * The id of the use case
+           */
           useCaseId: string
         }
 
@@ -1628,6 +1643,9 @@ describe("scripts/import-open-api", () => {
         }
 
         export interface UpdateUseCasePathParams {
+          /**
+           * The id of the use case
+           */
           useCaseId: string
         }
 
@@ -1712,7 +1730,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Delete use case
          */
-        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string, void>(\\"DELETE\\", \`/use-cases\`, { ...props });
+        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string, void>(\\"DELETE\\", \`/use-cases\`, props);
 
         "
       `);
@@ -1757,6 +1775,9 @@ describe("scripts/import-open-api", () => {
       expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}/secret", [])).toMatchInlineSnapshot(`
         "
         export interface DeleteUseCasePathParams {
+          /**
+           * The id of the use case
+           */
           useCaseId: string
         }
 
@@ -1841,7 +1862,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Delete use case
          */
-        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, number, void>(\\"DELETE\\", \`/use-cases\`, { ...props });
+        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, number, void>(\\"DELETE\\", \`/use-cases\`, props);
 
         "
       `);
@@ -1899,7 +1920,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Delete use case
          */
-        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, UseCaseId, void>(\\"DELETE\\", \`/use-cases\`, { ...props });
+        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, UseCaseId, void>(\\"DELETE\\", \`/use-cases\`, props);
 
         "
       `);
@@ -1955,7 +1976,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, { ...props });
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, props);
 
         export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void, void>, \\"path\\">;
 
@@ -2010,7 +2031,7 @@ describe("scripts/import-open-api", () => {
       /**
        * List all fields for the use case schema
        */
-      export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void, void>(\`/fields\`, { ...props });
+      export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void, void>(\`/fields\`, props);
 
       "
     `);

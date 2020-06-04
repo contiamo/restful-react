@@ -79,7 +79,7 @@ export interface GetProps<TData, TError, TQueryParams, TPathParams> {
   /** Options passed into the fetch call. */
   requestOptions?: RestfulReactProviderProps["requestOptions"];
   /**
-   * Query parameters
+   * Path parameters
    */
   pathParams?: TPathParams;
   /**
