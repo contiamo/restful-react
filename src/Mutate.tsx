@@ -115,7 +115,7 @@ export interface MutateState<TData, TError> {
  * is a named class because it is useful in
  * debugging.
  */
-class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams = unknown> extends React.Component<
+class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> extends React.Component<
   MutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams> & InjectedProps,
   MutateState<TData, TError>
 > {
@@ -279,7 +279,7 @@ function Mutate<
     <RestfulReactConsumer>
       {contextProps => (
         <RestfulReactProvider {...contextProps} parentPath={composePath(contextProps.parentPath, props.path!)}>
-          <ContextlessMutate<TData, TError, TQueryParams, TRequestBody>
+          <ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams>
             {...contextProps}
             {...props}
             queryParams={{ ...contextProps.queryParams, ...props.queryParams } as TQueryParams}

@@ -343,8 +343,10 @@ export const generateRestfulComponent = (
   const paramsTypes = paramsInPath
     .map(p => {
       try {
-        const { name, required, schema } = pathParams.find(i => i.name === p)!;
-        return `${name}${required ? "" : "?"}: ${resolveValue(schema!)}`;
+        const { name, required, schema, description } = pathParams.find(i => i.name === p)!;
+        return `${description ? formatDescription(description, 2) : ""}${name}${required ? "" : "?"}: ${resolveValue(
+          schema!,
+        )}`;
       } catch (err) {
         throw new Error(`The path params ${p} can't be found in parameters (${operation.operationId})`);
       }
@@ -486,13 +488,17 @@ ${description}export const use${componentName} = (${
     paramsInPath.length
       ? `({ ${paramsInPath.join(", ")} }: ${componentName}PathParams) => \`${route}\``
       : `\`${route}\``
-  }, { ${
-    customPropsEntries.length
-      ? `{ ${customPropsEntries
-          .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
-          .join(", ")}, `
-      : ""
-  }${paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} }, ` : ""}...props });
+  }, ${
+    customPropsEntries.length || paramsInPath.length
+      ? `{ ${
+          customPropsEntries.length
+            ? `${customPropsEntries
+                .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
+                .join(", ")},`
+            : ""
+        }${paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""} ...props }`
+      : "props"
+  });
 
 `;
 

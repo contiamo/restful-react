@@ -97,7 +97,7 @@ export type UseFindPetsProps = Omit<UseGetProps<Pet[], FindPetsQueryParams, void
  * Sed tempus felis lobortis leo pulvinar rutrum. Nam mattis velit nisl, eu condimentum ligula luctus nec. Phasellus semper velit eget aliquet faucibus. In a mattis elit. Phasellus vel urna viverra, condimentum lorem id, rhoncus nibh. Ut pellentesque posuere elementum. Sed a varius odio. Morbi rhoncus ligula libero, vel eleifend nunc tristique vitae. Fusce et sem dui. Aenean nec scelerisque tortor. Fusce malesuada accumsan magna vel tempus. Quisque mollis felis eu dolor tristique, sit amet auctor felis gravida. Sed libero lorem, molestie sed nisl in, accumsan tempor nisi. Fusce sollicitudin massa ut lacinia mattis. Sed vel eleifend lorem. Pellentesque vitae felis pretium, pulvinar elit eu, euismod sapien.
  * 
  */
-export const useFindPets = (props: UseFindPetsProps) => useGet<Pet[], Error, FindPetsQueryParams, void>(\`/pets\`, { ...props });
+export const useFindPets = (props: UseFindPetsProps) => useGet<Pet[], Error, FindPetsQueryParams, void>(\`/pets\`, props);
 
 
 export type AddPetProps = Omit<MutateProps<Pet, Error, void, NewPet, void>, \\"path\\" | \\"verb\\">;
@@ -118,10 +118,13 @@ export type UseAddPetProps = Omit<UseMutateProps<Pet, void, NewPet, void>, \\"pa
 /**
  * Creates a new pet in the store.  Duplicates are allowed
  */
-export const useAddPet = (props: UseAddPetProps) => useMutate<Pet, Error, void, NewPet, void>(\\"POST\\", \`/pets\`, { ...props });
+export const useAddPet = (props: UseAddPetProps) => useMutate<Pet, Error, void, NewPet, void>(\\"POST\\", \`/pets\`, props);
 
 
 export interface FindPetByIdPathParams {
+  /**
+   * ID of pet to fetch
+   */
   id: number
 }
 
@@ -163,10 +166,13 @@ export type UseDeletePetProps = Omit<UseMutateProps<void, void, number, void>, \
 /**
  * deletes a single pet based on the ID supplied
  */
-export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, number, void>(\\"DELETE\\", \`/pets\`, { ...props });
+export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, number, void>(\\"DELETE\\", \`/pets\`, props);
 
 
 export interface UpdatePetPathParams {
+  /**
+   * ID of pet to update
+   */
   id: number
 }
 
