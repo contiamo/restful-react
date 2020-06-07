@@ -60,6 +60,9 @@ export const getScalar = (item: SchemaObject) => {
     case "array":
       return getArray(item) + nullable;
 
+    case "null":
+      return "null";
+
     case "string":
     case "byte":
     case "binary":
@@ -161,7 +164,7 @@ export const getObject = (item: SchemaObject): string => {
     }
     output += `  [key: string]: ${
       item.additionalProperties === true ? "any" : resolveValue(item.additionalProperties)
-    };`;
+      };`;
   }
 
   if (item.properties || item.additionalProperties) {
@@ -366,9 +369,9 @@ export const generateRestfulComponent = (
   const lastParamInTheRouteDefinition =
     operation.parameters && lastParamInTheRoute
       ? (operation.parameters.find(p => {
-          if (isReference(p)) return false;
-          return p.name === lastParamInTheRoute;
-        }) as ParameterObject | undefined) // Reference is not possible
+        if (isReference(p)) return false;
+        return p.name === lastParamInTheRoute;
+      }) as ParameterObject | undefined) // Reference is not possible
       : { schema: { type: "string" } };
 
   if (!lastParamInTheRouteDefinition) {
@@ -379,38 +382,38 @@ export const generateRestfulComponent = (
     !isReference(lastParamInTheRouteDefinition.schema) && lastParamInTheRouteDefinition.schema
       ? getScalar(lastParamInTheRouteDefinition.schema)
       : isReference(lastParamInTheRouteDefinition.schema)
-      ? getRef(lastParamInTheRouteDefinition.schema.$ref)
-      : "string";
+        ? getRef(lastParamInTheRouteDefinition.schema.$ref)
+        : "string";
 
   const genericsTypes =
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
+      queryParamsType ? componentName + "QueryParams" : "void"
+      }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${
-          verb === "delete" && lastParamInTheRoute
-            ? lastParamInTheRouteType
-            : needARequestBodyComponent
-            ? componentName + "RequestBody"
-            : requestBodyTypes
-        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
+      queryParamsType ? componentName + "QueryParams" : "void"
+      }, ${
+      verb === "delete" && lastParamInTheRoute
+        ? lastParamInTheRouteType
+        : needARequestBodyComponent
+          ? componentName + "RequestBody"
+          : requestBodyTypes
+      }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
 
   const genericsTypesForHooksProps =
     verb === "get"
       ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
+      queryParamsType ? componentName + "QueryParams" : "void"
+      }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
       : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${
-          verb === "delete" && lastParamInTheRoute
-            ? lastParamInTheRouteType
-            : needARequestBodyComponent
-            ? componentName + "RequestBody"
-            : requestBodyTypes
-        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
+      queryParamsType ? componentName + "QueryParams" : "void"
+      }, ${
+      verb === "delete" && lastParamInTheRoute
+        ? lastParamInTheRouteType
+        : needARequestBodyComponent
+          ? componentName + "RequestBody"
+          : requestBodyTypes
+      }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
 
   const customPropsEntries = Object.entries(customProps);
 
@@ -424,11 +427,11 @@ export const generateRestfulComponent = (
     needAResponseComponent
       ? `
 export ${
-          responseTypes.includes("|") ? `type ${componentName}Response =` : `interface ${componentName}Response`
-        } ${responseTypes}
+      responseTypes.includes("|") ? `type ${componentName}Response =` : `interface ${componentName}Response`
+      } ${responseTypes}
 `
       : ""
-  }${
+    }${
     queryParamsType
       ? `
 export interface ${componentName}QueryParams {
@@ -436,7 +439,7 @@ export interface ${componentName}QueryParams {
 }
 `
       : ""
-  }${
+    }${
     paramsInPath.length
       ? `
 export interface ${componentName}PathParams {
@@ -444,31 +447,31 @@ export interface ${componentName}PathParams {
 }
 `
       : ""
-  }${
+    }${
     needARequestBodyComponent
       ? `
 export interface ${componentName}RequestBody ${requestBodyTypes}
 `
       : ""
-  }
+    }
 export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
     verb === "get" ? "" : ` | "verb"`
-  }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
+    }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
 
 ${description}export const ${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-  }: ${componentName}Props) => (
+    }: ${componentName}Props) => (
   <${Component}<${genericsTypes}>${
     verb === "get"
       ? ""
       : `
     verb="${verb.toUpperCase()}"`
-  }
+    }
     path={\`${route}\`}${
     customPropsEntries.length
       ? "\n    " + customPropsEntries.map(([key, value]) => `${key}=${value}`).join("\n    ")
       : ""
-  }
+    }
     {...props}
   />
 );
@@ -478,27 +481,27 @@ ${description}export const ${componentName} = (${
   // Hooks version
   output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
     verb === "get" ? "" : ` | "verb"`
-  }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
+    }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
 
 ${description}export const use${componentName} = (${
     paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-  }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
+    }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
-  }${
+    }${
     paramsInPath.length
       ? `({ ${paramsInPath.join(", ")} }: ${componentName}PathParams) => \`${route}\``
       : `\`${route}\``
-  }, ${
+    }, ${
     customPropsEntries.length || paramsInPath.length
       ? `{ ${
-          customPropsEntries.length
-            ? `${customPropsEntries
-                .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
-                .join(", ")},`
-            : ""
-        }${paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""} ...props }`
+      customPropsEntries.length
+        ? `${customPropsEntries
+          .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
+          .join(", ")},`
+        : ""
+      }${paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""} ...props }`
       : "props"
-  });
+    });
 
 `;
 
@@ -519,12 +522,12 @@ ${description}export const use${componentName} = (${
   if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
     output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
       paramsInPath.length ? ` & {${paramsTypes}}` : ""
-    };
+      };
 
 ${operation.summary ? `// ${operation.summary} (long polling)` : ""}
 export const Poll${componentName} = (${
       paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-    }: Poll${componentName}Props) => (
+      }: Poll${componentName}Props) => (
   <Poll<${genericsTypes}>
     path={\`${route}\`}
     {...props}
@@ -589,15 +592,15 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
     Object.entries(schemas)
       .map(([name, schema]) =>
         !isReference(schema) &&
-        (!schema.type || schema.type === "object") &&
-        !schema.allOf &&
-        !schema.oneOf &&
-        !isReference(schema) &&
-        !schema.nullable
+          (!schema.type || schema.type === "object") &&
+          !schema.allOf &&
+          !schema.oneOf &&
+          !isReference(schema) &&
+          !schema.nullable
           ? generateInterface(name, schema)
           : `${formatDescription(isReference(schema) ? undefined : schema.description)}export type ${pascal(
-              name,
-            )} = ${resolveValue(schema)};`,
+            name,
+          )} = ${resolveValue(schema)};`,
       )
       .join("\n\n") + "\n"
   );
@@ -673,9 +676,9 @@ export interface ${pascal(name)}Response ${type}`;
 export const formatDescription = (description?: string, tabSize = 0) =>
   description
     ? `/**\n${description
-        .split("\n")
-        .map(i => `${" ".repeat(tabSize)} * ${i}`)
-        .join("\n")}\n${" ".repeat(tabSize)} */\n${" ".repeat(tabSize)}`
+      .split("\n")
+      .map(i => `${" ".repeat(tabSize)} * ${i}`)
+      .join("\n")}\n${" ".repeat(tabSize)} */\n${" ".repeat(tabSize)}`
     : "";
 
 /**

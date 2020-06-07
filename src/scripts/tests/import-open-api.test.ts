@@ -76,6 +76,8 @@ describe("scripts/import-open-api", () => {
       { item: { type: "string", nullable: true }, expected: "string | null" },
       { item: { type: "object", nullable: true }, expected: "{[key: string]: any} | null" },
       { item: { type: "object", $ref: "#/components/schemas/Foo", nullable: true }, expected: "Foo | null" },
+      { item: { type: "null", nullable: true }, expected: "null" },
+      { item: { type: "null" }, expected: "null" },
     ].map(({ item, expected }) =>
       it(`should return ${expected} as type for ${item.type}`, () => {
         expect(getScalar(item)).toEqual(expected);
@@ -330,6 +332,19 @@ describe("scripts/import-open-api", () => {
                                                                   name: string;
                                                                 }"
                                                 `);
+    });
+
+    it("should deal with oneOf with null", () => {
+      const item = {
+        type: "object",
+        oneOf: [
+          { $ref: "#/components/schemas/foo" },
+          {
+            type: "null",
+          },
+        ],
+      };
+      expect(getObject(item)).toMatchInlineSnapshot(`"Foo | null"`);
     });
     it("should handle empty properties (1)", () => {
       const item = {
