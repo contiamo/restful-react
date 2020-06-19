@@ -1241,7 +1241,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, ListFieldsPathParams>(({ id }: ListFieldsPathParams) => \`/fields/\${id}\`, { pathParams: { id }, ...props });
+        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, ListFieldsPathParams>((paramsInPath: ListFieldsPathParams) => \`/fields/\${paramsInPath.id}\`, { pathParams: { id }, ...props });
 
         "
       `);
@@ -1322,7 +1322,7 @@ describe("scripts/import-open-api", () => {
         /**
          * List all fields for the use case schema
          */
-        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, ListFieldsPathParams>(({ id }: ListFieldsPathParams) => \`/fields/\${id}\`, { pathParams: { id }, ...props });
+        export const useListFields = ({id, ...props}: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, ListFieldsPathParams>((paramsInPath: ListFieldsPathParams) => \`/fields/\${paramsInPath.id}\`, { pathParams: { id }, ...props });
 
         "
       `);
@@ -1397,7 +1397,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Update use case details
          */
-        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>(\\"PUT\\", ({ useCaseId }: UpdateUseCasePathParams) => \`/use-cases/\${useCaseId}\`, { pathParams: { useCaseId }, ...props });
+        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>(\\"PUT\\", (paramsInPath: UpdateUseCasePathParams) => \`/use-cases/\${paramsInPath.useCaseId}\`, { pathParams: { useCaseId }, ...props });
 
         "
       `);
@@ -1489,7 +1489,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Update use case details
          */
-        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody, UpdateUseCasePathParams>(\\"PUT\\", ({ useCaseId }: UpdateUseCasePathParams) => \`/use-cases/\${useCaseId}\`, { pathParams: { useCaseId }, ...props });
+        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody, UpdateUseCasePathParams>(\\"PUT\\", (paramsInPath: UpdateUseCasePathParams) => \`/use-cases/\${paramsInPath.useCaseId}\`, { pathParams: { useCaseId }, ...props });
 
         "
       `);
@@ -1584,7 +1584,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Update use case details
          */
-        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>(\\"PUT\\", ({ useCaseId }: UpdateUseCasePathParams) => \`/use-cases/\${useCaseId}\`, { pathParams: { useCaseId }, ...props });
+        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>(\\"PUT\\", (paramsInPath: UpdateUseCasePathParams) => \`/use-cases/\${paramsInPath.useCaseId}\`, { pathParams: { useCaseId }, ...props });
 
         "
       `);
@@ -1682,7 +1682,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Update use case details
          */
-        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>(\\"PUT\\", ({ useCaseId }: UpdateUseCasePathParams) => \`/use-cases/\${useCaseId}\`, { pathParams: { useCaseId }, ...props });
+        export const useUpdateUseCase = ({useCaseId, ...props}: UseUpdateUseCaseProps) => useMutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>(\\"PUT\\", (paramsInPath: UpdateUseCasePathParams) => \`/use-cases/\${paramsInPath.useCaseId}\`, { pathParams: { useCaseId }, ...props });
 
         "
       `);
@@ -1814,7 +1814,7 @@ describe("scripts/import-open-api", () => {
         /**
          * Delete use case
          */
-        export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, void, DeleteUseCasePathParams>(\\"DELETE\\", ({ useCaseId }: DeleteUseCasePathParams) => \`/use-cases/\${useCaseId}/secret\`, { pathParams: { useCaseId }, ...props });
+        export const useDeleteUseCase = ({useCaseId, ...props}: UseDeleteUseCaseProps) => useMutate<void, APIError, void, void, DeleteUseCasePathParams>(\\"DELETE\\", (paramsInPath: DeleteUseCasePathParams) => \`/use-cases/\${paramsInPath.useCaseId}/secret\`, { pathParams: { useCaseId }, ...props });
 
         "
       `);

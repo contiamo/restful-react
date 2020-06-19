@@ -489,7 +489,7 @@ ${description}export const use${componentName} = (${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
   }${
     paramsInPath.length
-      ? `({ ${paramsInPath.join(", ")} }: ${componentName}PathParams) => \`${route}\``
+      ? `(paramsInPath: ${componentName}PathParams) => \`${route.replace(/\$\{/g, "${paramsInPath.")}\``
       : `\`${route}\``
   }, ${
     customPropsEntries.length || paramsInPath.length
