@@ -145,7 +145,7 @@ export type UseFindPetByIdProps = Omit<UseGetProps<Pet, Error, void, FindPetById
 /**
  * Returns a user based on a single ID, if the user does not have access to the pet
  */
-export const useFindPetById = ({id, ...props}: UseFindPetByIdProps) => useGet<Pet, Error, void, FindPetByIdPathParams>(({ id }: FindPetByIdPathParams) => \`/pets/\${id}\`, { pathParams: { id }, ...props });
+export const useFindPetById = ({id, ...props}: UseFindPetByIdProps) => useGet<Pet, Error, void, FindPetByIdPathParams>((paramsInPath: FindPetByIdPathParams) => \`/pets/\${paramsInPath.id}\`, { pathParams: { id }, ...props });
 
 
 export type DeletePetProps = Omit<MutateProps<void, Error, void, number, void>, \\"path\\" | \\"verb\\">;
@@ -194,7 +194,7 @@ export type UseUpdatePetProps = Omit<UseMutateProps<Pet, Error, void, UpdatePetR
 /**
  * Updates a pet in the store.
  */
-export const useUpdatePet = ({id, ...props}: UseUpdatePetProps) => useMutate<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>(\\"PATCH\\", ({ id }: UpdatePetPathParams) => \`/pets/\${id}\`, { pathParams: { id }, ...props });
+export const useUpdatePet = ({id, ...props}: UseUpdatePetProps) => useMutate<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>(\\"PATCH\\", (paramsInPath: UpdatePetPathParams) => \`/pets/\${paramsInPath.id}\`, { pathParams: { id }, ...props });
 
 "
 `;
