@@ -870,7 +870,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -911,7 +911,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, unknown, void, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -951,7 +951,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, unknown, void, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -1002,7 +1002,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -1079,7 +1079,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, ListFieldsQueryParams, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -1162,7 +1162,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, ListFieldsQueryParams, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, ListFieldsQueryParams, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -1236,7 +1236,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, ListFieldsPathParams>, \\"path\\"> & ListFieldsPathParams;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, ListFieldsPathParams>, \\"path\\"> & ListFieldsPathParams;
 
         /**
          * List all fields for the use case schema
@@ -1317,7 +1317,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, ListFieldsPathParams>, \\"path\\"> & ListFieldsPathParams;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, ListFieldsPathParams>, \\"path\\"> & ListFieldsPathParams;
 
         /**
          * List all fields for the use case schema
@@ -1392,7 +1392,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void, UseCaseInstance, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
 
         /**
          * Update use case details
@@ -1484,7 +1484,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, void, UpdateUseCaseRequestBody, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
 
         /**
          * Update use case details
@@ -1579,7 +1579,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
 
         /**
          * Update use case details
@@ -1677,7 +1677,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, void, UseCaseInstance, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
+        export type UseUpdateUseCaseProps = Omit<UseMutateProps<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>, \\"path\\" | \\"verb\\"> & UpdateUseCasePathParams;
 
         /**
          * Update use case details
@@ -1740,7 +1740,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, string, void>, \\"path\\" | \\"verb\\">;
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, APIError, void, string, void>, \\"path\\" | \\"verb\\">;
 
         /**
          * Delete use case
@@ -1809,7 +1809,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, void, DeleteUseCasePathParams>, \\"path\\" | \\"verb\\"> & DeleteUseCasePathParams;
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, APIError, void, void, DeleteUseCasePathParams>, \\"path\\" | \\"verb\\"> & DeleteUseCasePathParams;
 
         /**
          * Delete use case
@@ -1872,7 +1872,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, number, void>, \\"path\\" | \\"verb\\">;
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, APIError, void, number, void>, \\"path\\" | \\"verb\\">;
 
         /**
          * Delete use case
@@ -1930,7 +1930,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, void, UseCaseId, void>, \\"path\\" | \\"verb\\">;
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, APIError, void, UseCaseId, void>, \\"path\\" | \\"verb\\">;
 
         /**
          * Delete use case
@@ -1986,7 +1986,7 @@ describe("scripts/import-open-api", () => {
           />
         );
 
-        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, void, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
 
         /**
          * List all fields for the use case schema
@@ -2041,7 +2041,7 @@ describe("scripts/import-open-api", () => {
         />
       );
 
-      export type UseListFieldsProps = Omit<UseGetProps<void, void, void>, \\"path\\">;
+      export type UseListFieldsProps = Omit<UseGetProps<void, APIError, void, void>, \\"path\\">;
 
       /**
        * List all fields for the use case schema

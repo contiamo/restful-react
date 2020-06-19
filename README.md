@@ -422,6 +422,50 @@ export default MyHugeList;
 
 Each mutation returns a promise that can then be used to update local component state, dispatch an action, or do something else depending on your use case.
 
+### Mocks
+
+No backend support yet for your amazing feature? Need to isolate an edge case? You can easily provide a mock to `useMutate` and `useGet` to bypass the classic flow.
+
+/!\ If `mocks` option is provided, no requests will be send to the server. /!\
+
+```jsx
+import React from "react";
+import { useGet, useMutate } from "restful-react";
+
+const base = "https://jsonplaceholder.typicode.com";
+
+// Mock the `mutate` handler
+const { mutate: del, loading } = useMutate({
+  verb: "DELETE",
+  path: `/posts/`,
+  base,
+  // This will avoid any server call in favor of mock response
+  mocks: {
+    mutate: id => console.log(`The item ${id} was deleted`),
+  },
+});
+
+// Mock the `loading`, so it's easy to isolate the loading state
+const { data: posts } = useGet({
+  path: "/posts",
+  base,
+  // This will avoid any server call in favor of mock response
+  mocks: {
+    loading: true,
+  },
+});
+
+// Mock the `error`, so it's easy to isolate the error state
+const { data: posts } = useGet({
+  path: "/posts",
+  base,
+  // This will avoid any server call in favor of mock response
+  mocks: {
+    error: "oh no!",
+  },
+});
+```
+
 ### Polling with `Poll`
 
 `restful-react` also exports a `Poll` render props component that will poll a backend endpoint over a predetermined interval until a stop condition is met. Consider,

@@ -6,8 +6,8 @@ import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
 import { useAbort } from "./useAbort";
 
-export interface UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>
-  extends Omit<UseGetProps<TData, TQueryParams, TPathParams>, "lazy" | "debounce"> {
+export interface UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>
+  extends Omit<UseGetProps<TData, TError, TQueryParams, TPathParams>, "lazy" | "debounce" | "mock"> {
   /**
    * What HTTP verb are we using?
    */
@@ -19,6 +19,14 @@ export interface UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>
    * @param data - Response data
    */
   onMutate?: (body: TRequestBody, data: TData) => void;
+  /**
+   * Developer mode
+   * Override the state with some mocks values and avoid to fetch
+   */
+  mock?: {
+    mutate?: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>;
+    loading?: boolean;
+  };
 }
 
 export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>
@@ -40,7 +48,7 @@ export function useMutate<
   TRequestBody = any,
   TPathParams = unknown
 >(
-  props: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>,
+  props: UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>,
 ): UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>;
 
 export function useMutate<
@@ -50,9 +58,9 @@ export function useMutate<
   TRequestBody = any,
   TPathParams = unknown
 >(
-  verb: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>["verb"],
-  path: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>["path"],
-  props?: Omit<UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams>, "path" | "verb">,
+  verb: UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>["verb"],
+  path: UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>["path"],
+  props?: Omit<UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>, "path" | "verb">,
 ): UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>;
 
 export function useMutate<
@@ -62,7 +70,7 @@ export function useMutate<
   TRequestBody = any,
   TPathParams = unknown
 >(): UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams> {
-  const props: UseMutateProps<TData, TQueryParams, TRequestBody, TPathParams> =
+  const props: UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams> =
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
   const context = useContext(Context);
@@ -217,6 +225,7 @@ export function useMutate<
   return {
     ...state,
     mutate,
+    ...props.mock,
     cancel: () => {
       setState(prevState => ({
         ...prevState,

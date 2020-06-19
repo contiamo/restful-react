@@ -647,11 +647,11 @@ describe("useMutate", () => {
       }
 
       type UseDeleteMyCustomEndpoint = Omit<
-        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}, {}>,
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, {}, {}>,
         "path" | "verb"
       >;
       const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
-        useMutate<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, string>(
+        useMutate<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, string, {}>(
           "DELETE",
           "",
           props,
@@ -694,11 +694,11 @@ describe("useMutate", () => {
       }
 
       type UseDeleteMyCustomEndpoint = Omit<
-        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointQueryParams, {}, {}>,
+        UseMutateProps<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, {}, {}>,
         "path" | "verb"
       >;
       const useDeleteMyCustomEndpoint = (props?: UseDeleteMyCustomEndpoint) =>
-        useMutate<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, MyCustomEndpointBody>(
+        useMutate<MyCustomEnpointResponse, MyCustomEnpointError, MyCustomEnpointQueryParams, MyCustomEndpointBody, {}>(
           "POST",
           "plop",
           props,
