@@ -548,7 +548,10 @@ export const Poll${componentName} = (${
  */
 export const generateInterface = (name: string, schema: SchemaObject) => {
   const scalar = getScalar(schema);
-  return `${formatDescription(schema.description)}export interface ${pascal(name)} ${scalar}`;
+  const isEmptyInterface = scalar === "{}";
+  return `${formatDescription(schema.description)}${
+    isEmptyInterface ? "// tslint:disable-next-line:no-empty-interface\n" : ""
+  }export interface ${pascal(name)} ${scalar}`;
 };
 
 /**

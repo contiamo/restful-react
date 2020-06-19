@@ -583,6 +583,19 @@ describe("scripts/import-open-api", () => {
 
       expect(generateSchemasDefinition(schema)).toContain(`export type Wolf = Dog;`);
     });
+
+    it("should deal with empty object", () => {
+      const schema = {
+        Wolf: {
+          type: "object",
+          properties: {},
+          additionalProperties: false,
+        },
+      };
+
+      expect(generateSchemasDefinition(schema)).toContain(`// tslint:disable-next-line:no-empty-interface`);
+      expect(generateSchemasDefinition(schema)).toContain(`export interface Wolf {}`);
+    });
   });
 
   describe("generateResponsesDefinition", () => {
