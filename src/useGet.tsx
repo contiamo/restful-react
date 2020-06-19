@@ -13,7 +13,7 @@ import { useAbort } from "./useAbort";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-export interface UseGetProps<TData, TQueryParams, TPathParams> {
+export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
   /**
    * The path at which to request data,
    * typically composed by parent Gets or the RestfulProvider.
@@ -42,6 +42,11 @@ export interface UseGetProps<TData, TQueryParams, TPathParams> {
    * used when the backend response needs to be adapted in some way.
    */
   resolve?: (data: any) => TData;
+  /**
+   * Developer mode
+   * Override the state with some mocks values and avoid to fetch
+   */
+  mock?: { data?: TData; error?: TError; loading?: boolean; response?: Response };
   /**
    * Should we fetch data at a later stage?
    */
@@ -81,7 +86,7 @@ export function resolvePath<TQueryParams>(
 }
 
 async function _fetchData<TData, TError, TQueryParams, TPathParams>(
-  props: UseGetProps<TData, TQueryParams, TPathParams>,
+  props: UseGetProps<TData, TError, TQueryParams, TPathParams>,
   state: GetState<TData, TError>,
   setState: (newState: GetState<TData, TError>) => void,
   context: RestfulReactProviderProps,
@@ -172,8 +177,8 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
 
 type FetchData = typeof _fetchData;
 type CancellableFetchData = FetchData | (FetchData & Cancelable);
-type RefetchOptions<TData, TQueryParams, TPathParams> = Partial<
-  Omit<UseGetProps<TData, TQueryParams, TPathParams>, "lazy">
+type RefetchOptions<TData, TError, TQueryParams, TPathParams> = Partial<
+  Omit<UseGetProps<TData, TError, TQueryParams, TPathParams>, "lazy">
 >;
 
 const isCancellable = <T extends (...args: any[]) => any>(func: T): func is T & Cancelable => {
@@ -192,20 +197,20 @@ export interface UseGetReturn<TData, TError, TQueryParams = {}, TPathParams = un
   /**
    * Refetch
    */
-  refetch: (options?: RefetchOptions<TData, TQueryParams, TPathParams>) => Promise<void>;
+  refetch: (options?: RefetchOptions<TData, TError, TQueryParams, TPathParams>) => Promise<void>;
 }
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }, TPathParams = unknown>(
-  path: UseGetProps<TData, TQueryParams, TPathParams>["path"],
-  props?: Omit<UseGetProps<TData, TQueryParams, TPathParams>, "path">,
+  path: UseGetProps<TData, TError, TQueryParams, TPathParams>["path"],
+  props?: Omit<UseGetProps<TData, TError, TQueryParams, TPathParams>, "path">,
 ): UseGetReturn<TData, TError, TQueryParams>;
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }, TPathParams = unknown>(
-  props: UseGetProps<TData, TQueryParams, TPathParams>,
+  props: UseGetProps<TData, TError, TQueryParams, TPathParams>,
 ): UseGetReturn<TData, TError, TQueryParams>;
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }, TPathParams = unknown>() {
-  const props: UseGetProps<TData, TError, TPathParams> =
+  const props: UseGetProps<TData, TError, TQueryParams, TPathParams> =
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[1], path: arguments[0] };
 
   const context = useContext(Context);
@@ -237,17 +242,18 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
 
   useDeepCompareEffect(() => {
-    if (!props.lazy) {
+    if (!props.lazy && !props.mock) {
       fetchData(props, state, setState, context, abort, getAbortSignal);
     }
 
     return () => {
       abort();
     };
-  }, [props.lazy, props.path, props.base, props.resolve, props.queryParams, props.requestOptions, abort]);
+  }, [props.lazy, props.mock, props.path, props.base, props.resolve, props.queryParams, props.requestOptions, abort]);
 
   return {
     ...state,
+    ...props.mock, // override the state
     absolutePath: resolvePath(
       props.base || context.base,
       pathStr,
@@ -264,7 +270,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       });
       abort();
     },
-    refetch: (options: RefetchOptions<TData, TQueryParams, TPathParams> = {}) =>
+    refetch: (options: RefetchOptions<TData, TError, TQueryParams, TPathParams> = {}) =>
       fetchData({ ...props, ...options }, state, setState, context, abort, getAbortSignal),
   };
 }

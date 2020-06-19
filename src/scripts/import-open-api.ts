@@ -402,10 +402,10 @@ export const generateRestfulComponent = (
 
   const genericsTypesForHooksProps =
     verb === "get"
-      ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
+      ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
-      : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${
+      : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
           queryParamsType ? componentName + "QueryParams" : "void"
         }, ${
           verb === "delete" && lastParamInTheRoute

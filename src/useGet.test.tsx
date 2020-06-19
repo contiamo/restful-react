@@ -1119,7 +1119,7 @@ describe("useGet hook", () => {
       }
 
       type UseGetMyCustomEndpoint = Omit<
-        UseGetProps<MyCustomEndpointResponse, MyCustomEndpointQueryParams, {}>,
+        UseGetProps<MyCustomEndpointResponse, MyCustomEndpointError, MyCustomEndpointQueryParams, {}>,
         "path"
       >;
       const useGetMyCustomEndpoint = (props: UseGetMyCustomEndpoint) =>
@@ -1200,6 +1200,42 @@ describe("useGet hook", () => {
         loading: false,
       });
       expect(result.current.data).toEqual({ id: 1 });
+    });
+  });
+
+  describe("with mock", () => {
+    it("should not call the api and return the mock", async () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .get("/plop/one")
+        .reply(200, () => {
+          apiCalls++;
+          return { id: 1 };
+        });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useGet<{ id: number }, {}, {}, { id: string }>(({ id }) => `plop/${id}`, {
+            pathParams: { id: "one" },
+            mock: {
+              data: { id: 2 },
+              loading: false,
+            },
+          }),
+        {
+          wrapper,
+        },
+      );
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+        data: { id: 2 }, // from mock
+      });
+      expect(apiCalls).toBe(0);
     });
   });
 });

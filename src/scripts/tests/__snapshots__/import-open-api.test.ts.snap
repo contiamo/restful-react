@@ -88,7 +88,7 @@ export const FindPets = (props: FindPetsProps) => (
   />
 );
 
-export type UseFindPetsProps = Omit<UseGetProps<Pet[], FindPetsQueryParams, void>, \\"path\\">;
+export type UseFindPetsProps = Omit<UseGetProps<Pet[], Error, FindPetsQueryParams, void>, \\"path\\">;
 
 /**
  * Returns all pets from the system that the user has access to
@@ -113,7 +113,7 @@ export const AddPet = (props: AddPetProps) => (
   />
 );
 
-export type UseAddPetProps = Omit<UseMutateProps<Pet, void, NewPet, void>, \\"path\\" | \\"verb\\">;
+export type UseAddPetProps = Omit<UseMutateProps<Pet, Error, void, NewPet, void>, \\"path\\" | \\"verb\\">;
 
 /**
  * Creates a new pet in the store.  Duplicates are allowed
@@ -140,7 +140,7 @@ export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   />
 );
 
-export type UseFindPetByIdProps = Omit<UseGetProps<Pet, void, FindPetByIdPathParams>, \\"path\\"> & FindPetByIdPathParams;
+export type UseFindPetByIdProps = Omit<UseGetProps<Pet, Error, void, FindPetByIdPathParams>, \\"path\\"> & FindPetByIdPathParams;
 
 /**
  * Returns a user based on a single ID, if the user does not have access to the pet
@@ -161,7 +161,7 @@ export const DeletePet = (props: DeletePetProps) => (
   />
 );
 
-export type UseDeletePetProps = Omit<UseMutateProps<void, void, number, void>, \\"path\\" | \\"verb\\">;
+export type UseDeletePetProps = Omit<UseMutateProps<void, Error, void, number, void>, \\"path\\" | \\"verb\\">;
 
 /**
  * deletes a single pet based on the ID supplied
@@ -189,7 +189,7 @@ export const UpdatePet = ({id, ...props}: UpdatePetProps) => (
   />
 );
 
-export type UseUpdatePetProps = Omit<UseMutateProps<Pet, void, UpdatePetRequestRequestBody, UpdatePetPathParams>, \\"path\\" | \\"verb\\"> & UpdatePetPathParams;
+export type UseUpdatePetProps = Omit<UseMutateProps<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>, \\"path\\" | \\"verb\\"> & UpdatePetPathParams;
 
 /**
  * Updates a pet in the store.
