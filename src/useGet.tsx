@@ -249,7 +249,20 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     return () => {
       abort();
     };
-  }, [props.lazy, props.mock, props.path, props.base, props.resolve, props.queryParams, props.requestOptions, abort]);
+  }, [
+    props.lazy,
+    props.mock,
+    props.path,
+    props.base,
+    props.resolve,
+    props.queryParams,
+    props.requestOptions,
+    context.base,
+    context.parentPath,
+    context.queryParams,
+    context.requestOptions,
+    abort,
+  ]);
 
   return {
     ...state,
