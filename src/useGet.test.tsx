@@ -771,7 +771,137 @@ describe("useGet hook", () => {
     });
   });
 
-  describe("refetch after update", () => {
+  describe("refetch after provider props update", () => {
+    it("should refetch when base changes", async () => {
+      const firstAPI = nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+
+      const secondAPI = nock("https://my-new-api.fake")
+        .get("/")
+        .reply(200, { id: 2 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }>({ path });
+        return children(params);
+      };
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-new-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      expect(firstAPI.isDone()).toBeTruthy();
+      expect(secondAPI.isDone()).toBeTruthy();
+    });
+    it("should refetch when parentPath changes", async () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, () => ++apiCalls);
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }>({ path });
+        return children(params);
+      };
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake" parentPath="parent">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      expect(apiCalls).toEqual(2);
+    });
+    it("should refetch when queryParams change", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 0 });
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }, any, { page: number }>({ path });
+        return children(params);
+      };
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ page: 1 }}>
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ page: 2 }}>
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(3));
+      expect(children.mock.calls[2][0].loading).toEqual(false);
+      expect(children.mock.calls[2][0].data).toEqual({ id: 1 });
+    });
+    it("should refetch when requestOptions change", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .matchHeader("header1", "value1")
+        .reply(200, { id: 0 });
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .matchHeader("header2", "value2")
+        .reply(200, { id: 1 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }, any, { page: number }>({ path });
+        return children(params);
+      };
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" requestOptions={() => ({ headers: { header1: "value1" } })}>
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake" requestOptions={() => ({ headers: { header2: "value2" } })}>
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(4));
+      expect(children.mock.calls[3][0].loading).toEqual(false);
+      expect(children.mock.calls[3][0].data).toEqual({ id: 1 });
+    });
+  });
+
+  describe("refetch after useGet props update", () => {
     it("should not refetch when base, path or resolve don't change", () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")

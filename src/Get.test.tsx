@@ -733,7 +733,121 @@ describe("Get", () => {
     });
   });
 
-  describe("refetch after update", () => {
+  describe("refetch after provider props update", () => {
+    it("should refetch when base changes", async () => {
+      const firstAPI = nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+
+      const secondAPI = nock("https://my-new-api.fake")
+        .get("/")
+        .reply(200, { id: 2 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-new-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(firstAPI.isDone()).toBeTruthy());
+      await wait(() => expect(secondAPI.isDone()).toBeTruthy());
+    });
+    it("should refetch when parentPath changes", async () => {
+      const firstAPI = nock("https://my-awesome-api.fake")
+        .get("/parent1")
+        .reply(200, { id: 1 });
+
+      const secondAPI = nock("https://my-awesome-api.fake")
+        .get("/parent2")
+        .reply(200, { id: 2 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" parentPath="/parent1">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake" parentPath="/parent2">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(firstAPI.isDone()).toBeTruthy());
+      await wait(() => expect(secondAPI.isDone()).toBeTruthy());
+    });
+    it("should refetch when queryParams change", async () => {
+      const firstAPI = nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 })
+        .persist();
+      const secondAPI = nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(200, { id: 2 })
+        .persist();
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake" queryParams={{ page: 2 }}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(firstAPI.isDone()).toBeTruthy());
+      await wait(() => expect(secondAPI.isDone()).toBeTruthy());
+    });
+    it("should refetch when requestOptions change", async () => {
+      const firstAPI = nock("https://my-awesome-api.fake")
+        .get("/")
+        .matchHeader("header1", "value1")
+        .reply(200, { id: 1 });
+      const secondAPI = nock("https://my-awesome-api.fake")
+        .get("/")
+        .matchHeader("header2", "value2")
+        .reply(200, { id: 2 });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const { rerender } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" requestOptions={() => ({ headers: { header1: "value1" } })}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      rerender(
+        <RestfulProvider base="https://my-awesome-api.fake" requestOptions={() => ({ headers: { header2: "value2" } })}>
+          <Get path="">{children}</Get>
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(firstAPI.isDone()).toBeTruthy());
+      await wait(() => expect(secondAPI.isDone()).toBeTruthy());
+    });
+  });
+
+  describe("refetch after  get props update", () => {
     it("should not refetch when base, path or resolve don't change", async () => {
       let apiCalls = 0;
       nock("https://my-awesome-api.fake")

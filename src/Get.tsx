@@ -189,14 +189,17 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
   }
 
   public componentDidUpdate(prevProps: GetProps<TData, TError, TQueryParams, TPathParams>) {
-    const { base, parentPath, path, resolve, queryParams } = prevProps;
+    const { base, parentPath, path, resolve, queryParams, requestOptions } = prevProps;
     if (
       base !== this.props.base ||
       parentPath !== this.props.parentPath ||
       path !== this.props.path ||
       !isEqual(queryParams, this.props.queryParams) ||
       // both `resolve` props need to _exist_ first, and then be equivalent.
-      (resolve && this.props.resolve && resolve.toString() !== this.props.resolve.toString())
+      (resolve && this.props.resolve && resolve.toString() !== this.props.resolve.toString()) ||
+      (requestOptions &&
+        this.props.requestOptions &&
+        requestOptions.toString() !== this.props.requestOptions.toString())
     ) {
       if (!this.props.lazy) {
         this.fetch();
