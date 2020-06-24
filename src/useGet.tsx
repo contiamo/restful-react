@@ -257,6 +257,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     props.resolve,
     props.queryParams,
     props.requestOptions,
+    props.pathParams,
     context.base,
     context.parentPath,
     context.queryParams,
