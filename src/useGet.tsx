@@ -128,8 +128,8 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
 
   try {
     const response = await fetch(request);
+    if (context.onResponse) context.onResponse(response.clone());
     const { data, responseError } = await processResponse(response);
-    if (context.onResponse) context.onResponse(response);
 
     if (signal && signal.aborted) {
       return;

@@ -614,7 +614,10 @@ describe("useMutate", () => {
         .post("/")
         .reply(200, { hello: "world" });
 
-      const onResponse = jest.fn();
+      let body: any;
+      const onResponse = jest.fn(async (res: Response) => {
+        body = await res.json();
+      });
       const wrapper: React.FC = ({ children }) => (
         <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
           {children}
@@ -623,6 +626,7 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
       await result.current.mutate({ foo: "bar" });
       expect(onResponse).toBeCalled();
+      expect(body).toMatchObject({ hello: "world" });
     });
   });
 
