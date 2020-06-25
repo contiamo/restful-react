@@ -239,8 +239,8 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
 
     try {
       const response = await fetch(request, { signal: this.signal });
+      if (onResponse) onResponse(response.clone());
       const { data, responseError } = await processResponse(response);
-      if (onResponse) onResponse(response);
 
       if (!this.keepPolling || this.signal.aborted) {
         // Early return if we have stopped polling or component was unmounted

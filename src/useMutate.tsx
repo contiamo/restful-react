@@ -142,7 +142,7 @@ export function useMutate<
       let response: Response;
       try {
         response = await fetch(request);
-        if (context.onResponse) context.onResponse(response);
+        if (context.onResponse) context.onResponse(response.clone());
       } catch (e) {
         const error = {
           message: `Failed to fetch: ${e.message}`,

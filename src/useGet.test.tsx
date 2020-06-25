@@ -142,13 +142,16 @@ describe("useGet hook", () => {
         .get("/")
         .reply(200, { oh: "my god 😍" });
 
+      let body: any;
       const MyAwesomeComponent = () => {
         const { data, loading } = useGet<{ oh: string }>({ path: "/" });
 
         return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
-      const onResponse = jest.fn();
+      const onResponse = jest.fn().mockImplementation(async (response: Response) => {
+        body = await response.json();
+      });
 
       const { getByTestId } = render(
         <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
@@ -159,6 +162,7 @@ describe("useGet hook", () => {
       await waitForElement(() => getByTestId("data"));
 
       expect(onResponse).toBeCalled();
+      expect(body).toMatchObject({ oh: "my god 😍" });
     });
   });
 

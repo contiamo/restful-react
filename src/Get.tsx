@@ -267,8 +267,8 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
     if (onRequest) onRequest(request);
     try {
       const response = await fetch(request, { signal: this.signal });
+      if (onResponse) onResponse(response.clone());
       const { data, responseError } = await processResponse(response);
-      if (onResponse) onResponse(response);
 
       // avoid state updates when component has been unmounted
       if (this.signal.aborted) {

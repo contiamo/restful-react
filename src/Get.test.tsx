@@ -162,7 +162,10 @@ describe("Get", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const onResponse = jest.fn();
+      let body: any;
+      const onResponse = jest.fn(async (res: Response) => {
+        body = await res.json();
+      });
 
       render(
         <RestfulProvider base="https://my-awesome-api.fake" onResponse={onResponse}>
@@ -172,6 +175,7 @@ describe("Get", () => {
 
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(onResponse).toBeCalled();
+      expect(body).toMatchObject({ hello: "world" });
     });
   });
 

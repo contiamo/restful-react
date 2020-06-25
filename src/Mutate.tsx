@@ -197,7 +197,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
     let response: Response;
     try {
       response = await fetch(request, { signal: this.signal });
-      if (onResponse) onResponse(response);
+      if (onResponse) onResponse(response.clone());
     } catch (e) {
       const error = {
         message: `Failed to fetch: ${e.message}`,
