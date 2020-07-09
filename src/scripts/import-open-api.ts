@@ -201,7 +201,11 @@ export const getResReqTypes = (
 
       if (res.content) {
         for (let contentType of Object.keys(res.content)) {
-          if (contentType.startsWith("application/json") || contentType.startsWith("application/octet-stream")) {
+          if (
+            contentType.startsWith("*/*") ||
+            contentType.startsWith("application/json") ||
+            contentType.startsWith("application/octet-stream")
+          ) {
             const schema = res.content[contentType].schema!;
             return resolveValue(schema);
           }
