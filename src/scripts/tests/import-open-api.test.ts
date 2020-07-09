@@ -634,6 +634,41 @@ describe("scripts/import-open-api", () => {
                                                       `);
     });
 
+    it("should declare an interface for wildcard content-type", () => {
+      const responses: ComponentsObject["responses"] = {
+        JobRun: {
+          description: "Job is starting",
+          content: {
+            "*/*": {
+              schema: {
+                type: "object",
+                properties: {
+                  executionID: {
+                    description: "ID of the job execution",
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateResponsesDefinition(responses)).toMatchInlineSnapshot(`
+                                                                        "
+                                                                        /**
+                                                                         * Job is starting
+                                                                         */
+                                                                        export interface JobRunResponse {
+                                                                          /**
+                                                                           * ID of the job execution
+                                                                           */
+                                                                          executionID?: string;
+                                                                        }
+                                                                        "
+                                                      `);
+    });
+
     it("should give double quotes for special properties", () => {
       const responses: ComponentsObject["responses"] = {
         JobRun: {
