@@ -1989,6 +1989,73 @@ describe("scripts/import-open-api", () => {
       `);
     });
 
+    it("should resolve parameters ref", () => {
+      const operation: OperationObject = {
+        summary: "Delete use case",
+        operationId: "deleteUseCase",
+        tags: ["use-case"],
+        parameters: [
+          {
+            $ref: "#/components/parameters/UseCaseId",
+          },
+        ],
+        responses: {
+          "204": {
+            description: "Empty response",
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      const schemasComponents: ComponentsObject = {
+        parameters: {
+          UseCaseId: {
+            name: "useCaseId",
+            in: "path",
+            description: "Id of the usecase",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "delete", "/use-cases/{useCaseId}", [], undefined, schemasComponents))
+        .toMatchInlineSnapshot(`
+        "
+        export type DeleteUseCaseProps = Omit<MutateProps<void, APIError, void, string, void>, \\"path\\" | \\"verb\\">;
+
+        /**
+         * Delete use case
+         */
+        export const DeleteUseCase = (props: DeleteUseCaseProps) => (
+          <Mutate<void, APIError, void, string, void>
+            verb=\\"DELETE\\"
+            path={\`/use-cases\`}
+            {...props}
+          />
+        );
+
+        export type UseDeleteUseCaseProps = Omit<UseMutateProps<void, APIError, void, string, void>, \\"path\\" | \\"verb\\">;
+
+        /**
+         * Delete use case
+         */
+        export const useDeleteUseCase = (props: UseDeleteUseCaseProps) => useMutate<void, APIError, void, string, void>(\\"DELETE\\", \`/use-cases\`, props);
+
+        "
+      `);
+    });
+
     it("should generate a Poll compoment if the `prefer` token is present", () => {
       const operation: OperationObject = {
         summary: "List all fields for the use case schema",
