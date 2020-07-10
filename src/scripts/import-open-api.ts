@@ -372,10 +372,13 @@ export const generateRestfulComponent = (
   // Retrieve the type of the param for delete verb
   const lastParamInTheRouteDefinition =
     operation.parameters && lastParamInTheRoute
-      ? (operation.parameters.find(p => {
-          if (isReference(p)) return false;
-          return p.name === lastParamInTheRoute;
-        }) as ParameterObject | undefined) // Reference is not possible
+      ? operation.parameters
+          .map(p =>
+            isReference(p)
+              ? (get(schemasComponents, p.$ref.replace("#/components/", "").replace("/", ".")) as ParameterObject)
+              : p,
+          )
+          .find(p => p.name === lastParamInTheRoute)
       : { schema: { type: "string" } };
 
   if (!lastParamInTheRouteDefinition) {
