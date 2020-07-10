@@ -21,7 +21,7 @@ import {
 
 import swagger2openapi from "swagger2openapi";
 
-import YAML from "yamljs";
+import YAML from "js-yaml";
 import { AdvancedOptions } from "../bin/restful-react-import";
 
 const IdentifierRegexp = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
@@ -201,7 +201,11 @@ export const getResReqTypes = (
 
       if (res.content) {
         for (let contentType of Object.keys(res.content)) {
-          if (contentType.startsWith("application/json") || contentType.startsWith("application/octet-stream")) {
+          if (
+            contentType.startsWith("*/*") ||
+            contentType.startsWith("application/json") ||
+            contentType.startsWith("application/octet-stream")
+          ) {
             const schema = res.content[contentType].schema!;
             return resolveValue(schema);
           }
@@ -242,7 +246,7 @@ export const getParamsInPath = (path: string) => {
  * @param format format of the spec
  */
 const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIObject> => {
-  const schema = extension === "yaml" ? YAML.parse(data) : JSON.parse(data);
+  const schema = extension === "yaml" ? YAML.safeLoad(data) : JSON.parse(data);
 
   return new Promise((resolve, reject) => {
     if (!schema.openapi || !schema.openapi.startsWith("3.0")) {
