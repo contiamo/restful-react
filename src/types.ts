@@ -4,9 +4,16 @@
  * A function that resolves returned data from
  * a fetch call.
  */
-export type ResolveFunction<T> = ((data: any) => T) | ((data: any) => Promise<T>);
+export type ResolveFunction<TData> = (data: any) => TData | Promise<TData>;
+
+/**
+ * A function that resolves returned data from
+ * a fetch call and the previous resolved data
+ */
+export type PollResolveFunction<TData> = (data: any, prevData: TData | null) => TData;
 
 export interface GetDataError<TError> {
   message: string;
-  data: TError | string;
+  data?: TError;
+  status?: number;
 }

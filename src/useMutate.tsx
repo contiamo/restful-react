@@ -5,6 +5,7 @@ import { MutateMethod, MutateState, MutateRequestOptions } from "./Mutate";
 import { Omit, resolvePath, UseGetProps } from "./useGet";
 import { processResponse } from "./util/processResponse";
 import { useAbort } from "./useAbort";
+import { GetDataError } from ".";
 
 export interface UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>
   extends Omit<UseGetProps<TData, TError, TQueryParams, TPathParams>, "lazy" | "debounce" | "mock"> {
@@ -24,7 +25,7 @@ export interface UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPath
    * Override the state with some mocks values and avoid to fetch
    */
   mock?: {
-    mutate?: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>;
+    mutate?: MutateMethod<TRequestBody, TQueryParams, TPathParams>;
     loading?: boolean;
   };
 }
@@ -38,7 +39,7 @@ export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPat
   /**
    * Call the mutate endpoint
    */
-  mutate: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>;
+  mutate: MutateMethod<TRequestBody, TQueryParams, TPathParams>;
 }
 
 export function useMutate<
@@ -79,6 +80,7 @@ export function useMutate<
 
   const [state, setState] = useState<MutateState<TData, TError>>({
     error: null,
+    data: null,
     loading: false,
   });
 
@@ -87,8 +89,11 @@ export function useMutate<
   // Cancel the fetch on unmount
   useEffect(() => () => abort(), [abort]);
 
-  const mutate = useCallback<MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>>(
-    async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>) => {
+  const mutate = useCallback<MutateMethod<TRequestBody, TQueryParams, TPathParams>>(
+    async (
+      body: TRequestBody,
+      mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>,
+    ): Promise<void> => {
       if (state.error || !state.loading) {
         setState(prevState => ({ ...prevState, loading: true, error: null }));
       }
@@ -146,10 +151,10 @@ export function useMutate<
       } catch (e) {
         const error = {
           message: `Failed to fetch: ${e.message}`,
-          data: "",
         };
 
         setState({
+          data: null,
           error,
           loading: false,
         });
@@ -158,14 +163,14 @@ export function useMutate<
           context.onError(error, () => mutate(body, mutateRequestOptions));
         }
 
-        throw error;
+        return;
       }
 
       const { data: rawData, responseError } = await processResponse(response);
 
-      let data: TData | any; // `any` -> data in error case
+      let data: unknown;
       try {
-        data = resolve ? resolve(rawData) : rawData;
+        data = resolve?.(rawData) ?? rawData;
       } catch (e) {
         // avoid state updates when component has been unmounted
         // and when fetch/processResponse threw an error
@@ -191,32 +196,33 @@ export function useMutate<
       }
 
       if (!response.ok || responseError) {
-        const error = {
-          data,
+        const error: GetDataError<TError> = {
+          data: data as TError,
           message: `Failed to fetch: ${response.status} ${response.statusText}`,
           status: response.status,
         };
 
         setState(prevState => ({
           ...prevState,
-          error,
+          data: null,
           loading: false,
+          error,
         }));
 
         if (!props.localErrorOnly && context.onError) {
           context.onError(error, () => mutate(body), response);
         }
 
-        throw error;
+        return;
       }
 
-      setState(prevState => ({ ...prevState, loading: false }));
+      setState(prevState => ({ ...prevState, data: data as TData, loading: false }));
 
       if (props.onMutate) {
-        props.onMutate(body, data);
+        props.onMutate(body, data as TData);
       }
 
-      return data;
+      return;
     },
     /* eslint-disable react-hooks/exhaustive-deps */
     [context.base, context.requestOptions, context.resolve, state.error, state.loading, path, abort, getAbortSignal],

@@ -43,13 +43,13 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useMutate("DELETE", ""), { wrapper });
-      const res = await result.current.mutate("plop");
+      await result.current.mutate("plop");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should call the correct url with a specific id (base in options)", async () => {
@@ -63,13 +63,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", "", { base: "https://my-awesome-api.fake" }), {
         wrapper,
       });
-      const res = await result.current.mutate("plop");
+      await result.current.mutate("plop");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should call the correct url with a specific id (base and path in options)", async () => {
@@ -83,13 +83,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", "user", { base: "https://my-awesome-api.fake" }), {
         wrapper,
       });
-      const res = await result.current.mutate("plop");
+      await result.current.mutate("plop");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should call the correct url without id", async () => {
@@ -103,13 +103,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", ""), {
         wrapper,
       });
-      const res = await result.current.mutate("");
+      await result.current.mutate("");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should deal with query parameters", async () => {
@@ -126,13 +126,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { myParam: true } }), {
         wrapper,
       });
-      const res = await result.current.mutate("");
+      await result.current.mutate("");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
   });
 
@@ -153,13 +153,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", ""), {
         wrapper,
       });
-      const res = await result.current.mutate("");
+      await result.current.mutate("");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { vegan: false },
       });
-      expect(res).toEqual({ vegan: false });
     });
 
     it("should override the provider's query parameters if own specified", async () => {
@@ -178,13 +178,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "yucky" } }), {
         wrapper,
       });
-      const res = await result.current.mutate("");
+      await result.current.mutate("");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { vegan: true },
       });
-      expect(res).toEqual({ vegan: true });
     });
 
     it("should merge with the provider's query parameters if both specified", async () => {
@@ -204,13 +204,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "yucky" } }), {
         wrapper,
       });
-      const res = await result.current.mutate("");
+      await result.current.mutate("");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { vegan: "confused" },
       });
-      expect(res).toEqual({ vegan: "confused" });
     });
 
     it("should override query parameters if specified in mutate method", async () => {
@@ -230,13 +230,13 @@ describe("useMutate", () => {
       const { result } = renderHook(() => useMutate("DELETE", "", { queryParams: { cheese: "chucky" } }), {
         wrapper,
       });
-      const res = await result.current.mutate("", { queryParams: { cheese: "yucky" } });
+      await result.current.mutate("", { queryParams: { cheese: "yucky" } });
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { vegan: "confused" },
       });
-      expect(res).toEqual({ vegan: "confused" });
     });
 
     it("should parse the querystring regarding the options", async () => {
@@ -260,13 +260,15 @@ describe("useMutate", () => {
           wrapper,
         },
       );
-      const res = await result.current.mutate("");
+      await result.current.mutate("");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: {
+          vegan: true,
+        },
       });
-      expect(res).toEqual({ vegan: true });
     });
   });
 
@@ -288,13 +290,13 @@ describe("useMutate", () => {
           wrapper,
         },
       );
-      const res = await result.current.mutate({});
+      await result.current.mutate({});
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should override path parameters if specified in mutate method", async () => {
@@ -314,13 +316,13 @@ describe("useMutate", () => {
           wrapper,
         },
       );
-      const res = await result.current.mutate({}, { pathParams: { id: "one" } });
+      await result.current.mutate({}, { pathParams: { id: "one" } });
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
   });
 
@@ -353,13 +355,13 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useMutate<{ id: number }, unknown, {}, {}>("POST", ""), { wrapper });
-      const res = await result.current.mutate({});
+      await result.current.mutate({});
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should send the correct body", async () => {
@@ -371,13 +373,13 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
-      const res = await result.current.mutate({ foo: "bar" });
+      await result.current.mutate({ foo: "bar" });
 
       expect(result.current).toMatchObject({
         error: null,
+        data: { id: 1 },
         loading: false,
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should return the data and the message on error", async () => {
@@ -389,24 +391,17 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
-      try {
-        await result.current.mutate({ foo: "bar" });
-        expect("this statement").toBe("not executed");
-      } catch (e) {
-        expect(result.current).toMatchObject({
-          error: {
-            data: { error: "I can't, I'm just a chicken!" },
-            message: "Failed to fetch: 500 Internal Server Error",
-            status: 500,
-          },
-          loading: false,
-        });
-        expect(e).toEqual({
-          data: { error: "I can't, I'm just a chicken!" },
-          message: "Failed to fetch: 500 Internal Server Error",
-          status: 500,
-        });
-      }
+      await result.current.mutate({ foo: "bar" });
+
+      expect(result.current.error).toStrictEqual({
+        data: { error: "I can't, I'm just a chicken!" },
+        message: "Failed to fetch: 500 Internal Server Error",
+        status: 500,
+      });
+      expect(result.current).toMatchObject({
+        loading: false,
+        data: null,
+      });
     });
 
     it("should call onMutation", async () => {
@@ -434,26 +429,17 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
-      try {
-        await result.current.mutate({ foo: "bar" });
-        expect("this statement").toBe("not executed");
-      } catch (e) {
-        expect(result.current).toMatchObject({
-          error: {
-            data:
-              "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
-            message: "Failed to fetch: 200 OK",
-            status: 200,
-          },
-          loading: false,
-        });
-        expect(e).toEqual({
-          data:
-            "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
-          message: "Failed to fetch: 200 OK",
-          status: 200,
-        });
-      }
+      await result.current.mutate({ foo: "bar" });
+      expect(result.current.error).toStrictEqual({
+        data:
+          "invalid json response body at https://my-awesome-api.fake/ reason: Unexpected token < in JSON at position 0",
+        message: "Failed to fetch: 200 OK",
+        status: 200,
+      });
+      expect(result.current).toMatchObject({
+        loading: false,
+        data: null,
+      });
     });
 
     it("should call the provider onError", async () => {
@@ -500,9 +486,7 @@ describe("useMutate", () => {
         wrapper,
       });
 
-      await result.current.mutate({}).catch(() => {
-        /* noop */
-      });
+      await result.current.mutate({});
 
       expect(onError).toBeCalledWith(
         {
@@ -514,8 +498,8 @@ describe("useMutate", () => {
         expect.any(Object), // response
       );
 
-      const data = await onError.mock.calls[0][1](); // call retry
-      expect(data).toEqual({ message: "You shall pass :)" });
+      await onError.mock.calls[0][1](); // call retry
+      expect(result.current.data).toEqual({ message: "You shall pass :)" });
     });
 
     it("should not call the provider onError if localErrorOnly is true", async () => {
@@ -551,13 +535,13 @@ describe("useMutate", () => {
           }),
         { wrapper },
       );
-      const res = await result.current.mutate({});
+      await result.current.mutate({});
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 2 },
       });
-      expect(res).toEqual({ id: 2 });
     });
 
     it("should forward the resolve error", async () => {
@@ -665,13 +649,13 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useDeleteMyCustomEndpoint({ queryParams: { force: true } }), { wrapper });
-      const res = await result.current.mutate("plop");
+      await result.current.mutate("plop");
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: { id: 1 },
       });
-      expect(res).toEqual({ id: 1 });
     });
 
     it("should call the correct endpoint (POST)", async () => {
@@ -712,13 +696,15 @@ describe("useMutate", () => {
         <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
       );
       const { result } = renderHook(() => useDeleteMyCustomEndpoint({ queryParams: { force: true } }), { wrapper });
-      const res = await result.current.mutate({ id: 1 });
+      await result.current.mutate({ id: 1 });
 
       expect(result.current).toMatchObject({
         error: null,
         loading: false,
+        data: {
+          id: 1,
+        },
       });
-      expect(res).toEqual({ id: 1 });
     });
   });
 });

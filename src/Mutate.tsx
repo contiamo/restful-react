@@ -4,6 +4,7 @@ import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReact
 import { GetState } from "./Get";
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
+import { GetDataError } from "./types";
 
 /**
  * An enumeration of states that a fetchable
@@ -27,10 +28,10 @@ export interface MutateRequestOptions<TQueryParams, TPathParams> extends Request
   pathParams?: TPathParams;
 }
 
-export type MutateMethod<TData, TRequestBody, TQueryParams, TPathParams> = (
+export type MutateMethod<TRequestBody, TQueryParams, TPathParams> = (
   data: TRequestBody,
   mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>,
-) => Promise<TData>;
+) => Promise<void>;
 
 /**
  * Meta information returned to the fetchable
@@ -87,7 +88,7 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathPar
    * @param actions - a key/value map of HTTP verbs, aliasing destroy to DELETE.
    */
   children: (
-    mutate: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>,
+    mutate: MutateMethod<TRequestBody, TQueryParams, TPathParams>,
     states: States<TData, TError>,
     meta: Meta,
   ) => React.ReactNode;
@@ -107,6 +108,7 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathPar
  */
 export interface MutateState<TData, TError> {
   error: GetState<TData, TError>["error"];
+  data: GetState<TData, TError>["data"];
   loading: boolean;
 }
 
@@ -120,6 +122,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
   MutateState<TData, TError>
 > {
   public readonly state: Readonly<MutateState<TData, TError>> = {
+    data: null,
     loading: false,
     error: null,
   };
@@ -199,9 +202,8 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
       response = await fetch(request, { signal: this.signal });
       if (onResponse) onResponse(response.clone());
     } catch (e) {
-      const error = {
+      const error: GetDataError<TError> = {
         message: `Failed to fetch: ${e.message}`,
-        data: "",
       };
 
       this.setState({

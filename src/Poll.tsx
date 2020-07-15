@@ -7,6 +7,7 @@ import { InjectedProps, RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
 import { composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
+import { PollResolveFunction } from "./types";
 
 /**
  * Meta information returned from the poll.
@@ -93,7 +94,7 @@ export interface PollProps<TData, TError, TQueryParams, TPathParams> {
   /**
    * Should the data be transformed in any way?
    */
-  resolve?: (data: any, prevData: TData | null) => TData;
+  resolve?: PollResolveFunction<TData>;
   /**
    * We can request foreign URLs with this prop.
    */
@@ -334,7 +335,11 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
       start: this.start,
     };
     // data is parsed only when poll has already resolved so response is defined
-    const resolvedData = response && resolve ? resolve(data, previousData) : data;
+    let resolvedData: TData | null = null;
+    if (response) {
+      resolvedData = resolve?.(data, previousData) ?? data;
+    }
+
     return children(resolvedData, states, actions, meta);
   }
 }

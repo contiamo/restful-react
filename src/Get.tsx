@@ -8,18 +8,7 @@ import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReact
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 import { resolveData } from "./util/resolveData";
-
-/**
- * A function that resolves returned data from
- * a fetch call.
- */
-export type ResolveFunction<TData> = (data: any) => TData;
-
-export interface GetDataError<TError> {
-  message: string;
-  data: TError | string;
-  status?: number;
-}
+import { ResolveFunction, GetDataError } from "./types";
 
 /**
  * An enumeration of states that a fetchable

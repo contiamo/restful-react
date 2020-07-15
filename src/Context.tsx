@@ -1,8 +1,8 @@
 import noop from "lodash/noop";
 import * as React from "react";
-import { ResolveFunction } from "./Get";
+import { ResolveFunction, GetDataError } from "./types";
 
-export interface RestfulReactProviderProps<TData = any> {
+export interface RestfulReactProviderProps<TData = any, TError = TData> {
   /** The backend URL where the RESTful resources live. */
   base: string;
   /**
@@ -26,15 +26,7 @@ export interface RestfulReactProviderProps<TData = any> {
    * Depending of your case, it can be easier to add a `localErrorOnly` on your `Mutate` component
    * to deal with your retry locally instead of in the provider scope.
    */
-  onError?: (
-    err: {
-      message: string;
-      data: TData | string;
-      status?: number;
-    },
-    retry: () => Promise<TData | null>,
-    response?: Response,
-  ) => void;
+  onError?: (err: GetDataError<TError>, retry: () => Promise<TData | null>, response?: Response) => void;
   /**
    * Trigger on each request
    */
@@ -53,7 +45,7 @@ export interface RestfulReactProviderProps<TData = any> {
 export const Context = React.createContext<Required<RestfulReactProviderProps>>({
   base: "",
   parentPath: "",
-  resolve: (data: any) => data,
+  resolve: data => data,
   requestOptions: {},
   onError: noop,
   onRequest: noop,
@@ -78,7 +70,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           onError: noop,
           onRequest: noop,
           onResponse: noop,
-          resolve: (data: any) => data,
+          resolve: data => data,
           requestOptions: {},
           parentPath: "",
           queryParams: value.queryParams || {},
