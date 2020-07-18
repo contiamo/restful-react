@@ -1,4 +1,5 @@
-import Get, { GetDataError, GetMethod, GetProps } from "./Get";
+import Get, { GetMethod, GetProps } from "./Get";
+import { GetDataError } from "./types";
 
 export { default as RestfulProvider, RestfulReactProviderProps } from "./Context";
 export { default as Poll, PollProps } from "./Poll";

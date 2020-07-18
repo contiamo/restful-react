@@ -10,6 +10,7 @@ import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
 import { useDeepCompareEffect } from "./util/useDeepCompareEffect";
 import { useAbort } from "./useAbort";
+import { ResolveFunction } from "./types";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
@@ -41,7 +42,7 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
    * A function to resolve data return from the backend, most typically
    * used when the backend response needs to be adapted in some way.
    */
-  resolve?: (data: any) => TData;
+  resolve?: ResolveFunction<TData>;
   /**
    * Developer mode
    * Override the state with some mocks values and avoid to fetch
@@ -93,14 +94,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
   abort: () => void,
   getAbortSignal: () => AbortSignal | undefined,
 ) {
-  const {
-    base = context.base,
-    path,
-    resolve = (d: any) => d as TData,
-    queryParams = {},
-    requestOptions,
-    pathParams = {},
-  } = props;
+  const { base = context.base, path, resolve, queryParams = {}, requestOptions, pathParams = {} } = props;
 
   if (state.loading) {
     // Abort previous requests
@@ -150,7 +144,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
       return;
     }
 
-    setState({ ...state, error: null, loading: false, data: resolve(data) });
+    setState({ ...state, error: null, loading: false, data: resolve?.(data) ?? data });
   } catch (e) {
     // avoid state updates when component has been unmounted
     // and when fetch/processResponse threw an error
