@@ -133,7 +133,7 @@ export function useMutate<
           base,
           isDelete ? `${pathStr}/${body}` : pathStr,
           { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
-          props.queryParamStringifyOptions,
+          { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
         ),
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );

@@ -1,5 +1,6 @@
 import noop from "lodash/noop";
 import * as React from "react";
+import { IStringifyOptions } from "qs";
 import { ResolveFunction } from "./Get";
 
 export interface RestfulReactProviderProps<TData = any> {
@@ -48,6 +49,10 @@ export interface RestfulReactProviderProps<TData = any> {
    * **Warning:** it's probably not a good idea to put API keys here. Consider headers instead.
    */
   queryParams?: { [key: string]: any };
+  /**
+   * Query parameter stringify options applied for each request.
+   */
+  queryParamStringifyOptions?: IStringifyOptions;
 }
 
 export const Context = React.createContext<Required<RestfulReactProviderProps>>({
@@ -59,6 +64,7 @@ export const Context = React.createContext<Required<RestfulReactProviderProps>>(
   onRequest: noop,
   onResponse: noop,
   queryParams: {},
+  queryParamStringifyOptions: {},
 });
 
 export interface InjectedProps {
@@ -82,6 +88,7 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           requestOptions: {},
           parentPath: "",
           queryParams: value.queryParams || {},
+          queryParamStringifyOptions: value.queryParamStringifyOptions || {},
           ...value,
         }}
       >

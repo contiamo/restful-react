@@ -185,6 +185,14 @@ export interface RestfulReactProviderProps<T = any> {
    * Trigger on each response.
    */
   onResponse?: (req: Response) => void;
+  /**
+   * Query parameters passed to each request.
+   */
+  queryParams?: { [key: string]: any };
+  /**
+   * Query parameter stringify options applied for each request.
+   */
+  queryParamStringifyOptions?: IStringifyOptions;
 }
 
 // Usage

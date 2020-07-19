@@ -1232,6 +1232,95 @@ describe("useGet hook", () => {
       expect(children.mock.calls[1][0].loading).toEqual(false);
       expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
     });
+
+    it("should inherit global queryParamStringifyOptions if none specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query(i => {
+          return i["anArray[]"] === "nice";
+        })
+        .reply(200, () => ({ id: 42 }));
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }, any, { anArray: string[] }>({
+          path,
+          queryParams: { anArray: ["nice"] },
+        });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider queryParamStringifyOptions={{ arrayFormat: "brackets" }} base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
+    });
+
+    it("should override global queryParamStringifyOptions if own queryParamStringifyOptions are specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query(i => {
+          return i["anArray"] === "foo,bar";
+        })
+        .reply(200, () => ({ id: 42 }));
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }, any, { anArray: string[] }>({
+          path,
+          queryParams: { anArray: ["foo", "bar"] },
+          queryParamStringifyOptions: { arrayFormat: "comma" },
+        });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider queryParamStringifyOptions={{ arrayFormat: "brackets" }} base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
+    });
+
+    it("should merge global queryParamStringifyOptions if both queryParamStringifyOptions are specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/?anArray[]=nice;foo=bar")
+        .reply(200, () => ({ id: 42 }));
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const params = useGet<{ id: number }, any, { anArray: string[]; foo: string }>({
+          path,
+          queryParams: { anArray: ["nice"], foo: "bar" },
+          queryParamStringifyOptions: { delimiter: ";" },
+        });
+        return children(params);
+      };
+
+      render(
+        <RestfulProvider queryParamStringifyOptions={{ arrayFormat: "brackets" }} base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].data).toEqual({ id: 42 });
+    });
   });
 
   describe("generation pattern", () => {
