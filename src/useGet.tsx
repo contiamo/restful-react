@@ -98,6 +98,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
     path,
     resolve = (d: any) => d as TData,
     queryParams = {},
+    queryParamStringifyOptions = {},
     requestOptions,
     pathParams = {},
   } = props;
@@ -121,7 +122,12 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
   const signal = getAbortSignal();
 
   const request = new Request(
-    resolvePath(base, pathStr, { ...context.queryParams, ...queryParams }, props.queryParamStringifyOptions || {}),
+    resolvePath(
+      base,
+      pathStr,
+      { ...context.queryParams, ...queryParams },
+      { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
+    ),
     merge({}, contextRequestOptions, propsRequestOptions, { signal }),
   );
   if (context.onRequest) context.onRequest(request);
@@ -275,7 +281,10 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
         ...context.queryParams,
         ...props.queryParams,
       },
-      props.queryParamStringifyOptions,
+      {
+        ...context.queryParamStringifyOptions,
+        ...props.queryParamStringifyOptions,
+      },
     ),
     cancel: () => {
       setState({

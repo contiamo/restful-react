@@ -268,6 +268,98 @@ describe("useMutate", () => {
       });
       expect(res).toEqual({ vegan: true });
     });
+
+    it("should inherit global queryParamStringifyOptions if none specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query(i => {
+          return i["anArray[]"] === "nice";
+        })
+        .reply(200, () => ({ vegan: true }));
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider queryParamStringifyOptions={{ arrayFormat: "brackets" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useMutate("DELETE", "", {
+            queryParams: { anArray: ["nice"] },
+          }),
+        {
+          wrapper,
+        },
+      );
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: true });
+    });
+
+    it("should override global queryParamStringifyOptions if own queryParamStringifyOptions are specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/")
+        .query(i => {
+          return i["anArray"] === "foo,bar";
+        })
+        .reply(200, () => ({ vegan: true }));
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider queryParamStringifyOptions={{ arrayFormat: "brackets" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useMutate("DELETE", "", {
+            queryParams: { anArray: ["foo", "bar"] },
+            queryParamStringifyOptions: { arrayFormat: "comma" },
+          }),
+        {
+          wrapper,
+        },
+      );
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: true });
+    });
+
+    it("should merge global queryParamStringifyOptions if both queryParamStringifyOptions are specified", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/?anArray[]=nice;foo=bar")
+        .reply(200, () => ({ vegan: true }));
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider queryParamStringifyOptions={{ arrayFormat: "brackets" }} base="https://my-awesome-api.fake">
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(
+        () =>
+          useMutate("DELETE", "", {
+            queryParams: { anArray: ["nice"], foo: "bar" },
+            queryParamStringifyOptions: { delimiter: ";" },
+          }),
+        {
+          wrapper,
+        },
+      );
+      const res = await result.current.mutate("");
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ vegan: true });
+    });
   });
 
   describe("Path Params", () => {
