@@ -434,7 +434,7 @@ Each mutation returns a promise that can then be used to update local component 
 
 No backend support yet for your amazing feature? Need to isolate an edge case? You can easily provide a mock to `useMutate` and `useGet` to bypass the classic flow.
 
-/!\ If `mocks` option is provided, no requests will be send to the server. /!\
+/!\ If `mock` option is provided, no requests will be send to the server. /!\
 
 ```jsx
 import React from "react";
@@ -448,7 +448,7 @@ const { mutate: del, loading } = useMutate({
   path: `/posts/`,
   base,
   // This will avoid any server call in favor of mock response
-  mocks: {
+  mock: {
     mutate: id => console.log(`The item ${id} was deleted`),
   },
 });
@@ -458,7 +458,7 @@ const { data: posts } = useGet({
   path: "/posts",
   base,
   // This will avoid any server call in favor of mock response
-  mocks: {
+  mock: {
     loading: true,
   },
 });
@@ -468,7 +468,7 @@ const { data: posts } = useGet({
   path: "/posts",
   base,
   // This will avoid any server call in favor of mock response
-  mocks: {
+  mock: {
     error: "oh no!",
   },
 });
