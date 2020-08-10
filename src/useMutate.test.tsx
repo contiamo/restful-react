@@ -92,6 +92,42 @@ describe("useMutate", () => {
       expect(res).toEqual({ id: 1 });
     });
 
+    it("should send the correct body", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/", { foo: "bar" })
+        .reply(200, { id: 1 });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("DELETE", ""), { wrapper });
+      const res = await result.current.mutate({ foo: "bar" });
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ id: 1 });
+    });
+
+    it("should send the empty body object", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/", {})
+        .reply(200, { id: 1 });
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("DELETE", ""), { wrapper });
+      const res = await result.current.mutate({});
+
+      expect(result.current).toMatchObject({
+        error: null,
+        loading: false,
+      });
+      expect(res).toEqual({ id: 1 });
+    });
+
     it("should call the correct url without id", async () => {
       nock("https://my-awesome-api.fake")
         .delete("/")

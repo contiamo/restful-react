@@ -101,6 +101,8 @@ export function useMutate<
       const pathStr =
         typeof path === "function" ? path(mutateRequestOptions?.pathParams || (pathParams as TPathParams)) : path;
 
+      const pathParts = [pathStr];
+
       const propsRequestOptions =
         (typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions) || {};
 
@@ -116,14 +118,14 @@ export function useMutate<
         options.headers = { "content-type": typeof body === "object" ? "application/json" : "text/plain" };
       }
 
-      if (!isDelete) {
-        if (body instanceof FormData) {
-          options.body = body;
-        } else if (typeof body === "object") {
-          options.body = JSON.stringify(body);
-        } else {
-          options.body = (body as unknown) as string;
-        }
+      if (body instanceof FormData) {
+        options.body = body;
+      } else if (typeof body === "object") {
+        options.body = JSON.stringify(body);
+      } else if (isDelete) {
+        pathParts.push((body as unknown) as string);
+      } else {
+        options.body = (body as unknown) as string;
       }
 
       const signal = getAbortSignal();
@@ -131,7 +133,7 @@ export function useMutate<
       const request = new Request(
         resolvePath(
           base,
-          isDelete ? `${pathStr}/${body}` : pathStr,
+          pathParts.join("/"),
           { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
           { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
         ),
