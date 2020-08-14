@@ -1,5 +1,4 @@
 import merge from "lodash/merge";
-import * as qs from "qs";
 import * as React from "react";
 import equal from "react-fast-compare";
 
@@ -7,6 +6,8 @@ import { InjectedProps, RestfulReactConsumer } from "./Context";
 import { GetProps, GetState, Meta as GetComponentMeta } from "./Get";
 import { composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
+import { constructUrl } from "./util/constructUrl";
+import { IStringifyOptions } from "qs";
 
 /**
  * Meta information returned from the poll.
@@ -106,6 +107,10 @@ export interface PollProps<TData, TError, TQueryParams, TPathParams> {
    * Query parameters
    */
   queryParams?: TQueryParams;
+  /**
+   * Query parameter stringify options
+   */
+  queryParamStringifyOptions?: IStringifyOptions;
   /**
    * Don't send the error to the Provider
    */
@@ -214,7 +219,7 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
 
     // Should we stop?
     if (this.props.until && this.props.until(this.state.data, this.state.lastResponse)) {
-      await this.stop(); // stop.
+      this.stop(); // stop.
       return;
     }
 
@@ -222,12 +227,10 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
     const { base, path, interval, wait, onError, onRequest, onResponse } = this.props;
     const { lastPollIndex } = this.state;
 
-    let url = composeUrl(base!, "", path);
-
-    // We use a ! because it's in defaultProps
-    if (Object.keys(this.props.queryParams!).length) {
-      url += `?${qs.stringify(this.props.queryParams)}`;
-    }
+    const url = constructUrl(base!, path, this.props.queryParams, {
+      queryParamOptions: this.props.queryParamStringifyOptions,
+      stripTrailingSlash: true,
+    });
 
     const requestOptions = await this.getRequestOptions(url);
 
@@ -365,6 +368,10 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }, 
                   : props.requestOptions || {};
 
               return merge(contextRequestOptions, propsRequestOptions);
+            }}
+            queryParamStringifyOptions={{
+              ...contextProps.queryParamStringifyOptions,
+              ...props.queryParamStringifyOptions,
             }}
           />
         );

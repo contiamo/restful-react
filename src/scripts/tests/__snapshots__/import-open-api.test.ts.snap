@@ -8,6 +8,22 @@ import { Get, GetProps, useGet, UseGetProps, Mutate, MutateProps, useMutate, Use
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
+const encodingFn = encodeURIComponent
+
+const encodingTagFactory = (encodingFn: typeof encodeURIComponent) => (
+  strings: TemplateStringsArray,
+  ...params: (string | number | boolean)[]
+) =>
+  strings.reduce(
+      (accumulatedPath, pathPart, idx) =>
+          \`\${accumulatedPath}\${pathPart}\${
+              idx < params.length ? encodingFn(params[idx]) : ''
+          }\`,
+      '',
+  );
+
+const encode = encodingTagFactory(encodingFn);
+
 /**
  * A pet.
  */
@@ -83,7 +99,8 @@ export type FindPetsProps = Omit<GetProps<Pet[], Error, FindPetsQueryParams, voi
  */
 export const FindPets = (props: FindPetsProps) => (
   <Get<Pet[], Error, FindPetsQueryParams, void>
-    path={\`/pets\`}
+    path={encode\`/pets\`}
+    
     {...props}
   />
 );
@@ -97,7 +114,7 @@ export type UseFindPetsProps = Omit<UseGetProps<Pet[], Error, FindPetsQueryParam
  * Sed tempus felis lobortis leo pulvinar rutrum. Nam mattis velit nisl, eu condimentum ligula luctus nec. Phasellus semper velit eget aliquet faucibus. In a mattis elit. Phasellus vel urna viverra, condimentum lorem id, rhoncus nibh. Ut pellentesque posuere elementum. Sed a varius odio. Morbi rhoncus ligula libero, vel eleifend nunc tristique vitae. Fusce et sem dui. Aenean nec scelerisque tortor. Fusce malesuada accumsan magna vel tempus. Quisque mollis felis eu dolor tristique, sit amet auctor felis gravida. Sed libero lorem, molestie sed nisl in, accumsan tempor nisi. Fusce sollicitudin massa ut lacinia mattis. Sed vel eleifend lorem. Pellentesque vitae felis pretium, pulvinar elit eu, euismod sapien.
  * 
  */
-export const useFindPets = (props: UseFindPetsProps) => useGet<Pet[], Error, FindPetsQueryParams, void>(\`/pets\`, props);
+export const useFindPets = (props: UseFindPetsProps) => useGet<Pet[], Error, FindPetsQueryParams, void>(encode\`/pets\`, props);
 
 
 export type AddPetProps = Omit<MutateProps<Pet, Error, void, NewPet, void>, \\"path\\" | \\"verb\\">;
@@ -108,7 +125,8 @@ export type AddPetProps = Omit<MutateProps<Pet, Error, void, NewPet, void>, \\"p
 export const AddPet = (props: AddPetProps) => (
   <Mutate<Pet, Error, void, NewPet, void>
     verb=\\"POST\\"
-    path={\`/pets\`}
+    path={encode\`/pets\`}
+    
     {...props}
   />
 );
@@ -118,7 +136,7 @@ export type UseAddPetProps = Omit<UseMutateProps<Pet, Error, void, NewPet, void>
 /**
  * Creates a new pet in the store.  Duplicates are allowed
  */
-export const useAddPet = (props: UseAddPetProps) => useMutate<Pet, Error, void, NewPet, void>(\\"POST\\", \`/pets\`, props);
+export const useAddPet = (props: UseAddPetProps) => useMutate<Pet, Error, void, NewPet, void>(\\"POST\\", encode\`/pets\`, props);
 
 
 export interface FindPetByIdPathParams {
@@ -135,7 +153,8 @@ export type FindPetByIdProps = Omit<GetProps<Pet, Error, void, FindPetByIdPathPa
  */
 export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   <Get<Pet, Error, void, FindPetByIdPathParams>
-    path={\`/pets/\${id}\`}
+    path={encode\`/pets/\${id}\`}
+    
     {...props}
   />
 );
@@ -145,7 +164,7 @@ export type UseFindPetByIdProps = Omit<UseGetProps<Pet, Error, void, FindPetById
 /**
  * Returns a user based on a single ID, if the user does not have access to the pet
  */
-export const useFindPetById = ({id, ...props}: UseFindPetByIdProps) => useGet<Pet, Error, void, FindPetByIdPathParams>((paramsInPath: FindPetByIdPathParams) => \`/pets/\${paramsInPath.id}\`, { pathParams: { id }, ...props });
+export const useFindPetById = ({id, ...props}: UseFindPetByIdProps) => useGet<Pet, Error, void, FindPetByIdPathParams>((paramsInPath: FindPetByIdPathParams) => encode\`/pets/\${paramsInPath.id}\`, {  pathParams: { id }, ...props });
 
 
 export type DeletePetProps = Omit<MutateProps<void, Error, void, number, void>, \\"path\\" | \\"verb\\">;
@@ -156,7 +175,8 @@ export type DeletePetProps = Omit<MutateProps<void, Error, void, number, void>, 
 export const DeletePet = (props: DeletePetProps) => (
   <Mutate<void, Error, void, number, void>
     verb=\\"DELETE\\"
-    path={\`/pets\`}
+    path={encode\`/pets\`}
+    pathInlineBodyEncode={encodingFn}
     {...props}
   />
 );
@@ -166,7 +186,7 @@ export type UseDeletePetProps = Omit<UseMutateProps<void, Error, void, number, v
 /**
  * deletes a single pet based on the ID supplied
  */
-export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, number, void>(\\"DELETE\\", \`/pets\`, props);
+export const useDeletePet = (props: UseDeletePetProps) => useMutate<void, Error, void, number, void>(\\"DELETE\\", encode\`/pets\`, { pathInlineBodyEncode: encodingFn,  ...props });
 
 
 export interface UpdatePetPathParams {
@@ -184,7 +204,8 @@ export type UpdatePetProps = Omit<MutateProps<Pet, Error, void, UpdatePetRequest
 export const UpdatePet = ({id, ...props}: UpdatePetProps) => (
   <Mutate<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>
     verb=\\"PATCH\\"
-    path={\`/pets/\${id}\`}
+    path={encode\`/pets/\${id}\`}
+    
     {...props}
   />
 );
@@ -194,7 +215,7 @@ export type UseUpdatePetProps = Omit<UseMutateProps<Pet, Error, void, UpdatePetR
 /**
  * Updates a pet in the store.
  */
-export const useUpdatePet = ({id, ...props}: UseUpdatePetProps) => useMutate<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>(\\"PATCH\\", (paramsInPath: UpdatePetPathParams) => \`/pets/\${paramsInPath.id}\`, { pathParams: { id }, ...props });
+export const useUpdatePet = ({id, ...props}: UseUpdatePetProps) => useMutate<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>(\\"PATCH\\", (paramsInPath: UpdatePetPathParams) => encode\`/pets/\${paramsInPath.id}\`, {  pathParams: { id }, ...props });
 
 "
 `;

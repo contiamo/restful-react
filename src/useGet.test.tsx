@@ -701,21 +701,21 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
-        const params = useGet<{ id: number }>({ path, debounce: true });
+      const MyAwesomeComponent: React.FC<{ queryParams: { test: number } }> = ({ queryParams }) => {
+        const params = useGet<{ id: number }>({ path: "", queryParams, debounce: true });
         return children(params);
       };
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="?test=1" />
+          <MyAwesomeComponent queryParams={{ test: 1 }} />
         </RestfulProvider>,
       );
 
       times(10, i =>
         rerender(
           <RestfulProvider base="https://my-awesome-api.fake">
-            <MyAwesomeComponent path={`?test=${i + 1}`} />
+            <MyAwesomeComponent queryParams={{ test: i + 1 }} />
           </RestfulProvider>,
         ),
       );
@@ -734,21 +734,21 @@ describe("useGet hook", () => {
       const children = jest.fn();
       children.mockReturnValue(<div />);
 
-      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
-        const params = useGet<{ id: number }>({ path });
+      const MyAwesomeComponent: React.FC<{ queryParams: { test: number } }> = ({ queryParams }) => {
+        const params = useGet<{ id: number }>({ path: "", queryParams });
         return children(params);
       };
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent path="?test=1" />
+          <MyAwesomeComponent queryParams={{ test: 1 }} />
         </RestfulProvider>,
       );
 
       times(10, i =>
         rerender(
           <RestfulProvider base="https://my-awesome-api.fake">
-            <MyAwesomeComponent path={`?test=${i + 1}`} />
+            <MyAwesomeComponent queryParams={{ test: i + 1 }} />
           </RestfulProvider>,
         ),
       );

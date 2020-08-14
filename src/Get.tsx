@@ -1,13 +1,14 @@
 import { DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
-import * as qs from "qs";
 import * as React from "react";
 
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 import { resolveData } from "./util/resolveData";
+import { constructUrl } from "./util/constructUrl";
+import { IStringifyOptions } from "qs";
 
 /**
  * A function that resolves returned data from
@@ -86,6 +87,10 @@ export interface GetProps<TData, TError, TQueryParams, TPathParams> {
    * Query parameters
    */
   queryParams?: TQueryParams;
+  /**
+   * Query parameter stringify options
+   */
+  queryParamStringifyOptions?: IStringifyOptions;
   /**
    * Don't send the error to the Provider
    */
@@ -250,18 +255,12 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
     }
 
     const makeRequestPath = () => {
-      let url: string;
-      if (__internal_hasExplicitBase) {
-        url = composeUrl(base!, "", path || "");
-      } else {
-        url = composeUrl(base!, parentPath!, requestPath || path || "");
-      }
+      const concatPath = __internal_hasExplicitBase ? path : composePath(parentPath, path);
 
-      // We use ! because it's in defaultProps
-      if (Object.keys(this.props.queryParams!).length) {
-        url += `?${qs.stringify(this.props.queryParams)}`;
-      }
-      return url;
+      return constructUrl(base!, concatPath, this.props.queryParams, {
+        stripTrailingSlash: true,
+        queryParamOptions: this.props.queryParamStringifyOptions,
+      });
     };
 
     const request = new Request(makeRequestPath(), await this.getRequestOptions(makeRequestPath(), thisRequestOptions));
@@ -355,6 +354,10 @@ function Get<TData = any, TError = any, TQueryParams = { [key: string]: any }, T
             {...props}
             queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
             __internal_hasExplicitBase={Boolean(props.base)}
+            queryParamStringifyOptions={{
+              ...contextProps.queryParamStringifyOptions,
+              ...props.queryParamStringifyOptions,
+            }}
           />
         </RestfulReactProvider>
       )}

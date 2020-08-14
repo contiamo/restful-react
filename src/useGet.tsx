@@ -2,14 +2,14 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
-import qs, { IStringifyOptions } from "qs";
-import url from "url";
+import { IStringifyOptions } from "qs";
 
 import { Context, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
 import { useDeepCompareEffect } from "./util/useDeepCompareEffect";
 import { useAbort } from "./useAbort";
+import { constructUrl } from "./util/constructUrl";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
@@ -70,21 +70,6 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
     | number;
 }
 
-export function resolvePath<TQueryParams>(
-  base: string,
-  path: string,
-  queryParams: TQueryParams,
-  queryParamOptions: IStringifyOptions = {},
-) {
-  const appendedBase = base.endsWith("/") ? base : `${base}/`;
-  const trimmedPath = path.startsWith("/") ? path.slice(1) : path;
-
-  return url.resolve(
-    appendedBase,
-    Object.keys(queryParams).length ? `${trimmedPath}?${qs.stringify(queryParams, queryParamOptions)}` : trimmedPath,
-  );
-}
-
 async function _fetchData<TData, TError, TQueryParams, TPathParams>(
   props: UseGetProps<TData, TError, TQueryParams, TPathParams>,
   state: GetState<TData, TError>,
@@ -114,11 +99,13 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
 
   const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
 
-  const url = resolvePath(
+  const url = constructUrl(
     base,
     pathStr,
     { ...context.queryParams, ...queryParams },
-    { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
+    {
+      queryParamOptions: { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
+    },
   );
 
   const propsRequestOptions =
@@ -276,7 +263,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   return {
     ...state,
     ...props.mock, // override the state
-    absolutePath: resolvePath(
+    absolutePath: constructUrl(
       props.base || context.base,
       pathStr,
       {
@@ -284,8 +271,10 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
         ...props.queryParams,
       },
       {
-        ...context.queryParamStringifyOptions,
-        ...props.queryParamStringifyOptions,
+        queryParamOptions: {
+          ...context.queryParamStringifyOptions,
+          ...props.queryParamStringifyOptions,
+        },
       },
     ),
     cancel: () => {

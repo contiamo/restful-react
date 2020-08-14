@@ -93,8 +93,8 @@ export default class RestfulReactProvider<T> extends React.Component<RestfulReac
           resolve: (data: any) => data,
           requestOptions: {},
           parentPath: "",
-          queryParams: value.queryParams || {},
-          queryParamStringifyOptions: value.queryParamStringifyOptions || {},
+          queryParams: {},
+          queryParamStringifyOptions: {},
           ...value,
         }}
       >

@@ -690,7 +690,7 @@ describe("Get", () => {
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="?test=1" debounce>
+          <Get path="" queryParams={{ test: 1 }} debounce>
             {children}
           </Get>
         </RestfulProvider>,
@@ -699,12 +699,13 @@ describe("Get", () => {
       times(10, i =>
         rerender(
           <RestfulProvider base="https://my-awesome-api.fake">
-            <Get path={`?test=${i + 1}`} debounce>
+            <Get path="" queryParams={{ test: i + 1 }} debounce>
               {children}
             </Get>
           </RestfulProvider>,
         ),
       );
+
       await wait(() => expect(apiCalls).toEqual(1));
     });
 
@@ -721,14 +722,18 @@ describe("Get", () => {
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="?test=1">{children}</Get>
+          <Get path="" queryParams={{ test: 1 }}>
+            {children}
+          </Get>
         </RestfulProvider>,
       );
 
       times(10, i =>
         rerender(
           <RestfulProvider base="https://my-awesome-api.fake">
-            <Get path={`?test=${i + 1}`}>{children}</Get>
+            <Get path="" queryParams={{ test: i + 1 }}>
+              {children}
+            </Get>
           </RestfulProvider>,
         ),
       );
@@ -946,13 +951,17 @@ describe("Get", () => {
 
       const { rerender } = render(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="/?test=0">{children}</Get>
+          <Get path="" queryParams={{ test: 0 }}>
+            {children}
+          </Get>
         </RestfulProvider>,
       );
 
       rerender(
         <RestfulProvider base="https://my-awesome-api.fake">
-          <Get path="/?test=1">{children}</Get>
+          <Get path="" queryParams={{ test: 1 }}>
+            {children}
+          </Get>
         </RestfulProvider>,
       );
 
