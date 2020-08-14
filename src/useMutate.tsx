@@ -2,7 +2,8 @@ import merge from "lodash/merge";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Context } from "./Context";
 import { MutateMethod, MutateState, MutateRequestOptions } from "./Mutate";
-import { Omit, resolvePath, UseGetProps } from "./useGet";
+import { Omit, UseGetProps } from "./useGet";
+import { constructUrl } from "./util/constructUrl";
 import { processResponse } from "./util/processResponse";
 import { useAbort } from "./useAbort";
 
@@ -27,6 +28,11 @@ export interface UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPath
     mutate?: MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>;
     loading?: boolean;
   };
+  /**
+   * A function to encode body of DELETE requests when appending it
+   * to an existing path
+   */
+  pathInlineBodyEncode?: typeof encodeURIComponent;
 }
 
 export interface UseMutateReturn<TData, TError, TRequestBody, TQueryParams, TPathParams>
@@ -117,18 +123,24 @@ export function useMutate<
       } else if (typeof body === "object") {
         options.body = JSON.stringify(body);
       } else if (isDelete) {
-        pathParts.push((body as unknown) as string);
+        const possiblyEncodedBody = props.pathInlineBodyEncode
+          ? props.pathInlineBodyEncode(String(body))
+          : String(body);
+
+        pathParts.push(possiblyEncodedBody);
       } else {
         options.body = (body as unknown) as string;
       }
 
       const signal = getAbortSignal();
 
-      const url = resolvePath(
+      const url = constructUrl(
         base,
         pathParts.join("/"),
         { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
-        { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
+        {
+          queryParamOptions: { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
+        },
       );
 
       const propsRequestOptions =

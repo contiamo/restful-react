@@ -27,6 +27,9 @@ export type AdvancedOptions = Options & {
   customProps?: {
     base?: string;
   };
+
+  pathParametersEncodingMode?: "uriComponent" | "rfc3986";
+
   customGenerator?: (data: {
     componentName: string;
     verb: string;
@@ -81,6 +84,7 @@ const importSpecs = async (options: AdvancedOptions) => {
       customImport: options.customImport,
       customProps: options.customProps,
       customGenerator: options.customGenerator,
+      pathParametersEncodingMode: options.pathParametersEncodingMode,
     });
   } else if (options.url) {
     const { url } = options;
@@ -116,6 +120,7 @@ const importSpecs = async (options: AdvancedOptions) => {
             customImport: options.customImport,
             customProps: options.customProps,
             customGenerator: options.customGenerator,
+            pathParametersEncodingMode: options.pathParametersEncodingMode,
           }),
         );
       });
@@ -203,6 +208,7 @@ const importSpecs = async (options: AdvancedOptions) => {
             customImport: options.customImport,
             customProps: options.customProps,
             customGenerator: options.customGenerator,
+            pathParametersEncodingMode: options.pathParametersEncodingMode,
           }),
         );
       });

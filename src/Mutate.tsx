@@ -1,9 +1,10 @@
-import * as qs from "qs";
 import * as React from "react";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
+import { constructUrl } from "./util/constructUrl";
+import { IStringifyOptions } from "qs";
 
 /**
  * An enumeration of states that a fetchable
@@ -64,6 +65,10 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathPar
    */
   queryParams?: TQueryParams;
   /**
+   * Query parameter stringify options
+   */
+  queryParamStringifyOptions?: IStringifyOptions;
+  /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
    *
@@ -98,6 +103,11 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathPar
    * @param data - Response data
    */
   onMutate?: (body: TRequestBody, data: TData) => void;
+  /**
+   * A function to encode body of DELETE requests when appending it
+   * to an existing path
+   */
+  pathInlineBodyEncode?: typeof encodeURIComponent;
 }
 
 /**
@@ -155,28 +165,24 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
       onError,
       onRequest,
       onResponse,
+      pathInlineBodyEncode,
     } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
     const makeRequestPath = () => {
-      let url: string;
-      if (__internal_hasExplicitBase) {
-        url =
-          verb === "DELETE" && typeof body === "string"
-            ? composeUrl(base!, "", composePath(path!, body))
-            : composeUrl(base!, "", path || "");
-      } else {
-        url =
-          verb === "DELETE" && typeof body === "string"
-            ? composeUrl(base!, parentPath!, composePath(path!, body))
-            : composeUrl(base!, parentPath!, path!);
-      }
+      const pathWithPossibleBody =
+        verb === "DELETE" && typeof body === "string"
+          ? composePath(path, pathInlineBodyEncode ? pathInlineBodyEncode(body) : body)
+          : path;
 
-      // We use ! because it's in defaultProps
-      if (Object.keys(this.props.queryParams!).length) {
-        url += `?${qs.stringify({ ...this.props.queryParams, ...mutateRequestOptions?.queryParams })}`;
-      }
-      return url;
+      const concatPath = __internal_hasExplicitBase
+        ? pathWithPossibleBody || ""
+        : composePath(parentPath, pathWithPossibleBody);
+
+      return constructUrl(base!, concatPath, this.props.queryParams, {
+        stripTrailingSlash: true,
+        queryParamOptions: this.props.queryParamStringifyOptions,
+      });
     };
 
     const request = new Request(makeRequestPath(), {
@@ -285,6 +291,10 @@ function Mutate<
             {...contextProps}
             {...props}
             queryParams={{ ...contextProps.queryParams, ...props.queryParams } as TQueryParams}
+            queryParamStringifyOptions={{
+              ...contextProps.queryParamStringifyOptions,
+              ...props.queryParamStringifyOptions,
+            }}
             __internal_hasExplicitBase={Boolean(props.base)}
           />
         </RestfulReactProvider>

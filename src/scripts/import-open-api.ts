@@ -474,11 +474,12 @@ ${description}export const ${componentName} = (${
       : `
     verb="${verb.toUpperCase()}"`
   }
-    path={\`${route}\`}${
+    path={encode\`${route}\`}${
     customPropsEntries.length
       ? "\n    " + customPropsEntries.map(([key, value]) => `${key}=${value}`).join("\n    ")
       : ""
   }
+    ${verb === "delete" ? "pathInlineBodyEncode={encodingFn}" : ""}
     {...props}
   />
 );
@@ -496,17 +497,19 @@ ${description}export const use${componentName} = (${
     verb === "get" ? "" : `"${verb.toUpperCase()}", `
   }${
     paramsInPath.length
-      ? `(paramsInPath: ${componentName}PathParams) => \`${route.replace(/\$\{/g, "${paramsInPath.")}\``
-      : `\`${route}\``
+      ? `(paramsInPath: ${componentName}PathParams) => encode\`${route.replace(/\$\{/g, "${paramsInPath.")}\``
+      : `encode\`${route}\``
   }, ${
-    customPropsEntries.length || paramsInPath.length
+    customPropsEntries.length || paramsInPath.length || verb === "delete"
       ? `{ ${
           customPropsEntries.length
             ? `${customPropsEntries
                 .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
                 .join(", ")},`
             : ""
-        }${paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""} ...props }`
+        }${verb === "delete" ? "pathInlineBodyEncode: encodingFn, " : " "}${
+          paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""
+        } ...props }`
       : "props"
   });
 
@@ -536,7 +539,7 @@ export const Poll${componentName} = (${
       paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
     }: Poll${componentName}Props) => (
   <Poll<${genericsTypes}>
-    path={\`${route}\`}
+    path={encode\`${route}\`}
     {...props}
   />
 );
@@ -738,6 +741,24 @@ Path    : ${i.path}`),
 };
 
 /**
+ * Get the url encoding function to be aliased at the module scope.
+ * This function is used to encode the path parameters.
+ *
+ * @param mode Either "uricomponent" or "rfc". "rfc" mode also encodes
+ *             symbols from the `!'()*` range, while "uricomponent" leaves those as is.
+ */
+const getEncodingFunction = (mode: "uriComponent" | "rfc3986") => {
+  if (mode === "uriComponent") return "encodeURIComponent";
+
+  return `(uriComponent: string | number | boolean) => {
+  return encodeURIComponent(uriComponent).replace(
+      /[!'()*]/g,
+      (c: string) => \`%\${c.charCodeAt(0).toString(16)}\`,
+  );
+};`;
+};
+
+/**
  * Main entry of the generator. Generate restful-react component from openAPI.
  *
  * @param options.data raw data of the spec
@@ -753,6 +774,7 @@ const importOpenApi = async ({
   customImport,
   customProps,
   customGenerator,
+  pathParametersEncodingMode,
 }: {
   data: string;
   format: "yaml" | "json";
@@ -761,6 +783,7 @@ const importOpenApi = async ({
   customImport?: AdvancedOptions["customImport"];
   customProps?: AdvancedOptions["customProps"];
   customGenerator?: AdvancedOptions["customGenerator"];
+  pathParametersEncodingMode?: "uriComponent" | "rfc3986";
 }) => {
   const operationIds: string[] = [];
   let specs = await importSpecs(data, format);
@@ -817,6 +840,22 @@ import React from "react";
 import { ${imports.join(", ")} } from "restful-react";${customImport ? `\n${customImport}\n` : ""}
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+const encodingFn = ${getEncodingFunction(pathParametersEncodingMode || "uriComponent")}
+
+const encodingTagFactory = (encodingFn: typeof encodeURIComponent) => (
+  strings: TemplateStringsArray,
+  ...params: (string | number | boolean)[]
+) =>
+  strings.reduce(
+      (accumulatedPath, pathPart, idx) =>
+          \`\${accumulatedPath}\${pathPart}\${
+              idx < params.length ? encodingFn(params[idx]) : ''
+          }\`,
+      '',
+  );
+
+const encode = encodingTagFactory(encodingFn);
 
 ` + output;
   return output;
