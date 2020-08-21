@@ -212,13 +212,14 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
   }
 
   public getRequestOptions = async (
+    url: string,
     extraOptions?: Partial<RequestInit>,
     extraHeaders?: boolean | { [key: string]: string },
   ) => {
     const { requestOptions } = this.props;
 
     if (typeof requestOptions === "function") {
-      const options = (await requestOptions()) || {};
+      const options = (await requestOptions(url, "GET")) || {};
       return {
         ...extraOptions,
         ...options,
@@ -263,7 +264,7 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
       return url;
     };
 
-    const request = new Request(makeRequestPath(), await this.getRequestOptions(thisRequestOptions));
+    const request = new Request(makeRequestPath(), await this.getRequestOptions(makeRequestPath(), thisRequestOptions));
     if (onRequest) onRequest(request);
     try {
       const response = await fetch(request, { signal: this.signal });

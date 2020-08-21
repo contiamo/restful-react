@@ -103,12 +103,6 @@ export function useMutate<
 
       const pathParts = [pathStr];
 
-      const propsRequestOptions =
-        (typeof props.requestOptions === "function" ? await props.requestOptions() : props.requestOptions) || {};
-
-      const contextRequestOptions =
-        (typeof context.requestOptions === "function" ? await context.requestOptions() : context.requestOptions) || {};
-
       const options: RequestInit = {
         method: verb,
       };
@@ -130,13 +124,25 @@ export function useMutate<
 
       const signal = getAbortSignal();
 
+      const url = resolvePath(
+        base,
+        pathParts.join("/"),
+        { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
+        { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
+      );
+
+      const propsRequestOptions =
+        (typeof props.requestOptions === "function"
+          ? await props.requestOptions(url, verb, body)
+          : props.requestOptions) || {};
+
+      const contextRequestOptions =
+        (typeof context.requestOptions === "function"
+          ? await context.requestOptions(url, verb, body)
+          : context.requestOptions) || {};
+
       const request = new Request(
-        resolvePath(
-          base,
-          pathParts.join("/"),
-          { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
-          { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
-        ),
+        url,
         merge({}, contextRequestOptions, options, propsRequestOptions, mutateRequestOptions, { signal }),
       );
       if (context.onRequest) context.onRequest(request);

@@ -182,12 +182,14 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
     const request = new Request(makeRequestPath(), {
       method: verb,
       body: typeof body === "object" ? JSON.stringify(body) : body,
-      ...(typeof providerRequestOptions === "function" ? providerRequestOptions() : providerRequestOptions),
+      ...(typeof providerRequestOptions === "function"
+        ? await providerRequestOptions<TRequestBody>(makeRequestPath(), verb, body)
+        : providerRequestOptions),
       ...mutateRequestOptions,
       headers: {
         "content-type": typeof body === "object" ? "application/json" : "text/plain",
         ...(typeof providerRequestOptions === "function"
-          ? (await providerRequestOptions()).headers
+          ? (await providerRequestOptions<TRequestBody>(makeRequestPath(), verb, body)).headers
           : (providerRequestOptions || {}).headers),
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },

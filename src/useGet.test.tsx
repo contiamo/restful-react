@@ -574,7 +574,9 @@ describe("useGet hook", () => {
     });
 
     it("should merge headers with providers", async () => {
-      nock("https://my-awesome-api.fake", { reqheaders: { foo: "bar", bar: "foo" } })
+      nock("https://my-awesome-api.fake", {
+        reqheaders: { foo: "bar", bar: "foo", visitUrl: "https://my-awesome-api.fake/", visitMethod: "GET" },
+      })
         .get("/")
         .reply(200, { oh: "my god 😍" });
 
@@ -585,7 +587,12 @@ describe("useGet hook", () => {
       };
 
       const { getByTestId } = render(
-        <RestfulProvider base="https://my-awesome-api.fake" requestOptions={() => ({ headers: { bar: "foo" } })}>
+        <RestfulProvider
+          base="https://my-awesome-api.fake"
+          requestOptions={(url, method) => {
+            return { headers: { bar: "foo", visitUrl: url, visitMethod: method } };
+          }}
+        >
           <MyAwesomeComponent />
         </RestfulProvider>,
       );
