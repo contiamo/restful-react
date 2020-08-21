@@ -168,7 +168,7 @@ export interface RestfulReactProviderProps<T = any> {
   /**
    * Options passed to the fetch request.
    */
-  requestOptions?: (() => Partial<RequestInit>) | Partial<RequestInit>;
+  requestOptions?: ((url: string, method: string, requestBody?: string) => Partial<RequestInit>) | Partial<RequestInit>;
   /**
    * Trigger on each error.
    * For `Get` and `Mutation` calls, you can also call `retry` to retry the exact same request.

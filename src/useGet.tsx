@@ -114,22 +114,24 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
 
   const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
 
-  const propsRequestOptions = (typeof requestOptions === "function" ? await requestOptions() : requestOptions) || {};
+  const url = resolvePath(
+    base,
+    pathStr,
+    { ...context.queryParams, ...queryParams },
+    { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
+  );
+
+  const propsRequestOptions =
+    (typeof requestOptions === "function" ? await requestOptions(url, "GET") : requestOptions) || {};
 
   const contextRequestOptions =
-    (typeof context.requestOptions === "function" ? await context.requestOptions() : context.requestOptions) || {};
+    (typeof context.requestOptions === "function"
+      ? await context.requestOptions(url, "GET")
+      : context.requestOptions) || {};
 
   const signal = getAbortSignal();
 
-  const request = new Request(
-    resolvePath(
-      base,
-      pathStr,
-      { ...context.queryParams, ...queryParams },
-      { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
-    ),
-    merge({}, contextRequestOptions, propsRequestOptions, { signal }),
-  );
+  const request = new Request(url, merge({}, contextRequestOptions, propsRequestOptions, { signal }));
   if (context.onRequest) context.onRequest(request);
 
   try {

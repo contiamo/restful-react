@@ -195,8 +195,10 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
     return true;
   };
 
-  private getRequestOptions = () =>
-    typeof this.props.requestOptions === "function" ? this.props.requestOptions() : this.props.requestOptions || {};
+  private getRequestOptions = (url: string) =>
+    typeof this.props.requestOptions === "function"
+      ? this.props.requestOptions(url, "GET")
+      : this.props.requestOptions || {};
 
   // 304 is not a OK status code but is green in Chrome 🤦🏾‍♂️
   private isResponseOk = (response: Response) => response.ok || response.status === 304;
@@ -219,7 +221,6 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
     // If we should keep going,
     const { base, path, interval, wait, onError, onRequest, onResponse } = this.props;
     const { lastPollIndex } = this.state;
-    const requestOptions = await this.getRequestOptions();
 
     let url = composeUrl(base!, "", path);
 
@@ -227,6 +228,8 @@ class ContextlessPoll<TData, TError, TQueryParams, TPathParams = unknown> extend
     if (Object.keys(this.props.queryParams!).length) {
       url += `?${qs.stringify(this.props.queryParams)}`;
     }
+
+    const requestOptions = await this.getRequestOptions(url);
 
     const request = new Request(url, {
       ...requestOptions,
@@ -346,19 +349,23 @@ function Poll<TData = any, TError = any, TQueryParams = { [key: string]: any }, 
   return (
     <RestfulReactConsumer>
       {contextProps => {
-        const contextRequestOptions =
-          typeof contextProps.requestOptions === "function"
-            ? contextProps.requestOptions()
-            : contextProps.requestOptions || {};
-        const propsRequestOptions =
-          typeof props.requestOptions === "function" ? props.requestOptions() : props.requestOptions || {};
-
         return (
           <ContextlessPoll
             {...contextProps}
             {...props}
             queryParams={{ ...contextProps.queryParams, ...props.queryParams }}
-            requestOptions={async () => merge(await contextRequestOptions, await propsRequestOptions)}
+            requestOptions={async (url: string, method: string) => {
+              const contextRequestOptions =
+                typeof contextProps.requestOptions === "function"
+                  ? await contextProps.requestOptions(url, method)
+                  : contextProps.requestOptions || {};
+              const propsRequestOptions =
+                typeof props.requestOptions === "function"
+                  ? await props.requestOptions(url, method)
+                  : props.requestOptions || {};
+
+              return merge(contextRequestOptions, propsRequestOptions);
+            }}
           />
         );
       }}
