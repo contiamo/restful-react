@@ -199,7 +199,7 @@ export interface RestfulReactProviderProps<T = any> {
 <RestfulProvider
   base="String!"
   resolve={data => data}
-  requestOptions={authToken => ({ headers: { Authorization: authToken } })}
+  requestOptions={(url, method, requestBody) => ({ headers: { Authorization: authToken } })}
 />;
 ```
 
