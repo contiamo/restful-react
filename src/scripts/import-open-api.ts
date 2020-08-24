@@ -17,6 +17,7 @@ import {
   RequestBodyObject,
   ResponseObject,
   SchemaObject,
+  ResponsesObject,
 } from "openapi3-ts";
 
 import swagger2openapi from "swagger2openapi";
@@ -270,6 +271,151 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
  *  reactPropsValueToObjectValue(`{ getConfig("myVar") }`) // `getConfig("myVar")`
  */
 export const reactPropsValueToObjectValue = (value: string) => value.replace(/^{(.*)}$/, "$1");
+
+interface QueryParameter {
+  description: string;
+  in: string;
+  name: string;
+  required: boolean;
+  schema: { type: string; default?: string; enum?: [string] };
+}
+
+const isQueryParameter = (maybeParameter: any): maybeParameter is QueryParameter => {
+  return !(
+    maybeParameter.description &&
+    maybeParameter.in &&
+    maybeParameter.name &&
+    maybeParameter.required &&
+    maybeParameter.schema &&
+    maybeParameter.schema.type
+  );
+};
+
+const isBodyObject = (
+  maybeBodyObject: RequestBodyObject | ReferenceObject | undefined,
+): maybeBodyObject is RequestBodyObject => {
+  return !maybeBodyObject?.$ref;
+};
+
+/**
+ * Generate a typescript api from openapi operation specs
+ *
+ * @param verb get, put, post, delete or patch
+ * @param responses the possible responses of the request. Only 200 response types are used.
+ * @param functionName the name of the function
+ * @param body should be defined if verb is post or put
+ * @param queryParams should be defined when verb is get or delete
+ */
+export const generateTypescriptApi = (
+  verb: string,
+  responses: ResponsesObject,
+  route: string,
+  functionName?: string,
+  body?: RequestBodyObject | ReferenceObject,
+  queryParams?: (ParameterObject | ReferenceObject)[],
+): string => {
+  let returnType = "{}";
+  let parameters = "";
+  let apiCall = "";
+  let url = "";
+
+  if (
+    responses["200"] &&
+    responses["200"].content &&
+    responses["200"].content["application/json"] &&
+    responses["200"].content["application/json"].schema &&
+    responses["200"].content["application/json"].schema.$ref
+  ) {
+    const schema: string = responses["200"].content["application/json"].schema.$ref;
+    const splitSchema = schema.split("/");
+    returnType = splitSchema[splitSchema.length - 1];
+  }
+
+  if (verb === "get" || verb === "delete") {
+    // query params should be defined
+    url = `buildURL('${route}'`;
+    queryParams?.forEach((param, i) => {
+      if (i === 0) {
+        url += `, `;
+      } else {
+        parameters += ", ";
+        url += `, `;
+      }
+      if (isQueryParameter(param)) {
+        // first we fix the api call
+        url += `["${param.name}", ${param.name}]`;
+
+        parameters += param.name;
+        if (!param.required && !param.schema.default) {
+          // add question mark
+          parameters += `?`;
+        }
+        const type = param.schema.type === "integer" ? "number" : param.schema.type;
+        if (!param.schema.default) {
+          parameters += `: ${type}`;
+        }
+
+        if (param.schema.default) {
+          if (param.schema.enum) {
+            // the type is different
+            param.schema.enum?.forEach((param, i) => {
+              if (i === 0) {
+                parameters += ": ";
+              } else {
+                parameters += " | ";
+              }
+              parameters += `"${param}"`;
+            });
+          } else {
+            parameters += `: ${type}`;
+          }
+
+          parameters += ` = "${param.schema.default}"`;
+        }
+      }
+    });
+    apiCall = `${verb}(${url})`;
+  } else {
+    // the parameters are just embedded as body
+    let schema = "";
+    if (isBodyObject(body) && body.content["application/json"]) {
+      schema = body.content["application/json"]?.schema?.$ref ?? "";
+    } else {
+      // if it has a different shape than ref it's required
+      schema = body?.$ref ?? "";
+    }
+
+    let requestType = "";
+    if (schema !== "") {
+      const splitSchema = schema.split("/");
+      requestType = splitSchema[splitSchema.length - 1];
+    }
+
+    if (requestType === "" || requestType.includes("_")) {
+      // It is an empty request, and we can just have no parameters
+      parameters = "";
+      apiCall = `${verb}("${route}"`;
+    } else {
+      parameters = `req: ${requestType}`;
+      apiCall = `${verb}("${route}", req`;
+    }
+  }
+
+  return `
+export const ${functionName} = async (${parameters}): Promise<${returnType}> => {
+  if (apiKey === "") {
+    throw Error(apiKeyNotSetMessage);
+  }
+
+  try {
+    const response = await api.${apiCall});
+    return response.data as ${returnType};
+  } catch (error) {
+    throw Error(error);
+  }
+};
+`;
+};
 
 /**
  * Generate a restful-react component from openapi operation specs
@@ -753,6 +899,7 @@ const importOpenApi = async ({
   customImport,
   customProps,
   customGenerator,
+  ts,
 }: {
   data: string;
   format: "yaml" | "json";
@@ -761,6 +908,8 @@ const importOpenApi = async ({
   customImport?: AdvancedOptions["customImport"];
   customProps?: AdvancedOptions["customProps"];
   customGenerator?: AdvancedOptions["customGenerator"];
+  /** if true, will only generate typescript types, and no jsx */
+  ts?: boolean;
 }) => {
   const operationIds: string[] = [];
   let specs = await importSpecs(data, format);
@@ -774,51 +923,70 @@ const importOpenApi = async ({
 
   resolveDiscriminator(specs);
 
+  let outputImports = `/* Generated by restful-react */\n\n${customImport ?? ""}`;
   let output = "";
 
   output += generateSchemasDefinition(specs.components && specs.components.schemas);
   output += generateRequestBodiesDefinition(specs.components && specs.components.requestBodies);
   output += generateResponsesDefinition(specs.components && specs.components.responses);
+
+  if (ts) {
+    output +=
+      // eslint-disable-next-line no-template-curly-in-string
+      "\nconst buildURL = (route: string, ...args: [string, string | number | undefined | boolean][]): string => { let url = route;let params = ''; args.forEach(arg => { const name = arg[0]; const value = arg[1];if (value) {if (params === '') { params += `?${name}=${value}`; } else { params += `&${name}=${value}`; } } });return `${url}${params}`;}\n";
+  }
+
   Object.entries(specs.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
       if (["get", "post", "patch", "put", "delete"].includes(verb)) {
-        output += generateRestfulComponent(
-          operation,
-          verb,
-          route,
-          operationIds,
-          verbs.parameters,
-          specs.components,
-          customProps,
-          customGenerator,
-        );
+        if (ts) {
+          output += generateTypescriptApi(
+            verb,
+            operation.responses,
+            route,
+            operation.operationId,
+            operation.requestBody,
+            operation.parameters,
+          );
+        } else {
+          output += generateRestfulComponent(
+            operation,
+            verb,
+            route,
+            operationIds,
+            verbs.parameters,
+            specs.components,
+            customProps,
+            customGenerator,
+          );
+        }
       }
     });
   });
 
-  const haveGet = Boolean(output.match(/<Get</));
-  const haveMutate = Boolean(output.match(/<Mutate</));
-  const havePoll = Boolean(output.match(/<Poll</));
+  if (!ts) {
+    const haveGet = Boolean(output.match(/<Get</));
+    const haveMutate = Boolean(output.match(/<Mutate</));
+    const havePoll = Boolean(output.match(/<Poll</));
 
-  const imports = [];
-  if (haveGet) {
-    imports.push("Get", "GetProps", "useGet", "UseGetProps");
+    const imports = [];
+    if (haveGet) {
+      imports.push("Get", "GetProps", "useGet", "UseGetProps");
+    }
+    if (haveMutate) {
+      imports.push("Mutate", "MutateProps", "useMutate", "UseMutateProps");
+    }
+    if (havePoll) {
+      imports.push("Poll", "PollProps");
+    }
+
+    outputImports += `import React from "react";
+import { ${imports.join(", ")} } from "restful-react";
+
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;\n\n`;
   }
-  if (haveMutate) {
-    imports.push("Mutate", "MutateProps", "useMutate", "UseMutateProps");
-  }
-  if (havePoll) {
-    imports.push("Poll", "PollProps");
-  }
-  output =
-    `/* Generated by restful-react */
 
-import React from "react";
-import { ${imports.join(", ")} } from "restful-react";${customImport ? `\n${customImport}\n` : ""}
-
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
-` + output;
+  output = outputImports + output;
   return output;
 };
 

@@ -20,6 +20,7 @@ export interface Options {
   github?: string;
   transformer?: string;
   validation?: boolean;
+  ts?: boolean;
 }
 
 export type AdvancedOptions = Options & {
@@ -45,6 +46,7 @@ export interface ExternalConfigFile {
 
 program.option("-o, --output [value]", "output file destination");
 program.option("-f, --file [value]", "input file (yaml or json openapi specs)");
+program.option("-ts, --ts", "if set, will only generate typescript api definitons, no jsx");
 program.option("-u, --url [value]", "url to spec (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.option("-t, --transformer [value]", "transformer function path");
@@ -81,6 +83,7 @@ const importSpecs = async (options: AdvancedOptions) => {
       customImport: options.customImport,
       customProps: options.customProps,
       customGenerator: options.customGenerator,
+      ts: options.ts,
     });
   } else if (options.url) {
     const { url } = options;

@@ -25,6 +25,17 @@ describe("scripts/import-open-api", () => {
     expect(data).toMatchSnapshot();
   });
 
+  exports["should only generate ts definitions when --ts option is passed"] = readFileSync(
+    join(__dirname, "./__snapshots__/import-open-api.test.ts.snap"),
+    "utf-8",
+  );
+
+  it("should only generate ts definitions when --ts option is passed", async () => {
+    const input = readFileSync(join(__dirname, "./petstore-expanded.yaml"), "utf-8");
+    const data = await importOpenApi({ ts: true, data: input, format: "yaml" });
+    expect(data).toMatchSnapshot();
+  });
+
   describe("isReference", () => {
     it("should return true if the property is a ref", () => {
       const property = {
