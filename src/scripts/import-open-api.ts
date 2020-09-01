@@ -744,7 +744,7 @@ Path    : ${i.path}`),
  * Get the url encoding function to be aliased at the module scope.
  * This function is used to encode the path parameters.
  *
- * @param mode Either "uricomponent" or "rfc". "rfc" mode also encodes
+ * @param mode Either "uricomponent" or "rfc3986". "rfc3986" mode also encodes
  *             symbols from the `!'()*` range, while "uricomponent" leaves those as is.
  */
 const getEncodingFunction = (mode: "uriComponent" | "rfc3986") => {
