@@ -2,8 +2,8 @@ name: Npm publish
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
     paths:
       - package.json
 
