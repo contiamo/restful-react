@@ -2,9 +2,13 @@
 
 [![npm](https://img.shields.io/npm/v/restful-react.svg)](https://www.npmjs.com/package/restful-react)
 
-Building React apps that interact with a RESTful API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications. It can be considered a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.
+Building React apps that interact with a RESTful API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications.
 
-As an abstraction, this tool allows for greater consistency and maintainability of dynamic codebases.
+It can be considered **a thin wrapper around the [fetch API](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) in the form of React components and hooks.**
+
+When used in a setup with [OpenAPI / Swagger](https://en.wikipedia.org/wiki/OpenAPI_Specification) specs and [Typescript](https://www.typescriptlang.org/), **restful-react ensures a reliable and always up to date contract between backend and frontend.** It generates components and types from your specs and can be integrated quite comfortably into your development workflows (featuring for example the import of OpenAPI specs from your github repos).
+
+restful-react is **very well tested, production ready** and powers all of our projects at Contiamo.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
