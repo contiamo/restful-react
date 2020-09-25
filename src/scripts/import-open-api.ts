@@ -853,8 +853,6 @@ import { ${imports.join(", ")} } from "restful-react";`;
 
 ${restfulReactImports}${customImport ? `\n${customImport}\n` : ""}
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
 const encodingFn = ${getEncodingFunction(pathParametersEncodingMode || "uriComponent")}
 
 const encodingTagFactory = (encodingFn: typeof encodeURIComponent) => (
