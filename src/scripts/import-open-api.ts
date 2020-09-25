@@ -288,6 +288,7 @@ export const generateRestfulComponent = (
   parameters: Array<ReferenceObject | ParameterObject> = [],
   schemasComponents?: ComponentsObject,
   customProps: AdvancedOptions["customProps"] = {},
+  skipReact = false,
   customGenerator?: AdvancedOptions["customGenerator"],
 ) => {
   if (!operation.operationId) {
@@ -461,24 +462,28 @@ export interface ${componentName}RequestBody ${requestBodyTypes}
 `
       : ""
   }
-export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
-    verb === "get" ? "" : ` | "verb"`
-  }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
+`;
+
+  if (!skipReact) {
+    // Component version
+    output += `export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
+      verb === "get" ? "" : ` | "verb"`
+    }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
 
 ${description}export const ${componentName} = (${
-    paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-  }: ${componentName}Props) => (
+      paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
+    }: ${componentName}Props) => (
   <${Component}<${genericsTypes}>${
-    verb === "get"
-      ? ""
-      : `
+      verb === "get"
+        ? ""
+        : `
     verb="${verb.toUpperCase()}"`
-  }
+    }
     path={encode\`${route}\`}${
-    customPropsEntries.length
-      ? "\n    " + customPropsEntries.map(([key, value]) => `${key}=${value}`).join("\n    ")
-      : ""
-  }
+      customPropsEntries.length
+        ? "\n    " + customPropsEntries.map(([key, value]) => `${key}=${value}`).join("\n    ")
+        : ""
+    }
     ${verb === "delete" ? "pathInlineBodyEncode={encodingFn}" : ""}
     {...props}
   />
@@ -486,34 +491,35 @@ ${description}export const ${componentName} = (${
 
 `;
 
-  // Hooks version
-  output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
-    verb === "get" ? "" : ` | "verb"`
-  }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
+    // Hooks version
+    output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
+      verb === "get" ? "" : ` | "verb"`
+    }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
 
 ${description}export const use${componentName} = (${
-    paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-  }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
-    verb === "get" ? "" : `"${verb.toUpperCase()}", `
-  }${
-    paramsInPath.length
-      ? `(paramsInPath: ${componentName}PathParams) => encode\`${route.replace(/\$\{/g, "${paramsInPath.")}\``
-      : `encode\`${route}\``
-  }, ${
-    customPropsEntries.length || paramsInPath.length || verb === "delete"
-      ? `{ ${
-          customPropsEntries.length
-            ? `${customPropsEntries
-                .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
-                .join(", ")},`
-            : ""
-        }${verb === "delete" ? "pathInlineBodyEncode: encodingFn, " : " "}${
-          paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""
-        } ...props }`
-      : "props"
-  });
+      paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
+    }: Use${componentName}Props) => use${Component}<${genericsTypes}>(${
+      verb === "get" ? "" : `"${verb.toUpperCase()}", `
+    }${
+      paramsInPath.length
+        ? `(paramsInPath: ${componentName}PathParams) => encode\`${route.replace(/\$\{/g, "${paramsInPath.")}\``
+        : `encode\`${route}\``
+    }, ${
+      customPropsEntries.length || paramsInPath.length || verb === "delete"
+        ? `{ ${
+            customPropsEntries.length
+              ? `${customPropsEntries
+                  .map(([key, value]) => `${key}:${reactPropsValueToObjectValue(value || "")}`)
+                  .join(", ")},`
+              : ""
+          }${verb === "delete" ? "pathInlineBodyEncode: encodingFn, " : " "}${
+            paramsInPath.length ? `pathParams: { ${paramsInPath.join(", ")} },` : ""
+          } ...props }`
+        : "props"
+    });
 
 `;
+  }
 
   // Custom version
   if (customGenerator) {
@@ -529,7 +535,7 @@ ${description}export const use${componentName} = (${
     });
   }
 
-  if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
+  if (!skipReact && headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
     output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
       paramsInPath.length ? ` & {${paramsTypes}}` : ""
     };
@@ -765,12 +771,14 @@ const getEncodingFunction = (mode: "uriComponent" | "rfc3986") => {
  * @param options.format format of the spec
  * @param options.transformer custom function to transform your spec
  * @param options.validation validate the spec with ibm-openapi-validator tool
+ * @param options.skipReact skip the generation of react components/hooks
  */
 const importOpenApi = async ({
   data,
   format,
   transformer,
   validation,
+  skipReact,
   customImport,
   customProps,
   customGenerator,
@@ -780,6 +788,7 @@ const importOpenApi = async ({
   format: "yaml" | "json";
   transformer?: (specs: OpenAPIObject) => OpenAPIObject;
   validation?: boolean;
+  skipReact?: boolean;
   customImport?: AdvancedOptions["customImport"];
   customProps?: AdvancedOptions["customProps"];
   customGenerator?: AdvancedOptions["customGenerator"];
@@ -813,6 +822,7 @@ const importOpenApi = async ({
           verbs.parameters,
           specs.components,
           customProps,
+          skipReact,
           customGenerator,
         );
       }
@@ -833,11 +843,15 @@ const importOpenApi = async ({
   if (havePoll) {
     imports.push("Poll", "PollProps");
   }
+  const restfulReactImports = skipReact
+    ? ""
+    : `import React from "react";
+import { ${imports.join(", ")} } from "restful-react";`;
+
   output =
     `/* Generated by restful-react */
 
-import React from "react";
-import { ${imports.join(", ")} } from "restful-react";${customImport ? `\n${customImport}\n` : ""}
+${restfulReactImports}${customImport ? `\n${customImport}\n` : ""}
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 

@@ -3,6 +3,7 @@ import program from "commander";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import inquirer from "inquirer";
 import difference from "lodash/difference";
+import pick from "lodash/pick";
 import { join, parse } from "path";
 import request from "request";
 import { homedir } from "os";
@@ -20,6 +21,7 @@ export interface Options {
   github?: string;
   transformer?: string;
   validation?: boolean;
+  skipReact?: boolean;
 }
 
 export type AdvancedOptions = Options & {
@@ -52,6 +54,7 @@ program.option("-u, --url [value]", "url to spec (yaml or json openapi specs)");
 program.option("-g, --github [value]", "github path (format: `owner:repo:branch:path`)");
 program.option("-t, --transformer [value]", "transformer function path");
 program.option("--validation", "add the validation step (provided by ibm-openapi-validator)");
+program.option("--skip-react", "skip the generation of react components/hooks");
 program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
@@ -67,6 +70,16 @@ const successWithoutOutputMessage = chalk.yellow("Success! No output path specif
 const importSpecs = async (options: AdvancedOptions) => {
   const transformer = options.transformer ? require(join(process.cwd(), options.transformer)) : undefined;
 
+  const optionsKeys: Array<keyof Options | keyof AdvancedOptions> = [
+    "validation",
+    "customImport",
+    "customProps",
+    "customGenerator",
+    "pathParametersEncodingMode",
+    "skipReact",
+  ];
+  const importOptions = pick(options, optionsKeys);
+
   if (!options.file && !options.url && !options.github) {
     throw new Error("You need to provide an input specification with `--file`, '--url', or `--github`");
   }
@@ -80,11 +93,7 @@ const importSpecs = async (options: AdvancedOptions) => {
       data,
       format,
       transformer,
-      validation: options.validation,
-      customImport: options.customImport,
-      customProps: options.customProps,
-      customGenerator: options.customGenerator,
-      pathParametersEncodingMode: options.pathParametersEncodingMode,
+      ...importOptions,
     });
   } else if (options.url) {
     const { url } = options;
@@ -116,11 +125,7 @@ const importSpecs = async (options: AdvancedOptions) => {
             data: body,
             format,
             transformer,
-            validation: options.validation,
-            customImport: options.customImport,
-            customProps: options.customProps,
-            customGenerator: options.customGenerator,
-            pathParametersEncodingMode: options.pathParametersEncodingMode,
+            ...importOptions,
           }),
         );
       });
@@ -204,11 +209,7 @@ const importSpecs = async (options: AdvancedOptions) => {
             data: body.data.repository.object.text,
             format,
             transformer,
-            validation: options.validation,
-            customImport: options.customImport,
-            customProps: options.customProps,
-            customGenerator: options.customGenerator,
-            pathParametersEncodingMode: options.pathParametersEncodingMode,
+            ...importOptions,
           }),
         );
       });
