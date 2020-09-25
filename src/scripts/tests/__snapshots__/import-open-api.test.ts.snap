@@ -6,8 +6,6 @@ exports[`scripts/import-open-api should parse correctly petstore-expanded.yaml 1
 import React from \\"react\\";
 import { Get, GetProps, useGet, UseGetProps, Mutate, MutateProps, useMutate, UseMutateProps } from \\"restful-react\\";
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
 const encodingFn = encodeURIComponent
 
 const encodingTagFactory = (encodingFn: typeof encodeURIComponent) => (
