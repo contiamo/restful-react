@@ -506,6 +506,27 @@ describe("useGet hook", () => {
     });
   });
 
+  describe("with skip", () => {
+    it("should not fetch", async () => {
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = () => {
+        const { data, error, loading } = useGet<{ oh: string }>({ path: "/", skip: true });
+        return children({ data, error, loading });
+      };
+
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(1));
+      expect(children).toHaveBeenCalledWith({ data: null, error: null, loading: true });
+    });
+  });
+
   describe("with base", () => {
     it("should override the base url", async () => {
       nock("https://my-awesome-api.fake")

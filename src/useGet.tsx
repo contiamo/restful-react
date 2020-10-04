@@ -52,6 +52,10 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
    */
   lazy?: boolean;
   /**
+   * Should we skip if this is true?
+   */
+  skip?: boolean;
+  /**
    * An escape hatch and an alternative to `path` when you'd like
    * to fetch from an entirely different URL.
    *
@@ -87,6 +91,11 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
     requestOptions,
     pathParams = {},
   } = props;
+
+  if (props.skip) {
+    abort();
+    return;
+  }
 
   if (state.loading) {
     // Abort previous requests
@@ -228,7 +237,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   const [state, setState] = useState<GetState<TData, TError>>({
     data: null,
     response: null,
-    loading: !props.lazy,
+    loading: !props.lazy || !!props.skip,
     error: null,
   });
 
@@ -246,6 +255,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     };
   }, [
     props.lazy,
+    props.skip,
     props.mock,
     props.path,
     props.base,
