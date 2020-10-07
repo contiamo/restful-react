@@ -696,12 +696,14 @@ interface RestfulReactConfig {
     github?: string;
     transformer?: string;
     validation?: boolean;
+    skipReact?: boolean;
 
     // advanced configuration
     customImport?: string;
     customProps?: {
       base?: string;
     };
+    pathParametersEncodingMode?: "uriComponent" | "rfc3986";
     customGenerator?: (data: {
       componentName: string;
       verb: string;
@@ -720,6 +722,11 @@ interface RestfulReactConfig {
 
 ```js
 // restful-react.config.js
+/**
+ * Restful-react configuration.
+ *
+ * @type {import("restful-react/dist/bin/config").RestfulReactAdvancedConfiguration}
+ */
 module.exports = {
   myFirstBackend: {
     output: "src/queries/myFirstBackend.tsx",
