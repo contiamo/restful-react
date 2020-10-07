@@ -399,6 +399,48 @@ describe("useGet hook", () => {
       expect(children.mock.calls[4][0].error).toEqual(null);
     });
 
+    it("should clear up the old data on error", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 1 })
+        .reply(200, { id: 1 });
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .query({ page: 2 })
+        .reply(404, { oh: "no" });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
+        const [page, setPage] = useState(1);
+        const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams: { page } });
+
+        return (
+          <>
+            <button data-testid="set-page-button" onClick={() => setPage(2)} />
+            {children(params)}
+          </>
+        );
+      };
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent path="" />
+        </RestfulProvider>,
+      );
+
+      await wait(() => expect(children).toBeCalledTimes(2));
+
+      fireEvent.click(getByTestId("set-page-button"));
+
+      await wait(() => expect(children).toBeCalledTimes(5));
+      expect(children.mock.calls[1][0].error).toEqual(null);
+      expect(children.mock.calls[4][0].loading).toEqual(false);
+      expect(children.mock.calls[4][0].data).toEqual(null);
+      expect(children.mock.calls[4][0].error).not.toEqual(null);
+    });
+
     it("should not call the provider onError if localErrorOnly is true", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")

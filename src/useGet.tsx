@@ -137,7 +137,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
         status: response.status,
       };
 
-      setState({ ...state, loading: false, error });
+      setState({ ...state, loading: false, data: null, error });
 
       if (!props.localErrorOnly && context.onError) {
         context.onError(error, () => _fetchData(props, state, setState, context, abort, getAbortSignal), response);
@@ -160,6 +160,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
 
     setState({
       ...state,
+      data: null,
       loading: false,
       error,
     });

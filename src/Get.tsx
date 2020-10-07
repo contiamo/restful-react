@@ -285,6 +285,7 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
         this.setState({
           loading: false,
           error,
+          data: null,
         });
 
         if (!this.props.localErrorOnly && onError) {
@@ -307,6 +308,7 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
 
       this.setState({
         loading: false,
+        data: null,
         error: {
           message: `Failed to fetch: ${e.message}`,
           data: e,
