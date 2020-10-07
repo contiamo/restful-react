@@ -58,7 +58,7 @@ jobs:
           node-version: 12.16.1 # workaround https://github.com/babel/babel/issues/11216
           registry-url: https://registry.npmjs.org/
       - run: yarn
-      - run: yarn auto-changelog --starting-version ${{ steps.package-version.outputs.current-version}} --template github-release.hbs -o releasenotes.md
+      - run: yarn auto-changelog --starting-version v${{ steps.package-version.outputs.current-version}} --template github-release.hbs -o releasenotes.md
       - name: Create Release
         uses: actions/create-release@v1
         env:
