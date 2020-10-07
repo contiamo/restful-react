@@ -31,6 +31,12 @@ describe("scripts/import-open-api", () => {
     expect(data).toMatchSnapshot();
   });
 
+  it("should parse correctly petstore-expanded.yaml (without react component)", async () => {
+    const input = readFileSync(join(__dirname, "./petstore-expanded.yaml"), "utf-8");
+    const data = await importOpenApi({ data: input, format: "yaml", skipReact: true });
+    expect(data).toMatchSnapshot();
+  });
+
   describe("isReference", () => {
     it("should return true if the property is a ref", () => {
       const property = {
