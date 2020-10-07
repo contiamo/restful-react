@@ -9,10 +9,13 @@ on:
 
 jobs:
   npm-publish:
+    name: Publish on npm
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build & publish to npm
+        uses: actions/setup-node@v1
         with:
           node-version: 12.16.1 # workaround https://github.com/babel/babel/issues/11216
           registry-url: https://registry.npmjs.org/
@@ -20,12 +23,15 @@ jobs:
       - run: yarn build
       - run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
   npm-publish-without-cli:
+    name: Publish on npm (without-cli version)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build & publish a without-cli version to npm
+        uses: actions/setup-node@v1
         with:
           node-version: 12.16.1 # workaround https://github.com/babel/babel/issues/11216
           registry-url: https://registry.npmjs.org/
@@ -34,4 +40,32 @@ jobs:
       - run: node publish-without-cli.js
       - run: npm publish --tag without-cli
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+  github-release:
+    name: Create a github release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetch all history for all tags and branches
+      - name: Retrieve current version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@master
+      - name: Generate release changelog
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.16.1 # workaround https://github.com/babel/babel/issues/11216
+          registry-url: https://registry.npmjs.org/
+      - run: yarn
+      - run: yarn auto-changelog --starting-version ${{ steps.package-version.outputs.current-version}} --template github-release.hbs -o releasenotes.md
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.package-version.outputs.current-version}}
+          release_name: v${{ steps.package-version.outputs.current-version}}
+          body_path: releasenotes.md
+          draft: false
+          prerelease: false
