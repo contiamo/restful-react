@@ -4,6 +4,9 @@
 
 const { camel } = require("case");
 
+/**
+ * @type {import("../src/bin/config").RestfulReactAdvancedConfiguration}
+ */
 module.exports = {
   "petstore-file": {
     file: "examples/petstore.yaml",
