@@ -1,0 +1,18 @@
+{{#each releases}}
+  {{title}}
+
+  {{#if tag}}
+    > {{niceDate}}
+  {{/if}}
+
+  {{#each merges}}
+    - {{#if commit.breaking}}**Breaking change:** {{/if}}{{message}}{{#if href}} [`#{{id}}`]({{href}}){{/if}}
+  {{/each}}
+  {{#each fixes}}
+    - {{#if commit.breaking}}**Breaking change:** {{/if}}{{commit.subject}}{{#each fixes}}{{#if href}} [`#{{id}}`]({{href}}){{/if}}{{/each}}
+  {{/each}}
+  {{#each commits}}
+    - {{#if breaking}}**Breaking change:** {{/if}}{{subject}}{{#if href}} [`{{shorthash}}`]({{href}}){{/if}}
+  {{/each}}
+
+{{/each}}
