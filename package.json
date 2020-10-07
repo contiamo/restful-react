@@ -88,7 +88,7 @@
     "@types/react-dom": "^16.8.5",
     "@types/request": "^2.48.4",
     "@types/yamljs": "^0.2.30",
-    "auto-changelog": "^1.16.2",
+    "auto-changelog": "^2.2.1",
     "doctoc": "^1.4.0",
     "husky": "^4.0.7",
     "isomorphic-fetch": "^2.2.1",
