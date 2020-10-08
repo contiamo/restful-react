@@ -267,6 +267,7 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
     if (onRequest) onRequest(request);
     try {
       const response = await fetch(request, { signal: this.signal });
+      const originalResponse = response.clone();
       if (onResponse) onResponse(response.clone());
       const { data, responseError } = await processResponse(response);
 
@@ -286,6 +287,7 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
           loading: false,
           error,
           data: null,
+          response: originalResponse,
         });
 
         if (!this.props.localErrorOnly && onError) {
@@ -297,7 +299,7 @@ class ContextlessGet<TData, TError, TQueryParams, TPathParams = unknown> extends
 
       const resolved = await resolveData<TData, TError>({ data, resolve });
 
-      this.setState({ loading: false, data: resolved.data, error: resolved.error });
+      this.setState({ loading: false, data: resolved.data, error: resolved.error, response: originalResponse });
       return data;
     } catch (e) {
       // avoid state updates when component has been unmounted

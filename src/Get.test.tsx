@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/extend-expect";
-import { cleanup, render, wait } from "@testing-library/react";
+import { cleanup, render, wait, waitForElement } from "@testing-library/react";
 import "isomorphic-fetch";
 import times from "lodash/times";
 import nock from "nock";
@@ -176,6 +176,33 @@ describe("Get", () => {
       await wait(() => expect(children.mock.calls.length).toBe(2));
       expect(onResponse).toBeCalled();
       expect(body).toMatchObject({ hello: "world" });
+    });
+
+    it("should return the original response, including headers", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" }, { "X-custom-header": "custom value" });
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <Get path="/">
+            {(_data, { loading }, _refetch, { response }) => {
+              return loading ? (
+                <div data-testid="loading">Loading…</div>
+              ) : (
+                <>
+                  <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
+                  <div data-testid="custom-header">{response?.headers.get("X-custom-header") || ""}</div>
+                </>
+              );
+            }}
+          </Get>
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("response"));
+      expect(getByTestId("response")).not.toBeEmpty();
+      expect(getByTestId("custom-header")).toHaveTextContent("custom value");
     });
   });
 
