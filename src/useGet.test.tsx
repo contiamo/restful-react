@@ -645,6 +645,63 @@ describe("useGet hook", () => {
     });
   });
 
+  describe("originalResponse", () => {
+    it("should return original response when flag is enabled", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { loading, response } = useGet({
+          path: "/",
+          originalResponse: true,
+        });
+
+        return loading ? (
+          <div data-testid="loading">Loading…</div>
+        ) : (
+          <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
+        );
+      };
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("response"));
+      expect(getByTestId("response")).not.toBeEmpty();
+    });
+
+    it("should not return original response when flag is disabled", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { loading, response } = useGet({
+          path: "/",
+        });
+
+        return loading ? (
+          <div data-testid="loading">Loading…</div>
+        ) : (
+          <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
+        );
+      };
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("response"));
+      expect(getByTestId("response")).toBeEmpty();
+    });
+  });
+
   describe("actions", () => {
     it("should refetch", async () => {
       nock("https://my-awesome-api.fake")
