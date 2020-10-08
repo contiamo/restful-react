@@ -68,6 +68,10 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
       }
     | boolean
     | number;
+  /**
+   * Should the original response object be returned?
+   */
+  originalResponse?: boolean;
 }
 
 async function _fetchData<TData, TError, TQueryParams, TPathParams>(
@@ -123,7 +127,8 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
 
   try {
     const response = await fetch(request);
-    if (context.onResponse) context.onResponse(response.clone());
+    const originalResponse = response.clone();
+    if (context.onResponse) context.onResponse(originalResponse);
     const { data, responseError } = await processResponse(response);
 
     if (signal && signal.aborted) {
@@ -137,7 +142,13 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
         status: response.status,
       };
 
-      setState({ ...state, loading: false, data: null, error });
+      setState({
+        ...state,
+        loading: false,
+        data: null,
+        error,
+        response: props.originalResponse ? originalResponse : null,
+      });
 
       if (!props.localErrorOnly && context.onError) {
         context.onError(error, () => _fetchData(props, state, setState, context, abort, getAbortSignal), response);
@@ -145,7 +156,13 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
       return;
     }
 
-    setState({ ...state, error: null, loading: false, data: resolve(data) });
+    setState({
+      ...state,
+      error: null,
+      loading: false,
+      data: resolve(data),
+      response: props.originalResponse ? originalResponse : null,
+    });
   } catch (e) {
     // avoid state updates when component has been unmounted
     // and when fetch/processResponse threw an error
