@@ -649,7 +649,7 @@ describe("useGet hook", () => {
     it("should return original response when flag is enabled", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
-        .reply(200, { oh: "my god 😍" });
+        .reply(200, { oh: "my god 😍" }, { "X-custom-header": "custom value" });
 
       const MyAwesomeComponent = () => {
         const { loading, response } = useGet({
@@ -660,7 +660,10 @@ describe("useGet hook", () => {
         return loading ? (
           <div data-testid="loading">Loading…</div>
         ) : (
-          <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
+          <>
+            <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
+            <div data-testid="header">{response?.headers.get("X-custom-header") || ""}</div>
+          </>
         );
       };
 
@@ -672,6 +675,7 @@ describe("useGet hook", () => {
 
       await waitForElement(() => getByTestId("response"));
       expect(getByTestId("response")).not.toBeEmpty();
+      expect(getByTestId("header")).toHaveTextContent("custom value");
     });
 
     it("should not return original response when flag is disabled", async () => {
