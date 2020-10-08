@@ -164,6 +164,37 @@ describe("useGet hook", () => {
       expect(onResponse).toBeCalled();
       expect(body).toMatchObject({ oh: "my god 😍" });
     });
+
+    it("should return the original response, including headers", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" }, { "X-custom-header": "custom value" });
+
+      const MyAwesomeComponent = () => {
+        const { loading, response } = useGet({
+          path: "/",
+        });
+
+        return loading ? (
+          <div data-testid="loading">Loading…</div>
+        ) : (
+          <>
+            <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
+            <div data-testid="custom-header">{response?.headers.get("X-custom-header") || ""}</div>
+          </>
+        );
+      };
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("response"));
+      expect(getByTestId("response")).not.toBeEmpty();
+      expect(getByTestId("custom-header")).toHaveTextContent("custom value");
+    });
   });
 
   describe("url composition", () =>
@@ -642,67 +673,6 @@ describe("useGet hook", () => {
       await waitForElement(() => getByTestId("data"));
 
       expect(getByTestId("data")).toHaveTextContent("my god 😍");
-    });
-  });
-
-  describe("originalResponse", () => {
-    it("should return original response when flag is enabled", async () => {
-      nock("https://my-awesome-api.fake")
-        .get("/")
-        .reply(200, { oh: "my god 😍" }, { "X-custom-header": "custom value" });
-
-      const MyAwesomeComponent = () => {
-        const { loading, response } = useGet({
-          path: "/",
-          originalResponse: true,
-        });
-
-        return loading ? (
-          <div data-testid="loading">Loading…</div>
-        ) : (
-          <>
-            <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
-            <div data-testid="header">{response?.headers.get("X-custom-header") || ""}</div>
-          </>
-        );
-      };
-
-      const { getByTestId } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent />
-        </RestfulProvider>,
-      );
-
-      await waitForElement(() => getByTestId("response"));
-      expect(getByTestId("response")).not.toBeEmpty();
-      expect(getByTestId("header")).toHaveTextContent("custom value");
-    });
-
-    it("should not return original response when flag is disabled", async () => {
-      nock("https://my-awesome-api.fake")
-        .get("/")
-        .reply(200, { oh: "my god 😍" });
-
-      const MyAwesomeComponent = () => {
-        const { loading, response } = useGet({
-          path: "/",
-        });
-
-        return loading ? (
-          <div data-testid="loading">Loading…</div>
-        ) : (
-          <div data-testid="response">{response ? JSON.stringify(response) : null}</div>
-        );
-      };
-
-      const { getByTestId } = render(
-        <RestfulProvider base="https://my-awesome-api.fake">
-          <MyAwesomeComponent />
-        </RestfulProvider>,
-      );
-
-      await waitForElement(() => getByTestId("response"));
-      expect(getByTestId("response")).toBeEmpty();
     });
   });
 
