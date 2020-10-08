@@ -68,10 +68,6 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
       }
     | boolean
     | number;
-  /**
-   * Should the original response object be returned?
-   */
-  originalResponse?: boolean;
 }
 
 async function _fetchData<TData, TError, TQueryParams, TPathParams>(
@@ -147,7 +143,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
         loading: false,
         data: null,
         error,
-        response: props.originalResponse ? originalResponse : null,
+        response: originalResponse,
       });
 
       if (!props.localErrorOnly && context.onError) {
@@ -161,7 +157,7 @@ async function _fetchData<TData, TError, TQueryParams, TPathParams>(
       error: null,
       loading: false,
       data: resolve(data),
-      response: props.originalResponse ? originalResponse : null,
+      response: originalResponse,
     });
   } catch (e) {
     // avoid state updates when component has been unmounted
