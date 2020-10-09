@@ -13,34 +13,40 @@ restful-react is **very well tested, production ready** and powers all of our pr
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [`restful-react`](#restful-react)
-  - [Overview](#overview)
-  - [Getting Started](#getting-started)
-  - [Features](#features)
-    - [Global Configuration](#global-configuration)
-      - [`RestfulProvider` API](#restfulprovider-api)
-    - [Loading and Error States](#loading-and-error-states)
-    - [Lazy Fetching](#lazy-fetching)
-    - [Response Resolution](#response-resolution)
-    - [Debouncing Requests](#debouncing-requests)
-    - [TypeScript Integration](#typescript-integration)
-    - [Query Parameters](#query-parameters)
-    - [Mutations with `useMutate`](#mutations-with-usemutate)
-    - [Polling with `Poll`](#polling-with-poll)
-      - [Long Polling](#long-polling)
-      - [Full `Poll` Component API](#full-poll-component-api)
-    - [Code Generation](#code-generation)
-      - [Usage](#usage)
-      - [Validation of the OpenAPI specification](#validation-of-the-openapi-specification)
-      - [Import from URL](#import-from-url)
-      - [Import from GitHub](#import-from-github)
-      - [Transforming an Original Spec](#transforming-an-original-spec)
-      - [Advanced configuration](#advanced-configuration)
-        - [Config File Format](#config-file-format)
-        - [Config File Example](#config-file-example)
-  - [Contributing](#contributing)
-    - [Code](#code)
-  - [Next Steps](#next-steps)
+
+- [Overview](#overview)
+- [Getting Started](#getting-started)
+- [Features](#features)
+  - [Global Configuration](#global-configuration)
+    - [`RestfulProvider` API](#restfulprovider-api)
+  - [Loading and Error States](#loading-and-error-states)
+  - [Lazy Fetching](#lazy-fetching)
+  - [Response Resolution](#response-resolution)
+  - [Debouncing Requests](#debouncing-requests)
+  - [TypeScript Integration](#typescript-integration)
+  - [Query Parameters](#query-parameters)
+  - [Mutations with `useMutate`](#mutations-with-usemutate)
+  - [Mocks](#mocks)
+  - [Polling with `Poll`](#polling-with-poll)
+    - [Long Polling](#long-polling)
+    - [Full `Poll` Component API](#full-poll-component-api)
+    - [Polling and Code Generation](#polling-and-code-generation)
+  - [Code Generation from OpenAPI / Swagger specs](#code-generation-from-openapi--swagger-specs)
+    - [Usage](#usage)
+    - [Validation of the OpenAPI specification](#validation-of-the-openapi-specification)
+    - [Import from URL](#import-from-url)
+    - [Import from GitHub](#import-from-github)
+    - [Transforming an Original Spec](#transforming-an-original-spec)
+    - [Advanced configuration](#advanced-configuration)
+      - [Config File Format](#config-file-format)
+      - [Config File Example](#config-file-example)
+      - [Custom generator](#custom-generator)
+      - [Only generating custom code (no react hooks/components)](#only-generating-custom-code-no-react-hookscomponents)
+- [Contributing](#contributing)
+  - [Code](#code)
+  - [How to publish to npm](#how-to-publish-to-npm)
+- [`@without-cli` npm package](#without-cli-npm-package)
+- [Next Steps](#next-steps)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -563,7 +569,29 @@ To get this functionality in `restful-react`, this means specifying a `wait` pro
 
 #### [Full `Poll` Component API](src/Poll.tsx#L53-L101)
 
-### Code Generation
+#### Polling and Code Generation
+
+By default we generate a `Poll` component when the `prefer` header is specified in the OpenAPI/Swagger specs (more information about this design decision here -> https://github.com/contiamo/restful-react#long-polling).
+
+We do not generate an equivalent hook version. Polling is quite trivial in a react hook, so we usually just use `useEffect` when we need some polling feature.
+
+Example:
+
+```ts
+// Poll data if no completedAt
+useEffect(() => {
+  if (error) {
+    return onError();
+  } else if (data && !data.completedAt) {
+    const timerId = window.setTimeout(() => refetch(), 1000);
+    return () => window.clearTimeout(timerId);
+  } else {
+    return;
+  }
+}, [data, refetch, error]);
+```
+
+### Code Generation from OpenAPI / Swagger specs
 
 `restful-react` is able to generate React hooks with appropriate type-signatures (TypeScript) from any valid OpenAPI v3 or Swagger v2 specification, either in `yaml` or `json` formats.
 
@@ -766,6 +794,12 @@ You can see a concrete usage inside the `examples` folder and try yourself in th
 - `yarn example:advanced petstore-custom-fetch`
 
 You can inspect the result inside `/examples/petstoreFromFileSpecWithCustomFetch.tsx`
+
+##### Only generating custom code (no react hooks/components)
+
+In some cases you might want to use the familiar restful-react to generate code for non-react environments (e.g. promise-based fetchers for nodejs or other frameworks). In this case, you can disable react code generation altogether by passing the `--skipReact` flag or, if you are using a configuration file, setting `skipReact: true`.
+
+When set, only your custom generators will be executed.
 
 ## Contributing
 
