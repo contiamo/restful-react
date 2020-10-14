@@ -466,6 +466,8 @@ export interface ${componentName}RequestBody ${requestBodyTypes}
 `;
 
   if (!skipReact) {
+    const encode = pathParametersEncodingMode ? "encode" : "";
+
     // Component version
     output += `export type ${componentName}Props = Omit<${Component}Props<${genericsTypes}>, "path"${
       verb === "get" ? "" : ` | "verb"`
@@ -480,7 +482,7 @@ ${description}export const ${componentName} = (${
         : `
     verb="${verb.toUpperCase()}"`
     }
-    path=${pathParametersEncodingMode ? `{encode\`${route}\`}` : `"${route}"`}${
+    path=${`{${encode}\`${route}\`}`}${
       customPropsEntries.length
         ? "\n    " + customPropsEntries.map(([key, value]) => `${key}=${value}`).join("\n    ")
         : ""
@@ -492,8 +494,26 @@ ${description}export const ${componentName} = (${
 
 `;
 
+    // Poll component
+    if (headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
+      output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
+        paramsInPath.length ? ` & {${paramsTypes}}` : ""
+      };
+
+${operation.summary ? `// ${operation.summary} (long polling)` : ""}
+export const Poll${componentName} = (${
+        paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
+      }: Poll${componentName}Props) => (
+<Poll<${genericsTypes}>
+  path={${encode}\`${route}\`}
+  {...props}
+/>
+);
+
+`;
+    }
+
     // Hooks version
-    const encode = pathParametersEncodingMode ? "encode" : "";
     output += `export type Use${componentName}Props = Omit<Use${Component}Props<${genericsTypesForHooksProps}>, "path"${
       verb === "get" ? "" : ` | "verb"`
     }>${paramsInPath.length ? ` & ${componentName}PathParams` : ""};
@@ -535,24 +555,6 @@ ${description}export const use${componentName} = (${
       paramsTypes,
       operation,
     });
-  }
-
-  if (!skipReact && headerParams.map(({ name }) => name.toLocaleLowerCase()).includes("prefer")) {
-    output += `export type Poll${componentName}Props = Omit<PollProps<${genericsTypes}>, "path">${
-      paramsInPath.length ? ` & {${paramsTypes}}` : ""
-    };
-
-${operation.summary ? `// ${operation.summary} (long polling)` : ""}
-export const Poll${componentName} = (${
-      paramsInPath.length ? `{${paramsInPath.join(", ")}, ...props}` : "props"
-    }: Poll${componentName}Props) => (
-  <Poll<${genericsTypes}>
-    path={encode\`${route}\`}
-    {...props}
-  />
-);
-
-`;
   }
 
   return output;
