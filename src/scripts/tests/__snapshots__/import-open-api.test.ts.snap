@@ -390,7 +390,7 @@ export type FindPetsProps = Omit<GetProps<Pet[], Error, FindPetsQueryParams, voi
  */
 export const FindPets = (props: FindPetsProps) => (
   <Get<Pet[], Error, FindPetsQueryParams, void>
-    path=\\"/pets\\"
+    path={\`/pets\`}
     
     {...props}
   />
@@ -416,7 +416,7 @@ export type AddPetProps = Omit<MutateProps<Pet, Error, void, NewPet, void>, \\"p
 export const AddPet = (props: AddPetProps) => (
   <Mutate<Pet, Error, void, NewPet, void>
     verb=\\"POST\\"
-    path=\\"/pets\\"
+    path={\`/pets\`}
     
     {...props}
   />
@@ -444,7 +444,7 @@ export type FindPetByIdProps = Omit<GetProps<Pet, Error, void, FindPetByIdPathPa
  */
 export const FindPetById = ({id, ...props}: FindPetByIdProps) => (
   <Get<Pet, Error, void, FindPetByIdPathParams>
-    path=\\"/pets/\${id}\\"
+    path={\`/pets/\${id}\`}
     
     {...props}
   />
@@ -466,7 +466,7 @@ export type DeletePetProps = Omit<MutateProps<void, Error, void, number, void>, 
 export const DeletePet = (props: DeletePetProps) => (
   <Mutate<void, Error, void, number, void>
     verb=\\"DELETE\\"
-    path=\\"/pets\\"
+    path={\`/pets\`}
     
     {...props}
   />
@@ -495,7 +495,7 @@ export type UpdatePetProps = Omit<MutateProps<Pet, Error, void, UpdatePetRequest
 export const UpdatePet = ({id, ...props}: UpdatePetProps) => (
   <Mutate<Pet, Error, void, UpdatePetRequestRequestBody, UpdatePetPathParams>
     verb=\\"PATCH\\"
-    path=\\"/pets/\${id}\\"
+    path={\`/pets/\${id}\`}
     
     {...props}
   />

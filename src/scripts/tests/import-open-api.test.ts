@@ -925,7 +925,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, void, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
@@ -967,7 +967,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, unknown, void, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
@@ -1008,7 +1008,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, unknown, void, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
@@ -1060,7 +1060,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, void, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
@@ -1138,7 +1138,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, ListFieldsQueryParams, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
@@ -1222,7 +1222,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, ListFieldsQueryParams, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
@@ -1297,7 +1297,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = ({id, ...props}: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, void, ListFieldsPathParams>
-            path=\\"/fields/\${id}\\"
+            path={\`/fields/\${id}\`}
             
             {...props}
           />
@@ -1379,7 +1379,7 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = ({id, ...props}: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, void, ListFieldsPathParams>
-            path=\\"/fields/\${id}\\"
+            path={\`/fields/\${id}\`}
             
             {...props}
           />
@@ -1455,7 +1455,7 @@ describe("scripts/import-open-api", () => {
         export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
           <Mutate<UseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>
             verb=\\"PUT\\"
-            path=\\"/use-cases/\${useCaseId}\\"
+            path={\`/use-cases/\${useCaseId}\`}
             
             {...props}
           />
@@ -1548,7 +1548,7 @@ describe("scripts/import-open-api", () => {
         export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
           <Mutate<UseCaseResponse, APIError, void, UpdateUseCaseRequestBody, UpdateUseCasePathParams>
             verb=\\"PUT\\"
-            path=\\"/use-cases/\${useCaseId}\\"
+            path={\`/use-cases/\${useCaseId}\`}
             
             {...props}
           />
@@ -1644,7 +1644,7 @@ describe("scripts/import-open-api", () => {
         export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
           <Mutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>
             verb=\\"PUT\\"
-            path=\\"/use-cases/\${useCaseId}\\"
+            path={\`/use-cases/\${useCaseId}\`}
             
             {...props}
           />
@@ -1743,7 +1743,7 @@ describe("scripts/import-open-api", () => {
         export const UpdateUseCase = ({useCaseId, ...props}: UpdateUseCaseProps) => (
           <Mutate<UpdateUseCaseResponse, APIError, void, UseCaseInstance, UpdateUseCasePathParams>
             verb=\\"PUT\\"
-            path=\\"/use-cases/\${useCaseId}\\"
+            path={\`/use-cases/\${useCaseId}\`}
             
             {...props}
           />
@@ -1807,7 +1807,7 @@ describe("scripts/import-open-api", () => {
         export const DeleteUseCase = (props: DeleteUseCaseProps) => (
           <Mutate<void, APIError, void, string, void>
             verb=\\"DELETE\\"
-            path=\\"/use-cases\\"
+            path={\`/use-cases\`}
             
             {...props}
           />
@@ -1877,7 +1877,7 @@ describe("scripts/import-open-api", () => {
         export const DeleteUseCase = ({useCaseId, ...props}: DeleteUseCaseProps) => (
           <Mutate<void, APIError, void, void, DeleteUseCasePathParams>
             verb=\\"DELETE\\"
-            path=\\"/use-cases/\${useCaseId}/secret\\"
+            path={\`/use-cases/\${useCaseId}/secret\`}
             
             {...props}
           />
@@ -1941,7 +1941,7 @@ describe("scripts/import-open-api", () => {
         export const DeleteUseCase = (props: DeleteUseCaseProps) => (
           <Mutate<void, APIError, void, number, void>
             verb=\\"DELETE\\"
-            path=\\"/use-cases\\"
+            path={\`/use-cases\`}
             
             {...props}
           />
@@ -2000,7 +2000,7 @@ describe("scripts/import-open-api", () => {
         export const DeleteUseCase = (props: DeleteUseCaseProps) => (
           <Mutate<void, APIError, void, UseCaseId, void>
             verb=\\"DELETE\\"
-            path=\\"/use-cases\\"
+            path={\`/use-cases\`}
             
             {...props}
           />
@@ -2068,7 +2068,7 @@ describe("scripts/import-open-api", () => {
         export const DeleteUseCase = (props: DeleteUseCaseProps) => (
           <Mutate<void, APIError, void, string, void>
             verb=\\"DELETE\\"
-            path=\\"/use-cases\\"
+            path={\`/use-cases\`}
             
             {...props}
           />
@@ -2125,10 +2125,20 @@ describe("scripts/import-open-api", () => {
          */
         export const ListFields = (props: ListFieldsProps) => (
           <Get<FieldListResponse, APIError, void, void>
-            path=\\"/fields\\"
+            path={\`/fields\`}
             
             {...props}
           />
+        );
+
+        export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void, void>, \\"path\\">;
+
+        // List all fields for the use case schema (long polling)
+        export const PollListFields = (props: PollListFieldsProps) => (
+        <Poll<FieldListResponse, APIError, void, void>
+          path={\`/fields\`}
+          {...props}
+        />
         );
 
         export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
@@ -2137,16 +2147,6 @@ describe("scripts/import-open-api", () => {
          * List all fields for the use case schema
          */
         export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, props);
-
-        export type PollListFieldsProps = Omit<PollProps<FieldListResponse, APIError, void, void>, \\"path\\">;
-
-        // List all fields for the use case schema (long polling)
-        export const PollListFields = (props: PollListFieldsProps) => (
-          <Poll<FieldListResponse, APIError, void, void>
-            path={encode\`/fields\`}
-            {...props}
-          />
-        );
 
         "
       `);
@@ -2181,7 +2181,7 @@ describe("scripts/import-open-api", () => {
        */
       export const ListFields = (props: ListFieldsProps) => (
         <Get<void, APIError, void, void>
-          path=\\"/fields\\"
+          path={\`/fields\`}
           
           {...props}
         />
