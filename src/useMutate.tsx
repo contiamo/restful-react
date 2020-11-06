@@ -122,7 +122,7 @@ export function useMutate<
         options.body = body;
       } else if (typeof body === "object") {
         options.body = JSON.stringify(body);
-      } else if (isDelete) {
+      } else if (isDelete && body !== undefined) {
         const possiblyEncodedBody = props.pathInlineBodyEncode
           ? props.pathInlineBodyEncode(String(body))
           : String(body);
