@@ -110,7 +110,7 @@ export const getArray = (item: SchemaObject): string => {
       return `${resolveValue(item.items)}[]`;
     }
   } else {
-    throw new Error("All arrays must have an `items` key define");
+    throw new Error("All arrays must have an `items` key defined");
   }
 };
 
@@ -879,9 +879,9 @@ import { ${imports.join(", ")} } from "restful-react";
               }\`,
           '',
       );
-    
+
     const encode = encodingTagFactory(encodingFn);
-    
+
     `;
   }
 
