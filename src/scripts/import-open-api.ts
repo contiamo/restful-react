@@ -459,7 +459,11 @@ export interface ${componentName}PathParams {
   }${
     needARequestBodyComponent
       ? `
-export interface ${componentName}RequestBody ${requestBodyTypes}
+export ${
+          requestBodyTypes.includes("&")
+            ? `type ${componentName}RequestBody =`
+            : `interface ${componentName}RequestBody`
+        } ${requestBodyTypes}
 `
       : ""
   }
