@@ -23,9 +23,9 @@ import { Get, GetProps, useGet, UseGetProps, Mutate, MutateProps, useMutate, Use
               }\`,
           '',
       );
-    
+
     const encode = encodingTagFactory(encodingFn);
-    
+
     /**
  * A pet.
  */
