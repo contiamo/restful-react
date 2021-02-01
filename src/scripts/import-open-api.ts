@@ -606,6 +606,13 @@ export const resolveDiscriminator = (specs: OpenAPIObject) => {
 };
 
 /**
+ * Add the version of the spec
+ *
+ * @param version
+ */
+export const addVersionMetadata = (version: string) => `export const SPEC_VERSION = "${version}"; \n`;
+
+/**
  * Extract all types from #/components/schemas
  *
  * @param schemas
@@ -816,6 +823,7 @@ const importOpenApi = async ({
 
   let output = "";
 
+  output += addVersionMetadata(specs.info.version);
   output += generateSchemasDefinition(specs.components && specs.components.schemas);
   output += generateRequestBodiesDefinition(specs.components && specs.components.requestBodies);
   output += generateResponsesDefinition(specs.components && specs.components.responses);
