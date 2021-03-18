@@ -70,6 +70,7 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
     | number;
 }
 
+// TODO: refactor types
 async function _fetchData<TData, TError, TQueryParams, TPathParams>(
   props: UseGetProps<TData, TError, TQueryParams, TPathParams>,
   state: GetState<TData, TError>,
@@ -273,6 +274,119 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
     context.requestOptions,
     abort,
   ]);
+
+  const _fetchData = useCallback(
+    async (
+      props: UseGetProps<TData, TError, TQueryParams, TPathParams>,
+      context: RestfulReactProviderProps,
+      abort: () => void,
+      getAbortSignal: () => AbortSignal | undefined,
+    ) => {
+      const {
+        base = context.base,
+        path,
+        resolve = (d: any) => d as TData,
+        queryParams = {},
+        queryParamStringifyOptions = {},
+        requestOptions,
+        pathParams = {},
+      } = props;
+
+      setState(prev => {
+        if (prev.loading) {
+          abort();
+        }
+        return { ...prev, error: null, loading: true };
+      });
+
+      const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
+
+      const url = constructUrl(
+        base,
+        pathStr,
+        { ...context.queryParams, ...queryParams },
+        {
+          queryParamOptions: { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
+        },
+      );
+
+      const propsRequestOptions =
+        (typeof requestOptions === "function" ? await requestOptions(url, "GET") : requestOptions) || {};
+
+      const contextRequestOptions =
+        (typeof context.requestOptions === "function"
+          ? await context.requestOptions(url, "GET")
+          : context.requestOptions) || {};
+
+      const signal = getAbortSignal();
+
+      const request = new Request(url, merge({}, contextRequestOptions, propsRequestOptions, { signal }));
+      if (context.onRequest) context.onRequest(request);
+
+      try {
+        const response = await fetch(request);
+        const originalResponse = response.clone();
+        if (context.onResponse) context.onResponse(originalResponse);
+        const { data, responseError } = await processResponse(response);
+
+        if (signal && signal.aborted) {
+          return;
+        }
+
+        if (!response.ok || responseError) {
+          const error = {
+            message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+            data,
+            status: response.status,
+          };
+
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            data: null,
+            error,
+            response: originalResponse,
+          }));
+
+          if (!props.localErrorOnly && context.onError) {
+            context.onError(error, () => _fetchData(props, context, abort, getAbortSignal), response);
+          }
+          return;
+        }
+
+        setState(prev => ({
+          ...prev,
+          error: null,
+          loading: false,
+          data: resolve(data),
+          response: originalResponse,
+        }));
+      } catch (e) {
+        // avoid state updates when component has been unmounted
+        // and when fetch/processResponse threw an error
+        if (signal && signal.aborted) {
+          return;
+        }
+
+        const error = {
+          message: `Failed to fetch: ${e.message}`,
+          data: e.message,
+        };
+
+        setState(prev => ({
+          ...prev,
+          data: null,
+          loading: false,
+          error,
+        }));
+
+        if (!props.localErrorOnly && context.onError) {
+          context.onError(error, () => _fetchData(props, context, abort, getAbortSignal));
+        }
+      }
+    },
+    [],
+  );
 
   return {
     ...state,
