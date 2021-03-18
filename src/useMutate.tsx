@@ -80,7 +80,7 @@ export function useMutate<
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
   const context = useContext(Context);
-  const { verb, base = context.base, path, queryParams = {}, resolve, pathParams = {} } = props;
+  const { verb, base = context.base, path, queryParams = EMPTY_OBJECT, resolve, pathParams = EMPTY_OBJECT } = props;
   const isDelete = verb === "DELETE";
 
   const [state, setState] = useState<MutateState<TData, TError>>({
@@ -93,16 +93,15 @@ export function useMutate<
   // Cancel the fetch on unmount
   useEffect(() => () => abort(), [abort]);
 
+  const { pathInlineBodyEncode, queryParamStringifyOptions, requestOptions, localErrorOnly, onMutate } = props;
   const mutate = useCallback<MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>>(
     async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>) => {
-      if (state.error || !state.loading) {
-        setState(prevState => ({ ...prevState, loading: true, error: null }));
-      }
-
-      if (state.loading) {
-        // Abort previous requests
-        abort();
-      }
+      setState(prevState => {
+        if (prevState.loading) {
+          abort();
+        }
+        return { ...prevState, loading: true, error: null };
+      });
 
       const pathStr =
         typeof path === "function" ? path(mutateRequestOptions?.pathParams || (pathParams as TPathParams)) : path;
@@ -123,9 +122,7 @@ export function useMutate<
       } else if (typeof body === "object") {
         options.body = JSON.stringify(body);
       } else if (isDelete && body !== undefined) {
-        const possiblyEncodedBody = props.pathInlineBodyEncode
-          ? props.pathInlineBodyEncode(String(body))
-          : String(body);
+        const possiblyEncodedBody = pathInlineBodyEncode ? pathInlineBodyEncode(String(body)) : String(body);
 
         pathParts.push(possiblyEncodedBody);
       } else {
@@ -139,14 +136,12 @@ export function useMutate<
         pathParts.join("/"),
         { ...context.queryParams, ...queryParams, ...mutateRequestOptions?.queryParams },
         {
-          queryParamOptions: { ...context.queryParamStringifyOptions, ...props.queryParamStringifyOptions },
+          queryParamOptions: { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
         },
       );
 
       const propsRequestOptions =
-        (typeof props.requestOptions === "function"
-          ? await props.requestOptions(url, verb, body)
-          : props.requestOptions) || {};
+        (typeof requestOptions === "function" ? await requestOptions(url, verb, body) : requestOptions) || {};
 
       const contextRequestOptions =
         (typeof context.requestOptions === "function"
@@ -174,7 +169,7 @@ export function useMutate<
           loading: false,
         });
 
-        if (!props.localErrorOnly && context.onError) {
+        if (!localErrorOnly && context.onError) {
           context.onError(error, () => mutate(body, mutateRequestOptions));
         }
 
@@ -223,7 +218,7 @@ export function useMutate<
           loading: false,
         }));
 
-        if (!props.localErrorOnly && context.onError) {
+        if (!localErrorOnly && context.onError) {
           context.onError(error, () => mutate(body), response);
         }
 
@@ -232,14 +227,30 @@ export function useMutate<
 
       setState(prevState => ({ ...prevState, loading: false }));
 
-      if (props.onMutate) {
-        props.onMutate(body, data);
+      if (onMutate) {
+        onMutate(body, data);
       }
 
       return data;
     },
-    /* eslint-disable react-hooks/exhaustive-deps */
-    [context.base, context.requestOptions, context.resolve, state.error, state.loading, path, abort, getAbortSignal],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      /* getAbortSignal - changes too much! */
+      path,
+      pathParams,
+      queryParams,
+      verb,
+      isDelete,
+      base,
+      context,
+      queryParamStringifyOptions,
+      requestOptions,
+      onMutate,
+      abort,
+      pathInlineBodyEncode,
+      localErrorOnly,
+      resolve,
+    ],
   );
 
   return {
@@ -255,3 +266,6 @@ export function useMutate<
     },
   };
 }
+
+// Declaring this in order to have a thing with stable identity
+const EMPTY_OBJECT = {};

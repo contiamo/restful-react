@@ -418,6 +418,37 @@ describe("useMutate", () => {
     });
   });
 
+  describe("Mutate identity", () => {
+    it("should remain the same across calls", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/plop/one")
+        .reply(200, { id: 1 })
+        .persist();
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const getPath = ({ id }: { id: string }) => `plop/${id}`;
+      const pathParams = { id: "one" };
+      const { result } = renderHook(
+        () =>
+          useMutate<{ id: number }, unknown, {}, {}, { id: string }>("POST", getPath, {
+            pathParams,
+          }),
+        {
+          wrapper,
+        },
+      );
+      const mutate0 = result.current.mutate;
+      const mutate1 = result.current.mutate;
+      await result.current.mutate({});
+      const mutate2 = result.current.mutate;
+
+      expect(mutate0).toEqual(mutate1);
+      expect(mutate0).toEqual(mutate2);
+    });
+  });
+
   describe("Path Params", () => {
     it("should resolve path parameters if specified", async () => {
       nock("https://my-awesome-api.fake")
