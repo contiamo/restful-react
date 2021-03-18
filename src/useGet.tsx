@@ -138,7 +138,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       queryParams = {},
       queryParamStringifyOptions = {},
       requestOptions,
-      pathParams,
+      pathParams = {},
     } = props;
 
     setState(prev => {
@@ -148,8 +148,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       return { ...prev, error: null, loading: true };
     });
 
-    // HACK
-    const pathStr = typeof path === "function" ? path(pathParams || ({} as any)) : path;
+    const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
 
     const url = constructUrl(
       base,
