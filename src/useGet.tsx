@@ -145,7 +145,10 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       if (prev.loading) {
         abort();
       }
-      return { ...prev, error: null, loading: true };
+      if (prev.error || !prev.loading) {
+        return { ...prev, error: null, loading: true };
+      }
+      return prev;
     });
 
     const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;

@@ -403,12 +403,12 @@ describe("useGet hook", () => {
 
       const MyAwesomeComponent: React.FC<{ path: string }> = ({ path }) => {
         const [page, setPage] = useState(1);
-        const params = useGet<{ id: number }, any, { page: number }>({ path, queryParams: { page } });
+        const useGetReturn = useGet<{ id: number }, any, { page: number }>({ path, queryParams: { page } });
 
         return (
           <>
             <button data-testid="set-page-button" onClick={() => setPage(2)} />
-            {children(params)}
+            {children(useGetReturn)}
           </>
         );
       };
@@ -421,9 +421,16 @@ describe("useGet hook", () => {
 
       await wait(() => expect(children).toBeCalledTimes(2));
 
+      expect(children.mock.calls[0][0].loading).toEqual(true);
+      expect(children.mock.calls[0][0].error).toEqual(null);
+
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].error).toMatchObject({ status: 404 });
+
       fireEvent.click(getByTestId("set-page-button"));
 
       await wait(() => expect(children).toBeCalledTimes(5));
+
       expect(children.mock.calls[1][0].error).not.toEqual(null);
       expect(children.mock.calls[4][0].loading).toEqual(false);
       expect(children.mock.calls[4][0].data).toEqual({ id: 1 });
