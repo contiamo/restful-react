@@ -118,6 +118,16 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   const context = useContext(Context);
   const { path, pathParams = {} } = props;
 
+  const [state, setState] = useState<GetState<TData, TError>>({
+    data: null,
+    response: null,
+    loading: !props.lazy,
+    error: null,
+  });
+
+  const { abort, getAbortSignal } = useAbort();
+
+  const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
   const _fetchData: FetchData<TData, TError, TQueryParams, TPathParams> = useCallback<
     FetchData<TData, TError, TQueryParams, TPathParams>
   >(async (props, context, abort, getAbortSignal) => {
@@ -243,17 +253,6 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   // Cancel fetchData on unmount (if debounce)
   useEffect(() => (isCancellable(fetchData) ? () => fetchData.cancel() : undefined), [fetchData]);
-
-  const [state, setState] = useState<GetState<TData, TError>>({
-    data: null,
-    response: null,
-    loading: !props.lazy,
-    error: null,
-  });
-
-  const { abort, getAbortSignal } = useAbort();
-
-  const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
 
   useDeepCompareEffect(() => {
     if (!props.lazy && !props.mock) {
