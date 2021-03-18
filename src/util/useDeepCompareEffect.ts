@@ -1,5 +1,5 @@
 import isEqualWith from "lodash/isEqualWith";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 /**
  * Custom version of isEqual to handle function comparison
@@ -36,4 +36,8 @@ function useDeepCompareMemoize(value: Readonly<any>) {
  */
 export function useDeepCompareEffect<T>(effect: React.EffectCallback, deps: T) {
   useEffect(effect, useDeepCompareMemoize(deps));
+}
+
+export function useDeepCompareCallback<T extends (...args: any[]) => any>(callback: T, deps: readonly any[]) {
+  return useCallback(callback, useDeepCompareMemoize(deps));
 }

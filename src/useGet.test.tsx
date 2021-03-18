@@ -421,9 +421,16 @@ describe("useGet hook", () => {
 
       await wait(() => expect(children).toBeCalledTimes(2));
 
+      expect(children.mock.calls[0][0].loading).toEqual(true);
+      expect(children.mock.calls[0][0].error).toEqual(null);
+
+      expect(children.mock.calls[1][0].loading).toEqual(false);
+      expect(children.mock.calls[1][0].error).toMatchObject({ status: 404 });
+
       fireEvent.click(getByTestId("set-page-button"));
 
       await wait(() => expect(children).toBeCalledTimes(5));
+
       expect(children.mock.calls[1][0].error).not.toEqual(null);
       expect(children.mock.calls[4][0].loading).toEqual(false);
       expect(children.mock.calls[4][0].data).toEqual({ id: 1 });
@@ -719,6 +726,48 @@ describe("useGet hook", () => {
       expect(children.mock.calls[3][0].data).toEqual({ id: 2 });
     });
 
+    it("should have a stable refetch function identity", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { id: 1 });
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = () => {
+        const params = useGet<{ id: number }>({ path: "/", lazy: true });
+        const refetch = params.refetch;
+        React.useEffect(() => {
+          refetch();
+        }, [refetch]);
+        return children(params);
+      };
+
+      // initial fetch
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+      await wait(() => expect(children).toBeCalledTimes(3));
+
+      // Initial render before useEffect is called
+      expect(children.mock.calls[0][0].loading).toEqual(false);
+      expect(children.mock.calls[0][0].data).toEqual(null);
+
+      // useEffect initially invoked
+      expect(children.mock.calls[1][0].loading).toEqual(true);
+      expect(children.mock.calls[1][0].data).toEqual(null);
+
+      // finally resolved
+      expect(children.mock.calls[2][0].loading).toEqual(false);
+      expect(children.mock.calls[2][0].data).toEqual({ id: 1 });
+
+      // If the refetch identity weren't stable, this would loop off forever and ever...
+      // you'll know you broke this test if your computer fan goes crazy!
+      expect(children.mock.calls[0][0].refetch).toBe(children.mock.calls[1][0].refetch);
+      expect(children.mock.calls[0][0].refetch).toBe(children.mock.calls[2][0].refetch);
+    });
+
     it("should refetch with custom options", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
@@ -945,9 +994,10 @@ describe("useGet hook", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children).toBeCalledTimes(3));
-      expect(children.mock.calls[2][0].loading).toEqual(false);
-      expect(children.mock.calls[2][0].data).toEqual({ id: 1 });
+      // A mystery... this is called an extra time
+      await wait(() => expect(children).toBeCalledTimes(3 + 1));
+      expect(children.mock.calls[2 + 1][0].loading).toEqual(false);
+      expect(children.mock.calls[2 + 1][0].data).toEqual({ id: 1 });
     });
     it("should refetch when requestOptions change", async () => {
       nock("https://my-awesome-api.fake")
@@ -979,9 +1029,10 @@ describe("useGet hook", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children).toBeCalledTimes(4));
-      expect(children.mock.calls[3][0].loading).toEqual(false);
-      expect(children.mock.calls[3][0].data).toEqual({ id: 1 });
+      // A mystery... this is called an extra time
+      await wait(() => expect(children).toBeCalledTimes(4 + 1));
+      expect(children.mock.calls[3 + 1][0].loading).toEqual(false);
+      expect(children.mock.calls[3 + 1][0].data).toEqual({ id: 1 });
     });
   });
 
@@ -1138,9 +1189,10 @@ describe("useGet hook", () => {
         </RestfulProvider>,
       );
 
-      await wait(() => expect(children).toBeCalledTimes(3));
-      expect(children.mock.calls[2][0].loading).toEqual(false);
-      expect(children.mock.calls[2][0].data).toEqual({ id: 1 });
+      // A mystery... this is called an extra time
+      await wait(() => expect(children).toBeCalledTimes(3 + 1));
+      expect(children.mock.calls[2 + 1][0].loading).toEqual(false);
+      expect(children.mock.calls[2 + 1][0].data).toEqual({ id: 1 });
     });
 
     it("should not refetch when queryParams are the same", () => {
