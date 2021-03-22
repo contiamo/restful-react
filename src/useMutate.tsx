@@ -1,11 +1,12 @@
 import merge from "lodash/merge";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Context } from "./Context";
 import { MutateMethod, MutateState, MutateRequestOptions } from "./Mutate";
 import { Omit, UseGetProps } from "./useGet";
 import { constructUrl } from "./util/constructUrl";
 import { processResponse } from "./util/processResponse";
 import { useAbort } from "./useAbort";
+import { useDeepCompareCallback, useDeepCompareEffect } from "./util/useDeepCompareEffect";
 
 export interface UseMutateProps<TData, TError, TQueryParams, TRequestBody, TPathParams>
   extends Omit<UseGetProps<TData, TError, TQueryParams, TPathParams>, "lazy" | "debounce" | "mock"> {
@@ -94,13 +95,32 @@ export function useMutate<
   useEffect(() => () => abort(), [abort]);
 
   const { pathInlineBodyEncode, queryParamStringifyOptions, requestOptions, localErrorOnly, onMutate } = props;
-  const mutate = useCallback<MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>>(
+
+  const effectDependencies = [
+    path,
+    pathParams,
+    queryParams,
+    verb,
+    isDelete,
+    base,
+    context,
+    queryParamStringifyOptions,
+    requestOptions,
+    onMutate,
+    abort,
+    pathInlineBodyEncode,
+    localErrorOnly,
+    resolve,
+  ];
+  const mutate = useDeepCompareCallback<MutateMethod<TData, TRequestBody, TQueryParams, TPathParams>>(
     async (body: TRequestBody, mutateRequestOptions?: MutateRequestOptions<TQueryParams, TPathParams>) => {
+      const signal = getAbortSignal();
+
       setState(prevState => {
-        if (prevState.loading) {
-          abort();
+        if (prevState.error || !prevState.loading) {
+          return { ...prevState, loading: true, error: null };
         }
-        return { ...prevState, loading: true, error: null };
+        return prevState;
       });
 
       const pathStr =
@@ -128,8 +148,6 @@ export function useMutate<
       } else {
         options.body = (body as unknown) as string;
       }
-
-      const signal = getAbortSignal();
 
       const url = constructUrl(
         base,
@@ -233,25 +251,13 @@ export function useMutate<
 
       return data;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      /* getAbortSignal - changes too much! */
-      path,
-      pathParams,
-      queryParams,
-      verb,
-      isDelete,
-      base,
-      context,
-      queryParamStringifyOptions,
-      requestOptions,
-      onMutate,
-      abort,
-      pathInlineBodyEncode,
-      localErrorOnly,
-      resolve,
-    ],
+    effectDependencies,
   );
+  useDeepCompareEffect(() => {
+    if (state.loading) {
+      abort();
+    }
+  }, effectDependencies);
 
   return {
     ...state,
