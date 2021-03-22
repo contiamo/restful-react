@@ -34,6 +34,24 @@ describe("useMutate", () => {
       });
     });
 
+    it("should cancel on unmount", async () => {
+      nock("https://my-awesome-api.fake")
+        .delete("/plop")
+        .reply(200, { oops: true });
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+
+      const resolve = jest.fn(() => "/plop");
+      const { result, unmount } = renderHook(() => useMutate("DELETE", resolve), { wrapper });
+
+      const resultPromise = result.current.mutate({});
+      unmount();
+      const res = await resultPromise;
+
+      expect(res).toEqual(undefined);
+    });
+
     it("should call the correct url with a specific id", async () => {
       nock("https://my-awesome-api.fake")
         .delete("/plop")
@@ -419,7 +437,7 @@ describe("useMutate", () => {
   });
 
   describe("Mutate identity", () => {
-    it("should remain the same across calls", async () => {
+    it("should remain the same across calls with static props", async () => {
       nock("https://my-awesome-api.fake")
         .post("/plop/one")
         .reply(200, { id: 1 })
@@ -434,6 +452,34 @@ describe("useMutate", () => {
         () =>
           useMutate<{ id: number }, unknown, {}, {}, { id: string }>("POST", getPath, {
             pathParams,
+          }),
+        {
+          wrapper,
+        },
+      );
+      const mutate0 = result.current.mutate;
+      const mutate1 = result.current.mutate;
+      await result.current.mutate({});
+      const mutate2 = result.current.mutate;
+
+      expect(mutate0).toEqual(mutate1);
+      expect(mutate0).toEqual(mutate2);
+    });
+
+    it("should remain the same across calls with deeply equal props", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/plop/one")
+        .reply(200, { id: 1 })
+        .persist();
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake">{children}</RestfulProvider>
+      );
+      const getPath = ({ id }: { id: string }) => `plop/${id}`;
+      const { result } = renderHook(
+        () =>
+          useMutate<{ id: number }, unknown, {}, {}, { id: string }>("POST", getPath, {
+            pathParams: { id: "one" },
           }),
         {
           wrapper,
