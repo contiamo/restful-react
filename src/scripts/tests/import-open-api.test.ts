@@ -893,7 +893,7 @@ describe("scripts/import-open-api", () => {
     });
   });
 
-  describe("generateGetComponent", () => {
+  describe("generateRestfulComponent", () => {
     it("should generate a fully typed component", () => {
       const operation: OperationObject = {
         summary: "List all fields for the use case schema",
@@ -2151,51 +2151,158 @@ describe("scripts/import-open-api", () => {
         "
       `);
     });
-  });
-  it("should deal with no 2xx response case", () => {
-    const operation: OperationObject = {
-      summary: "List all fields for the use case schema",
-      operationId: "listFields",
-      responses: {
-        "302": {
-          description: "Just redirect",
-        },
-        default: {
-          description: "unexpected error",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/APIError" },
-              example: { errors: ["msg1", "msg2"] },
+
+    it("should inject some customProps", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
             },
           },
         },
-      },
-    };
+      };
 
-    expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
-      "
-      export type ListFieldsProps = Omit<GetProps<void, APIError, void, void>, \\"path\\">;
+      expect(
+        generateRestfulComponent(operation, "get", "/fields", [], [], [], {
+          resolve: "{res => res}",
+        }),
+      ).toMatchInlineSnapshot(`
+        "
+        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
 
-      /**
-       * List all fields for the use case schema
-       */
-      export const ListFields = (props: ListFieldsProps) => (
-        <Get<void, APIError, void, void>
-          path={\`/fields\`}
-          
-          {...props}
-        />
-      );
+        /**
+         * List all fields for the use case schema
+         */
+        export const ListFields = (props: ListFieldsProps) => (
+          <Get<FieldListResponse, APIError, void, void>
+            path={\`/fields\`}
+            resolve={res => res}
+            
+            {...props}
+          />
+        );
 
-      export type UseListFieldsProps = Omit<UseGetProps<void, APIError, void, void>, \\"path\\">;
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
 
-      /**
-       * List all fields for the use case schema
-       */
-      export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void, void>(\`/fields\`, props);
+        /**
+         * List all fields for the use case schema
+         */
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, { resolve:res => res,  ...props });
 
-      "
-    `);
+        "
+      `);
+    });
+
+    it("should inject some customProps (with function)", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        tags: ["schema"],
+        responses: {
+          "200": {
+            description: "An array of schema fields",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/FieldListResponse" } } },
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(
+        generateRestfulComponent(operation, "get", "/fields", [], [], [], {
+          resolve: ({ responseType }) => `{ data => data as ${responseType}}`,
+        }),
+      ).toMatchInlineSnapshot(`
+        "
+        export type ListFieldsProps = Omit<GetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
+
+        /**
+         * List all fields for the use case schema
+         */
+        export const ListFields = (props: ListFieldsProps) => (
+          <Get<FieldListResponse, APIError, void, void>
+            path={\`/fields\`}
+            resolve={ data => data as FieldListResponse}
+            
+            {...props}
+          />
+        );
+
+        export type UseListFieldsProps = Omit<UseGetProps<FieldListResponse, APIError, void, void>, \\"path\\">;
+
+        /**
+         * List all fields for the use case schema
+         */
+        export const useListFields = (props: UseListFieldsProps) => useGet<FieldListResponse, APIError, void, void>(\`/fields\`, { resolve: data => data as FieldListResponse,  ...props });
+
+        "
+      `);
+    });
+
+    it("should deal with no 2xx response case", () => {
+      const operation: OperationObject = {
+        summary: "List all fields for the use case schema",
+        operationId: "listFields",
+        responses: {
+          "302": {
+            description: "Just redirect",
+          },
+          default: {
+            description: "unexpected error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/APIError" },
+                example: { errors: ["msg1", "msg2"] },
+              },
+            },
+          },
+        },
+      };
+
+      expect(generateRestfulComponent(operation, "get", "/fields", [])).toMatchInlineSnapshot(`
+        "
+        export type ListFieldsProps = Omit<GetProps<void, APIError, void, void>, \\"path\\">;
+
+        /**
+         * List all fields for the use case schema
+         */
+        export const ListFields = (props: ListFieldsProps) => (
+          <Get<void, APIError, void, void>
+            path={\`/fields\`}
+            
+            {...props}
+          />
+        );
+
+        export type UseListFieldsProps = Omit<UseGetProps<void, APIError, void, void>, \\"path\\">;
+
+        /**
+         * List all fields for the use case schema
+         */
+        export const useListFields = (props: UseListFieldsProps) => useGet<void, APIError, void, void>(\`/fields\`, props);
+
+        "
+      `);
+    });
   });
 
   describe("reactPropsValueToObjectValue", () => {

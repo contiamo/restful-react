@@ -11,6 +11,7 @@ import slash from "slash";
 
 import importOpenApi from "../scripts/import-open-api";
 import { OperationObject } from "openapi3-ts";
+import { UseGetProps } from "../useGet";
 
 const log = console.log; // tslint:disable-line:no-console
 
@@ -27,7 +28,9 @@ export interface Options {
 export type AdvancedOptions = Options & {
   customImport?: string;
   customProps?: {
-    base?: string;
+    [props in keyof Omit<UseGetProps<any, any, any, any>, "lazy" | "debounce" | "path">]:
+      | string
+      | ((meta: { responseType: string }) => string);
   };
 
   pathParametersEncodingMode?: "uriComponent" | "rfc3986";
