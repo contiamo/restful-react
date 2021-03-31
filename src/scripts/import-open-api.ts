@@ -269,7 +269,12 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
  * Example:
  *  reactPropsValueToObjectValue(`{ getConfig("myVar") }`) // `getConfig("myVar")`
  */
-export const reactPropsValueToObjectValue = (value: string) => value.replace(/^{(.*)}$/, "$1");
+export const reactPropsValueToObjectValue = (value: string) => {
+  if (value.startsWith("{") && value.endsWith("}")) {
+    return value.slice(1, -1);
+  }
+  return value;
+};
 
 /**
  * Generate a restful-react component from openapi operation specs
