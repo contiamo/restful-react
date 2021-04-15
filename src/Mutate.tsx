@@ -193,19 +193,24 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
 
     const request = new Request(makeRequestPath(), {
       method: verb,
-      body: typeof body === "object" ? JSON.stringify(body) : body,
+      body: body instanceof FormData ? body : typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function"
         ? await providerRequestOptions<TRequestBody>(makeRequestPath(), verb, body)
         : providerRequestOptions),
       ...mutateRequestOptions,
       headers: {
-        "content-type": typeof body === "object" ? "application/json" : "text/plain",
         ...(typeof providerRequestOptions === "function"
           ? (await providerRequestOptions<TRequestBody>(makeRequestPath(), verb, body)).headers
           : (providerRequestOptions || {}).headers),
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
     } as RequestInit); // Type assertion for version of TypeScript that can't yet discriminate.
+
+    // only set default content-type if body is not of type FormData and there is no content-type already defined on mutateRequestOptions.headers
+    if (!(body instanceof FormData) && !request.headers.has("content-type")) {
+      request.headers.set("content-type", typeof body === "object" ? "application/json" : "text/plain");
+    }
+
     if (onRequest) onRequest(request);
 
     let response: Response;
