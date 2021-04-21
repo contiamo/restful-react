@@ -490,8 +490,8 @@ describe("useMutate", () => {
       await result.current.mutate({});
       const mutate2 = result.current.mutate;
 
-      expect(mutate0).toEqual(mutate1);
-      expect(mutate0).toEqual(mutate2);
+      expect(mutate0).toBe(mutate1);
+      expect(mutate0).toBe(mutate2);
     });
   });
 
