@@ -269,7 +269,12 @@ const importSpecs = (data: string, extension: "yaml" | "json"): Promise<OpenAPIO
  * Example:
  *  reactPropsValueToObjectValue(`{ getConfig("myVar") }`) // `getConfig("myVar")`
  */
-export const reactPropsValueToObjectValue = (value: string) => value.replace(/^{(.*)}$/, "$1");
+export const reactPropsValueToObjectValue = (value: string) => {
+  if (value.startsWith("{") && value.endsWith("}")) {
+    return value.slice(1, -1);
+  }
+  return value;
+};
 
 /**
  * Generate a restful-react component from openapi operation specs
@@ -394,14 +399,13 @@ export const generateRestfulComponent = (
       ? getRef(lastParamInTheRouteDefinition.schema.$ref)
       : "string";
 
+  const responseType = needAResponseComponent ? componentName + "Response" : responseTypes;
   const genericsTypes =
     verb === "get"
-      ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
-      : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${
+      ? `${responseType}, ${errorTypes}, ${queryParamsType ? componentName + "QueryParams" : "void"}, ${
+          paramsInPath.length ? componentName + "PathParams" : "void"
+        }`
+      : `${responseType}, ${errorTypes}, ${queryParamsType ? componentName + "QueryParams" : "void"}, ${
           verb === "delete" && lastParamInTheRoute
             ? lastParamInTheRouteType
             : needARequestBodyComponent
@@ -411,12 +415,10 @@ export const generateRestfulComponent = (
 
   const genericsTypesForHooksProps =
     verb === "get"
-      ? `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`
-      : `${needAResponseComponent ? componentName + "Response" : responseTypes}, ${errorTypes}, ${
-          queryParamsType ? componentName + "QueryParams" : "void"
-        }, ${
+      ? `${responseType}, ${errorTypes}, ${queryParamsType ? componentName + "QueryParams" : "void"}, ${
+          paramsInPath.length ? componentName + "PathParams" : "void"
+        }`
+      : `${responseType}, ${errorTypes}, ${queryParamsType ? componentName + "QueryParams" : "void"}, ${
           verb === "delete" && lastParamInTheRoute
             ? lastParamInTheRouteType
             : needARequestBodyComponent
@@ -424,7 +426,12 @@ export const generateRestfulComponent = (
             : requestBodyTypes
         }, ${paramsInPath.length ? componentName + "PathParams" : "void"}`;
 
-  const customPropsEntries = Object.entries(customProps);
+  const customPropsEntries = Object.entries(customProps).map(([key, prop]) => {
+    if (typeof prop === "function") {
+      return [key, prop({ responseType })];
+    }
+    return [key, prop];
+  });
 
   const description = formatDescription(
     operation.summary && operation.description

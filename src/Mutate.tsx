@@ -1,6 +1,6 @@
 import * as React from "react";
 import RestfulReactProvider, { InjectedProps, RestfulReactConsumer, RestfulReactProviderProps } from "./Context";
-import { GetState } from "./Get";
+import { GetState, ResolveFunction } from "./Get";
 import { composePath, composeUrl } from "./util/composeUrl";
 import { processResponse } from "./util/processResponse";
 import { constructUrl } from "./util/constructUrl";
@@ -108,6 +108,11 @@ export interface MutateProps<TData, TError, TQueryParams, TRequestBody, TPathPar
    * to an existing path
    */
   pathInlineBodyEncode?: typeof encodeURIComponent;
+  /**
+   * A function to resolve data return from the backend, most typically
+   * used when the backend response needs to be adapted in some way.
+   */
+  resolve?: ResolveFunction<TData>;
 }
 
 /**
@@ -166,6 +171,7 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
       onRequest,
       onResponse,
       pathInlineBodyEncode,
+      resolve,
     } = this.props;
     this.setState(() => ({ error: null, loading: true }));
 
@@ -187,19 +193,24 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
 
     const request = new Request(makeRequestPath(), {
       method: verb,
-      body: typeof body === "object" ? JSON.stringify(body) : body,
+      body: body instanceof FormData ? body : typeof body === "object" ? JSON.stringify(body) : body,
       ...(typeof providerRequestOptions === "function"
         ? await providerRequestOptions<TRequestBody>(makeRequestPath(), verb, body)
         : providerRequestOptions),
       ...mutateRequestOptions,
       headers: {
-        "content-type": typeof body === "object" ? "application/json" : "text/plain",
         ...(typeof providerRequestOptions === "function"
           ? (await providerRequestOptions<TRequestBody>(makeRequestPath(), verb, body)).headers
           : (providerRequestOptions || {}).headers),
         ...(mutateRequestOptions ? mutateRequestOptions.headers : {}),
       },
     } as RequestInit); // Type assertion for version of TypeScript that can't yet discriminate.
+
+    // only set default content-type if body is not of type FormData and there is no content-type already defined on mutateRequestOptions.headers
+    if (!(body instanceof FormData) && !request.headers.has("content-type")) {
+      request.headers.set("content-type", typeof body === "object" ? "application/json" : "text/plain");
+    }
+
     if (onRequest) onRequest(request);
 
     let response: Response;
@@ -224,7 +235,26 @@ class ContextlessMutate<TData, TError, TQueryParams, TRequestBody, TPathParams> 
       throw error;
     }
 
-    const { data, responseError } = await processResponse(response);
+    const { data: rawData, responseError } = await processResponse(response);
+
+    let data: TData | any; // `any` -> data in error case
+    try {
+      data = resolve ? resolve(rawData) : rawData;
+    } catch (e) {
+      if (this.signal.aborted) {
+        return;
+      }
+      const error = {
+        data: e.message,
+        message: `Failed to resolve: ${e.message}`,
+      };
+
+      this.setState({
+        error,
+        loading: false,
+      });
+      throw e;
+    }
 
     // avoid state updates when component has been unmounted
     if (this.signal.aborted) {
