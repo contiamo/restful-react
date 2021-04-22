@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useState, useCallback, useEffect } from "react";
 import { Cancelable, DebounceSettings } from "lodash";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
@@ -7,7 +7,7 @@ import { IStringifyOptions } from "qs";
 import { Context, RestfulReactProviderProps } from "./Context";
 import { GetState } from "./Get";
 import { processResponse } from "./util/processResponse";
-import { useDeepCompareEffect } from "./util/useDeepCompareEffect";
+import { useDeepCompareCallback } from "./util/useDeepCompareEffect";
 import { useAbort } from "./useAbort";
 import { constructUrl } from "./util/constructUrl";
 
@@ -70,122 +70,15 @@ export interface UseGetProps<TData, TError, TQueryParams, TPathParams> {
     | number;
 }
 
-async function _fetchData<TData, TError, TQueryParams, TPathParams>(
-  props: UseGetProps<TData, TError, TQueryParams, TPathParams>,
-  state: GetState<TData, TError>,
-  setState: (newState: GetState<TData, TError>) => void,
+type FetchData<TData, TError, TQueryParams, PathParams = unknown> = (
+  props: UseGetProps<TData, TError, TQueryParams, PathParams>,
   context: RestfulReactProviderProps,
   abort: () => void,
   getAbortSignal: () => AbortSignal | undefined,
-) {
-  const {
-    base = context.base,
-    path,
-    resolve = (d: any) => d as TData,
-    queryParams = {},
-    queryParamStringifyOptions = {},
-    requestOptions,
-    pathParams = {},
-  } = props;
-
-  if (state.loading) {
-    // Abort previous requests
-    abort();
-  }
-
-  if (state.error || !state.loading) {
-    setState({ ...state, error: null, loading: true });
-  }
-
-  const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
-
-  const url = constructUrl(
-    base,
-    pathStr,
-    { ...context.queryParams, ...queryParams },
-    {
-      queryParamOptions: { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
-    },
-  );
-
-  const propsRequestOptions =
-    (typeof requestOptions === "function" ? await requestOptions(url, "GET") : requestOptions) || {};
-
-  const contextRequestOptions =
-    (typeof context.requestOptions === "function"
-      ? await context.requestOptions(url, "GET")
-      : context.requestOptions) || {};
-
-  const signal = getAbortSignal();
-
-  const request = new Request(url, merge({}, contextRequestOptions, propsRequestOptions, { signal }));
-  if (context.onRequest) context.onRequest(request);
-
-  try {
-    const response = await fetch(request);
-    const originalResponse = response.clone();
-    if (context.onResponse) context.onResponse(originalResponse);
-    const { data, responseError } = await processResponse(response);
-
-    if (signal && signal.aborted) {
-      return;
-    }
-
-    if (!response.ok || responseError) {
-      const error = {
-        message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
-        data,
-        status: response.status,
-      };
-
-      setState({
-        ...state,
-        loading: false,
-        data: null,
-        error,
-        response: originalResponse,
-      });
-
-      if (!props.localErrorOnly && context.onError) {
-        context.onError(error, () => _fetchData(props, state, setState, context, abort, getAbortSignal), response);
-      }
-      return;
-    }
-
-    setState({
-      ...state,
-      error: null,
-      loading: false,
-      data: resolve(data),
-      response: originalResponse,
-    });
-  } catch (e) {
-    // avoid state updates when component has been unmounted
-    // and when fetch/processResponse threw an error
-    if (signal && signal.aborted) {
-      return;
-    }
-
-    const error = {
-      message: `Failed to fetch: ${e.message}`,
-      data: e.message,
-    };
-
-    setState({
-      ...state,
-      data: null,
-      loading: false,
-      error,
-    });
-
-    if (!props.localErrorOnly && context.onError) {
-      context.onError(error, () => _fetchData(props, state, setState, context, abort, getAbortSignal));
-    }
-  }
-}
-
-type FetchData = typeof _fetchData;
-type CancellableFetchData = FetchData | (FetchData & Cancelable);
+) => Promise<void>;
+type CancellableFetchData<TData, TError, TQueryParams, TPathParams> =
+  | FetchData<TData, TError, TQueryParams, TPathParams>
+  | (FetchData<TData, TError, TQueryParams, TPathParams> & Cancelable);
 type RefetchOptions<TData, TError, TQueryParams, TPathParams> = Partial<
   Omit<UseGetProps<TData, TError, TQueryParams, TPathParams>, "lazy">
 >;
@@ -225,20 +118,6 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   const context = useContext(Context);
   const { path, pathParams = {} } = props;
 
-  const fetchData = useCallback<CancellableFetchData>(
-    typeof props.debounce === "object"
-      ? debounce<FetchData>(_fetchData, props.debounce.wait, props.debounce.options)
-      : typeof props.debounce === "number"
-      ? debounce<FetchData>(_fetchData, props.debounce)
-      : props.debounce
-      ? debounce<FetchData>(_fetchData)
-      : _fetchData,
-    [props.debounce],
-  );
-
-  // Cancel fetchData on unmount (if debounce)
-  useEffect(() => (isCancellable(fetchData) ? () => fetchData.cancel() : undefined), [fetchData]);
-
   const [state, setState] = useState<GetState<TData, TError>>({
     data: null,
     response: null,
@@ -250,29 +129,163 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
 
   const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
 
-  useDeepCompareEffect(() => {
+  const _fetchData = useDeepCompareCallback<FetchData<TData, TError, TQueryParams, TPathParams>>(
+    async (props, context, abort, getAbortSignal) => {
+      const {
+        base = context.base,
+        path,
+        resolve = (d: any) => d as TData,
+        queryParams = {},
+        queryParamStringifyOptions = {},
+        requestOptions,
+        pathParams = {},
+      } = props;
+
+      setState(prev => {
+        if (prev.error || !prev.loading) {
+          return { ...prev, error: null, loading: true };
+        }
+        return prev;
+      });
+
+      const pathStr = typeof path === "function" ? path(pathParams as TPathParams) : path;
+
+      const url = constructUrl(
+        base,
+        pathStr,
+        { ...context.queryParams, ...queryParams },
+        {
+          queryParamOptions: { ...context.queryParamStringifyOptions, ...queryParamStringifyOptions },
+        },
+      );
+
+      const propsRequestOptions =
+        (typeof requestOptions === "function" ? await requestOptions(url, "GET") : requestOptions) || {};
+
+      const contextRequestOptions =
+        (typeof context.requestOptions === "function"
+          ? await context.requestOptions(url, "GET")
+          : context.requestOptions) || {};
+
+      const signal = getAbortSignal();
+
+      const request = new Request(url, merge({}, contextRequestOptions, propsRequestOptions, { signal }));
+      if (context.onRequest) context.onRequest(request);
+
+      try {
+        const response = await fetch(request);
+        const originalResponse = response.clone();
+        if (context.onResponse) context.onResponse(originalResponse);
+        const { data, responseError } = await processResponse(response);
+
+        if (signal && signal.aborted) {
+          return;
+        }
+
+        if (!response.ok || responseError) {
+          const error = {
+            message: `Failed to fetch: ${response.status} ${response.statusText}${responseError ? " - " + data : ""}`,
+            data,
+            status: response.status,
+          };
+
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            data: null,
+            error,
+            response: originalResponse,
+          }));
+
+          if (!props.localErrorOnly && context.onError) {
+            context.onError(error, () => _fetchData(props, context, abort, getAbortSignal), response);
+          }
+          return;
+        }
+
+        const resolvedData = resolve(data);
+        setState(prev => ({
+          ...prev,
+          error: null,
+          loading: false,
+          data: resolvedData,
+          response: originalResponse,
+        }));
+      } catch (e) {
+        // avoid state updates when component has been unmounted
+        // and when fetch/processResponse threw an error
+        if (signal && signal.aborted) {
+          return;
+        }
+
+        const error = {
+          message: `Failed to fetch: ${e.message}`,
+          data: e.message,
+        };
+
+        setState(prev => ({
+          ...prev,
+          data: null,
+          loading: false,
+          error,
+        }));
+
+        if (!props.localErrorOnly && context.onError) {
+          context.onError(error, () => _fetchData(props, context, abort, getAbortSignal));
+        }
+      }
+    },
+    [
+      props.lazy,
+      props.mock,
+      props.path,
+      props.base,
+      props.resolve,
+      props.queryParams,
+      props.requestOptions,
+      props.pathParams,
+      context.base,
+      context.parentPath,
+      context.queryParams,
+      context.requestOptions,
+      abort,
+    ],
+  );
+  const fetchData = useCallback<CancellableFetchData<TData, TError, TQueryParams, TPathParams>>(
+    typeof props.debounce === "object"
+      ? debounce<FetchData<TData, TError, TQueryParams, TPathParams>>(
+          _fetchData,
+          props.debounce.wait,
+          props.debounce.options,
+        )
+      : typeof props.debounce === "number"
+      ? debounce<FetchData<TData, TError, TQueryParams, TPathParams>>(_fetchData, props.debounce)
+      : props.debounce
+      ? debounce<FetchData<TData, TError, TQueryParams, TPathParams>>(_fetchData)
+      : _fetchData,
+    [_fetchData, props.debounce],
+  );
+
+  useEffect(() => {
     if (!props.lazy && !props.mock) {
-      fetchData(props, state, setState, context, abort, getAbortSignal);
+      fetchData(props, context, abort, getAbortSignal);
     }
 
     return () => {
+      if (isCancellable(fetchData)) {
+        fetchData.cancel();
+      }
       abort();
     };
-  }, [
-    props.lazy,
-    props.mock,
-    props.path,
-    props.base,
-    props.resolve,
-    props.queryParams,
-    props.requestOptions,
-    props.pathParams,
-    context.base,
-    context.parentPath,
-    context.queryParams,
-    context.requestOptions,
-    abort,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchData, props.lazy, props.mock]);
+
+  const refetch = useCallback(
+    (options: RefetchOptions<TData, TError, TQueryParams, TPathParams> = {}) =>
+      fetchData({ ...props, ...options }, context, abort, getAbortSignal),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fetchData],
+  );
 
   return {
     ...state,
@@ -298,7 +311,6 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       });
       abort();
     },
-    refetch: (options: RefetchOptions<TData, TError, TQueryParams, TPathParams> = {}) =>
-      fetchData({ ...props, ...options }, state, setState, context, abort, getAbortSignal),
+    refetch,
   };
 }
