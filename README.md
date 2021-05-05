@@ -13,7 +13,6 @@ restful-react is **very well tested, production ready** and powers all of our pr
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [Overview](#overview)
 - [Getting Started](#getting-started)
 - [Features](#features)
@@ -664,11 +663,10 @@ To generate components from remote specifications, you'll need to follow the fol
 1.  Open a terminal and run `restful-react import --github username:repo:branch:path/to/openapi.yaml --output MY_FETCHERS.tsx`, substituting things where necessary.
 1.  You will be prompted for a token.
 1.  Paste your token.
-1.  You will be asked if you'd like to save it for later. This is _entirely_ up to you and completely safe: it is saved in your `node_modules` folder and _not_ committed to version control or sent to us or anything: the source code of this whole thing is public so you're safe.
-
-    **Caveat:** _Since_ your token is stored in `node_modules`, your token will be removed on each `npm install` of `restful-react`.
-
+1.  You will be asked if you'd like to save it for later. This is _entirely_ up to you and completely safe: it is saved in your home directory.
 1.  You're done! 🎉
+
+Note: For CI environment, you can also provide the github token with the environment variable called `GITHUB_TOKEN`
 
 #### Transforming an Original Spec
 

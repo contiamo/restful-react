@@ -136,11 +136,11 @@ const importSpecs = async (options: AdvancedOptions) => {
   } else if (options.github) {
     const { github } = options;
 
-    let accessToken: string;
+    let accessToken = process.env.GITHUB_TOKEN;
     const githubTokenPath = join(homedir(), ".restful-react");
-    if (existsSync(githubTokenPath)) {
+    if (!accessToken && existsSync(githubTokenPath)) {
       accessToken = readFileSync(githubTokenPath, "utf-8");
-    } else {
+    } else if (!accessToken) {
       const answers = await inquirer.prompt<{ githubToken: string; saveToken: boolean }>([
         {
           type: "input",
