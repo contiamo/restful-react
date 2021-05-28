@@ -657,6 +657,7 @@ To generate components from remote specifications, you'll need to follow the fol
                 [X] repo_deployment
                 [X] public_repo
                 [X] repo:invite
+                [X] security_events
 
 1.  Click **Generate token**.
 1.  Copy the generated string.
