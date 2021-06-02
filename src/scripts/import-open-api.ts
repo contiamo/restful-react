@@ -6,6 +6,7 @@ import groupBy from "lodash/groupBy";
 import isEmpty from "lodash/isEmpty";
 import set from "lodash/set";
 import uniq from "lodash/uniq";
+import sortBy from "lodash/sortBy";
 
 import {
   ComponentsObject,
@@ -624,13 +625,22 @@ export const addVersionMetadata = (version: string) => `export const SPEC_VERSIO
  *
  * @param schemas
  */
-export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] = {}) => {
+export const generateSchemasDefinition = (
+  schemas: ComponentsObject["schemas"] = {},
+  { sorted }: { sorted?: boolean },
+) => {
   if (isEmpty(schemas)) {
     return "";
   }
 
+  let entries = Object.entries(schemas);
+
+  if (sorted) {
+    entries = sortBy(entries, ([key]) => key);
+  }
+
   return (
-    Object.entries(schemas)
+    entries
       .map(([name, schema]) =>
         !isReference(schema) &&
         (!schema.type || schema.type === "object") &&
@@ -652,14 +662,23 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
  *
  * @param requestBodies
  */
-export const generateRequestBodiesDefinition = (requestBodies: ComponentsObject["requestBodies"] = {}) => {
+export const generateRequestBodiesDefinition = (
+  requestBodies: ComponentsObject["requestBodies"] = {},
+  { sorted }: { sorted?: boolean },
+) => {
   if (isEmpty(requestBodies)) {
     return "";
   }
 
+  let entries = Object.entries(requestBodies);
+
+  if (sorted) {
+    entries = sortBy(entries, ([key]) => key);
+  }
+
   return (
     "\n" +
-    Object.entries(requestBodies)
+    entries
       .map(([name, requestBody]) => {
         const doc = isReference(requestBody) ? "" : formatDescription(requestBody.description);
         const type = getResReqTypes([["", requestBody]]);
@@ -683,14 +702,23 @@ export interface ${pascal(name)}RequestBody ${type}`;
  *
  * @param responses
  */
-export const generateResponsesDefinition = (responses: ComponentsObject["responses"] = {}) => {
+export const generateResponsesDefinition = (
+  responses: ComponentsObject["responses"] = {},
+  { sorted }: { sorted?: boolean },
+) => {
   if (isEmpty(responses)) {
     return "";
   }
 
+  let entries = Object.entries(responses);
+
+  if (sorted) {
+    entries = sortBy(entries, ([key]) => key);
+  }
+
   return (
     "\n" +
-    Object.entries(responses)
+    entries
       .map(([name, response]) => {
         const doc = isReference(response) ? "" : formatDescription(response.description);
         const type = getResReqTypes([["", response]]);
@@ -805,6 +833,7 @@ const importOpenApi = async ({
   customProps,
   customGenerator,
   pathParametersEncodingMode,
+  sorted,
 }: {
   data: string;
   format: "yaml" | "json";
@@ -815,6 +844,7 @@ const importOpenApi = async ({
   customProps?: AdvancedOptions["customProps"];
   customGenerator?: AdvancedOptions["customGenerator"];
   pathParametersEncodingMode?: "uriComponent" | "rfc3986";
+  sorted?: boolean;
 }) => {
   const operationIds: string[] = [];
   let specs = await importSpecs(data, format);
@@ -831,10 +861,17 @@ const importOpenApi = async ({
   let output = "";
 
   output += addVersionMetadata(specs.info.version);
-  output += generateSchemasDefinition(specs.components && specs.components.schemas);
-  output += generateRequestBodiesDefinition(specs.components && specs.components.requestBodies);
-  output += generateResponsesDefinition(specs.components && specs.components.responses);
-  Object.entries(specs.paths).forEach(([route, verbs]: [string, PathItemObject]) => {
+  output += generateSchemasDefinition(specs.components && specs.components.schemas, { sorted });
+  output += generateRequestBodiesDefinition(specs.components && specs.components.requestBodies, { sorted });
+  output += generateResponsesDefinition(specs.components && specs.components.responses, { sorted });
+
+  let pathEntries = Object.entries(specs.paths);
+
+  if (sorted) {
+    pathEntries = sortBy(pathEntries, ([route]) => route);
+  }
+
+  pathEntries.forEach(([route, verbs]: [string, PathItemObject]) => {
     Object.entries(verbs).forEach(([verb, operation]: [string, OperationObject]) => {
       if (["get", "post", "patch", "put", "delete"].includes(verb)) {
         output += generateRestfulComponent(

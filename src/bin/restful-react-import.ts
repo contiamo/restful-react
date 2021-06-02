@@ -23,6 +23,7 @@ export interface Options {
   transformer?: string;
   validation?: boolean;
   skipReact?: boolean;
+  sorted?: boolean;
 }
 
 export type AdvancedOptions = Options & {
@@ -58,6 +59,7 @@ program.option("-g, --github [value]", "github path (format: `owner:repo:branch:
 program.option("-t, --transformer [value]", "transformer function path");
 program.option("--validation", "add the validation step (provided by ibm-openapi-validator)");
 program.option("--skip-react", "skip the generation of react components/hooks");
+program.option("--sorted", "sort the interfaces by name and also its members");
 program.option("--config [value]", "override flags by a config file");
 program.parse(process.argv);
 
@@ -80,6 +82,7 @@ const importSpecs = async (options: AdvancedOptions) => {
     "customGenerator",
     "pathParametersEncodingMode",
     "skipReact",
+    "sorted",
   ];
   const importOptions = pick(options, optionsKeys);
 
