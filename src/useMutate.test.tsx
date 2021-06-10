@@ -853,6 +853,23 @@ describe("useMutate", () => {
       expect(onResponse).toBeCalled();
       expect(body).toMatchObject({ hello: "world" });
     });
+
+    it("should call the provider resolve", async () => {
+      nock("https://my-awesome-api.fake")
+        .post("/")
+        .reply(200, { hello: "world" });
+
+      const resolve = jest.fn(val => val)
+
+      const wrapper: React.FC = ({ children }) => (
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          {children}
+        </RestfulProvider>
+      );
+      const { result } = renderHook(() => useMutate("POST", ""), { wrapper });
+      await result.current.mutate({ foo: "bar" });
+      expect(resolve).toBeCalled();
+    });
   });
 
   describe("generation pattern", () => {
