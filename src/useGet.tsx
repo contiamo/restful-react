@@ -134,7 +134,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
       const {
         base = context.base,
         path,
-        resolve = (d: any) => d as TData,
+        resolve = context.resolve || ((d: any) => d as TData),
         queryParams = {},
         queryParamStringifyOptions = {},
         requestOptions,

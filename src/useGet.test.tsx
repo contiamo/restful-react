@@ -165,6 +165,30 @@ describe("useGet hook", () => {
       expect(body).toMatchObject({ oh: "my god 😍" });
     });
 
+    it("should call provider resolve", async () => {
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, { oh: "my god 😍" });
+
+      const MyAwesomeComponent = () => {
+        const { data, loading } = useGet<{ oh: string }>({ path: "/" });
+
+        return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
+      };
+
+      const resolve = jest.fn(val => val)
+
+      const { getByTestId } = render(
+        <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+
+      await waitForElement(() => getByTestId("data"));
+
+      expect(resolve).toBeCalled();
+    })
+
     it("should return the original response, including headers", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
