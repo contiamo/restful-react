@@ -107,7 +107,7 @@ export const getArray = (item: SchemaObject): string => {
     throw new Error("All arrays must have an `items` key defined");
   }
   let item_type = resolveValue(item.items);
-  if (!isReference(item.items) && (item.items.oneOf || item.items.allOf || item.items.enum)) {
+  if (!isReference(item.items) && (item.items.oneOf || item.items.anyOf || item.items.allOf || item.items.enum)) {
     item_type = `(${item_type})`;
   }
   if (item.minItems && item.maxItems && item.minItems === item.maxItems) {
@@ -136,6 +136,10 @@ export const getObject = (item: SchemaObject): string => {
       return requireProperties(composedType, item.required);
     }
     return composedType;
+  }
+
+  if (item.anyOf) {
+    return item.anyOf.map(resolveValue).join(" | ");
   }
 
   if (item.oneOf) {
@@ -649,6 +653,7 @@ export const generateSchemasDefinition = (schemas: ComponentsObject["schemas"] =
         !isReference(schema) &&
         (!schema.type || schema.type === "object") &&
         !schema.allOf &&
+        !schema.anyOf &&
         !schema.oneOf &&
         !isReference(schema) &&
         !schema.nullable
