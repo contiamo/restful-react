@@ -106,9 +106,9 @@ export const getArray = (item: SchemaObject): string => {
   if (!item.items) {
     throw new Error("All arrays must have an `items` key defined");
   }
-  const item_type = resolveValue(item.items);
+  let item_type = resolveValue(item.items);
   if (!isReference(item.items) && (item.items.oneOf || item.items.allOf || item.items.enum)) {
-    return `(${item_type})[]`;
+    item_type = `(${item_type})`;
   }
   return `${item_type}[]`;
 };
