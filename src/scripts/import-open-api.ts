@@ -110,6 +110,9 @@ export const getArray = (item: SchemaObject): string => {
   if (!isReference(item.items) && (item.items.oneOf || item.items.allOf || item.items.enum)) {
     item_type = `(${item_type})`;
   }
+  if (item.minItems && item.maxItems && item.minItems === item.maxItems) {
+    return `[${new Array(item.minItems).fill(item_type).join(", ")}]`;
+  }
   return `${item_type}[]`;
 };
 
