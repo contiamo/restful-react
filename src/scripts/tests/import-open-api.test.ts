@@ -71,6 +71,7 @@ describe("scripts/import-open-api", () => {
       { item: { type: "array", items: { type: "string" } }, expected: "string[]" },
       { item: { type: "array", items: { type: "integer" } }, expected: "number[]" },
       { item: { type: "array", items: { type: "customType" } }, expected: "any[]" },
+      { item: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 }, expected: "[number, number]" },
       { item: { type: "object", properties: { value: { type: "integer" } } }, expected: "{\n  value?: number;\n}" },
       { item: { type: "object" }, expected: "{[key: string]: any}" },
       { item: { type: "object", $ref: "#/components/schemas/Foo" }, expected: "Foo" },
