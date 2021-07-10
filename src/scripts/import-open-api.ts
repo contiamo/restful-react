@@ -105,13 +105,11 @@ export const getRef = ($ref: ReferenceObject["$ref"]) => {
 export const getArray = (item: SchemaObject): string => {
   if (!item.items) {
     throw new Error("All arrays must have an `items` key defined");
-  } else {
-    if (!isReference(item.items) && (item.items.oneOf || item.items.allOf || item.items.enum)) {
-      return `(${resolveValue(item.items)})[]`;
-    } else {
-      return `${resolveValue(item.items)}[]`;
-    }
   }
+  if (!isReference(item.items) && (item.items.oneOf || item.items.allOf || item.items.enum)) {
+    return `(${resolveValue(item.items)})[]`;
+  }
+  return `${resolveValue(item.items)}[]`;
 };
 
 /**
