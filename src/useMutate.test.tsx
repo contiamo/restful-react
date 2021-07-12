@@ -316,7 +316,7 @@ describe("useMutate", () => {
     it("should parse the querystring regarding the options", async () => {
       nock("https://my-awesome-api.fake")
         .delete("/")
-        .query(i => {
+        .query((i: any) => {
           return i["anArray[]"] === "nice";
         })
         .reply(200, () => ({ vegan: true }));
@@ -346,7 +346,7 @@ describe("useMutate", () => {
     it("should inherit global queryParamStringifyOptions if none specified", async () => {
       nock("https://my-awesome-api.fake")
         .delete("/")
-        .query(i => {
+        .query((i: any) => {
           return i["anArray[]"] === "nice";
         })
         .reply(200, () => ({ vegan: true }));
@@ -377,7 +377,7 @@ describe("useMutate", () => {
     it("should override global queryParamStringifyOptions if own queryParamStringifyOptions are specified", async () => {
       nock("https://my-awesome-api.fake")
         .delete("/")
-        .query(i => {
+        .query((i: any) => {
           return i["anArray"] === "foo,bar";
         })
         .reply(200, () => ({ vegan: true }));
@@ -859,7 +859,7 @@ describe("useMutate", () => {
         .post("/")
         .reply(200, { hello: "world" });
 
-      const resolve = jest.fn(val => val)
+      const resolve = jest.fn(val => val);
 
       const wrapper: React.FC = ({ children }) => (
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
