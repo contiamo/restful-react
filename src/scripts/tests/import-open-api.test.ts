@@ -351,6 +351,24 @@ describe("scripts/import-open-api", () => {
                                                 `);
     });
 
+    it("should deal with allOf and required at root level", () => {
+      const item = {
+        type: "object",
+        allOf: [{ $ref: "#/components/schemas/foo" }, { $ref: "#/components/schemas/bar" }],
+        required: ["a_bar_property", "a_foo_property"],
+      };
+      expect(getObject(item)).toEqual(`Require<Foo & Bar, "a_bar_property" | "a_foo_property">`);
+    });
+
+    it("should deal with oneOf and required at root level", () => {
+      const item = {
+        type: "object",
+        oneOf: [{ $ref: "#/components/schemas/foo" }, { $ref: "#/components/schemas/bar" }],
+        required: ["a_common_property"],
+      };
+      expect(getObject(item)).toEqual(`Require<Foo | Bar, "a_common_property">`);
+    });
+
     it("should deal with oneOf with null", () => {
       const item = {
         type: "object",
@@ -363,6 +381,7 @@ describe("scripts/import-open-api", () => {
       };
       expect(getObject(item)).toMatchInlineSnapshot(`"Foo | null"`);
     });
+
     it("should handle empty properties (1)", () => {
       const item = {
         properties: {},

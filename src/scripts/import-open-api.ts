@@ -116,6 +116,10 @@ export const getArray = (item: SchemaObject): string => {
   return `${item_type}[]`;
 };
 
+const requireProperties = (type: string, toRequire: string[]) => {
+  return `Require<${type}, ${toRequire.map(property => `"${property}"`).join(" | ")}>`;
+};
+
 /**
  * Return the output type from an object
  *
@@ -127,11 +131,19 @@ export const getObject = (item: SchemaObject): string => {
   }
 
   if (item.allOf) {
-    return item.allOf.map(resolveValue).join(" & ");
+    const composedType = item.allOf.map(resolveValue).join(" & ");
+    if (item.required) {
+      return requireProperties(composedType, item.required);
+    }
+    return composedType;
   }
 
   if (item.oneOf) {
-    return item.oneOf.map(resolveValue).join(" | ");
+    const unionType = item.oneOf.map(resolveValue).join(" | ");
+    if (item.required) {
+      return requireProperties(unionType, item.required);
+    }
+    return unionType;
   }
 
   if (!item.type && !item.properties && !item.additionalProperties) {
@@ -880,6 +892,10 @@ import { ${imports.join(", ")} } from "restful-react";
 
   if (customImport) {
     outputHeaders += `\n${customImport}\n`;
+  }
+
+  if (output.match(/Require</)) {
+    outputHeaders += "\ntype Require<T,R extends keyof T> = T & Required<Pick<T, R>>;\n";
   }
 
   if (pathParametersEncodingMode) {
