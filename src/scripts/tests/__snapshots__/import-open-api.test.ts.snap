@@ -301,6 +301,13 @@ export interface FindPetByIdPathParams {
 }
 
 
+export interface DeletePetPathParams {
+  /**
+   * ID of pet to delete
+   */
+  id: number
+}
+
 
 export interface UpdatePetPathParams {
   /**
