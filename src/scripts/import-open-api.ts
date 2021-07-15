@@ -344,7 +344,9 @@ export const generateRestfulComponent = (
    *    </DeleteResource>
    */
 
-  const paramsInPath = getParamsInPath(route).filter(param => !(verb === "delete" && param === lastParamInTheRoute));
+  const paramsInPath = getParamsInPath(route).filter(
+    param => !(!skipReact && verb === "delete" && param === lastParamInTheRoute),
+  );
   const { query: queryParams = [], path: pathParams = [], header: headerParams = [] } = groupBy(
     [...parameters, ...(operation.parameters || [])].map<ParameterObject>(p => {
       if (isReference(p)) {
