@@ -52,7 +52,7 @@ export const getScalar = (item: SchemaObject) => {
     case "long":
     case "float":
     case "double":
-      return "number" + nullable;
+      return (item.enum ? `${item.enum.join(` | `)}` : "number") + nullable;
 
     case "boolean":
       return "boolean" + nullable;
