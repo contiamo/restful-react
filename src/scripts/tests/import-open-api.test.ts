@@ -185,6 +185,25 @@ describe("scripts/import-open-api", () => {
       };
       expect(getArray(item)).toEqual("(Foo & Bar & Baz)[]");
     });
+    it("should return an array of anyOf", () => {
+      const item = {
+        items: {
+          anyOf: [
+            {
+              $ref: "#/components/schemas/foo",
+            },
+            {
+              $ref: "#/components/schemas/bar",
+            },
+            {
+              $ref: "#/components/schemas/baz",
+            },
+          ],
+        },
+        type: "array",
+      };
+      expect(getArray(item)).toEqual("(Foo | Bar | Baz)[]");
+    });
   });
 
   describe("getObject", () => {
@@ -347,6 +366,27 @@ describe("scripts/import-open-api", () => {
       };
       expect(getObject(item)).toMatchInlineSnapshot(`
                                                                 "Foo & {
+                                                                  name: string;
+                                                                }"
+                                                `);
+    });
+
+    it("should deal with anyOf", () => {
+      const item = {
+        type: "object",
+        anyOf: [
+          { $ref: "#/components/schemas/foo" },
+          {
+            type: "object",
+            required: ["name"],
+            properties: {
+              name: { type: "string" },
+            },
+          },
+        ],
+      };
+      expect(getObject(item)).toMatchInlineSnapshot(`
+                                                                "Foo | {
                                                                   name: string;
                                                                 }"
                                                 `);
@@ -781,7 +821,7 @@ describe("scripts/import-open-api", () => {
                                                       `);
     });
 
-    it("should declare a a type for union object", () => {
+    it("should declare a type for union object", () => {
       const responses: ComponentsObject["responses"] = {
         JobRun: {
           description: "Job is starting",
