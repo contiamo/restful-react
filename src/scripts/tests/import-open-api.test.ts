@@ -66,6 +66,7 @@ describe("scripts/import-open-api", () => {
       { item: { type: "int64" }, expected: "number" },
       { item: { type: "float" }, expected: "number" },
       { item: { type: "number" }, expected: "number" },
+      { item: { type: "number", enum: [1, 2] }, expected: `1 | 2` },
       { item: { type: "double" }, expected: "number" },
       { item: { type: "boolean" }, expected: "boolean" },
       { item: { type: "array", items: { type: "string" } }, expected: "string[]" },

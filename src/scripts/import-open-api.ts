@@ -52,7 +52,7 @@ export const getScalar = (item: SchemaObject) => {
     case "long":
     case "float":
     case "double":
-      return "number" + nullable;
+      return (item.enum ? `${item.enum.join(` | `)}` : "number") + nullable;
 
     case "boolean":
       return "boolean" + nullable;
@@ -321,9 +321,9 @@ export const generateRestfulComponent = (
 
   route = route.replace(/\{/g, "${"); // `/pet/{id}` => `/pet/${id}`
 
-  // Remove the last param of the route if we are in the DELETE case
+  // Remove the last param of the route if we are in the DELETE case and generating React components/hooks
   let lastParamInTheRoute: string | null = null;
-  if (verb === "delete") {
+  if (!skipReact && verb === "delete") {
     const lastParamInTheRouteRegExp = /\/\$\{(\w+)\}\/?$/;
     lastParamInTheRoute = (route.match(lastParamInTheRouteRegExp) || [])[1];
     route = route.replace(lastParamInTheRouteRegExp, ""); // `/pet/${id}` => `/pet`

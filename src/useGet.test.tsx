@@ -88,7 +88,7 @@ describe("useGet hook", () => {
     });
 
     it("shouldn't resolve after component unmount", async () => {
-      let requestResolves: () => void;
+      let requestResolves: (value?: unknown) => void;
       const pendingRequestFinishes = new Promise(resolvePromise => {
         requestResolves = resolvePromise;
       });
@@ -176,7 +176,7 @@ describe("useGet hook", () => {
         return loading ? <div data-testid="loading">Loading…</div> : <div data-testid="data">{data?.oh}</div>;
       };
 
-      const resolve = jest.fn(val => val)
+      const resolve = jest.fn(val => val);
 
       const { getByTestId } = render(
         <RestfulProvider base="https://my-awesome-api.fake" resolve={resolve}>
@@ -187,7 +187,7 @@ describe("useGet hook", () => {
       await waitForElement(() => getByTestId("data"));
 
       expect(resolve).toBeCalled();
-    })
+    });
 
     it("should return the original response, including headers", async () => {
       nock("https://my-awesome-api.fake")
@@ -1361,7 +1361,7 @@ describe("useGet hook", () => {
     it("should parse the querystring regarding the options", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
-        .query(i => {
+        .query((i: any) => {
           return i["anArray[]"] === "nice";
         })
         .reply(200, () => ({ id: 42 }));
@@ -1392,7 +1392,7 @@ describe("useGet hook", () => {
     it("should inherit global queryParamStringifyOptions if none specified", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
-        .query(i => {
+        .query((i: any) => {
           return i["anArray[]"] === "nice";
         })
         .reply(200, () => ({ id: 42 }));
@@ -1422,7 +1422,7 @@ describe("useGet hook", () => {
     it("should override global queryParamStringifyOptions if own queryParamStringifyOptions are specified", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
-        .query(i => {
+        .query((i: any) => {
           return i["anArray"] === "foo,bar";
         })
         .reply(200, () => ({ id: 42 }));

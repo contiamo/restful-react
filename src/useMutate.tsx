@@ -81,7 +81,14 @@ export function useMutate<
     typeof arguments[0] === "object" ? arguments[0] : { ...arguments[2], path: arguments[1], verb: arguments[0] };
 
   const context = useContext(Context);
-  const { verb, base = context.base, path, queryParams = EMPTY_OBJECT, resolve = context.resolve, pathParams = EMPTY_OBJECT } = props;
+  const {
+    verb,
+    base = context.base,
+    path,
+    queryParams = EMPTY_OBJECT,
+    resolve = context.resolve,
+    pathParams = EMPTY_OBJECT,
+  } = props;
   const isDelete = verb === "DELETE";
 
   const [state, setState] = useState<MutateState<TData, TError>>({
