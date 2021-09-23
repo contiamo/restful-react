@@ -132,7 +132,7 @@ export const getObject = (item: SchemaObject): string => {
 
   if (item.allOf) {
     const composedType = item.allOf.map(resolveValue).join(" & ");
-    if (item.required) {
+    if (item.required && item.required.length) {
       return requireProperties(composedType, item.required);
     }
     return composedType;
@@ -144,7 +144,7 @@ export const getObject = (item: SchemaObject): string => {
 
   if (item.oneOf) {
     const unionType = item.oneOf.map(resolveValue).join(" | ");
-    if (item.required) {
+    if (item.required && item.required.length) {
       return requireProperties(unionType, item.required);
     }
     return unionType;
