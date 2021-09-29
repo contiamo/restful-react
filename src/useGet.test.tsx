@@ -738,7 +738,7 @@ describe("useGet hook", () => {
       nock("https://my-awesome-api.fake")
         .get("/")
         .reply(200, { id: 2 });
-      children.mock.calls[1][0].refetch();
+      expect(await children.mock.calls[1][0].refetch()).toEqual({ id: 2 });
       await wait(() => expect(children).toHaveBeenCalledTimes(4));
 
       // transition state
@@ -822,7 +822,7 @@ describe("useGet hook", () => {
       nock("https://my-awesome-api.fake")
         .get("/plop")
         .reply(200, { id: 2 });
-      children.mock.calls[1][0].refetch({ path: "/plop" });
+      expect(await children.mock.calls[1][0].refetch({ path: "/plop" })).toEqual({ id: 2 });
       await wait(() => expect(children).toHaveBeenCalledTimes(4));
 
       // transition state
@@ -1543,7 +1543,7 @@ describe("useGet hook", () => {
           wrapper,
         },
       );
-      await result.current.refetch({ pathParams: { id: "one" } });
+      expect(await result.current.refetch({ pathParams: { id: "one" } })).toEqual({ id: 1 });
 
       await wait(() =>
         expect(result.current).toMatchObject({
@@ -1572,7 +1572,7 @@ describe("useGet hook", () => {
           wrapper,
         },
       );
-      await result.current.refetch({ pathParams: { id: "one" } });
+      expect(await result.current.refetch({ pathParams: { id: "one" } })).toEqual({ id: 1 });
 
       expect(result.current).toMatchObject({
         error: null,
