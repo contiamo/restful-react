@@ -99,7 +99,7 @@ export interface UseGetReturn<TData, TError, TQueryParams = {}, TPathParams = un
   /**
    * Refetch
    */
-  refetch: (options?: RefetchOptions<TData, TError, TQueryParams, TPathParams>) => Promise<void>;
+  refetch: (options?: RefetchOptions<TData, TError, TQueryParams, TPathParams>) => Promise<TData | null>;
 }
 
 export function useGet<TData = any, TError = any, TQueryParams = { [key: string]: any }, TPathParams = unknown>(
@@ -211,6 +211,7 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
           data: resolvedData,
           response: originalResponse,
         }));
+        return resolvedData;
       } catch (e) {
         // avoid state updates when component has been unmounted
         // and when fetch/processResponse threw an error
@@ -233,6 +234,8 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
         if (!props.localErrorOnly && context.onError) {
           context.onError(error, () => _fetchData(props, context, abort, getAbortSignal));
         }
+
+        return;
       }
     },
     [
