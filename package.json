@@ -106,7 +106,7 @@
     "typescript": "^3.7.4"
   },
   "peerDependencies": {
-    "react": "^16.8.5"
+    "react": "^16.8.5 || ^17"
   },
   "husky": {
     "hooks": {
