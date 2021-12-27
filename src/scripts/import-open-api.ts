@@ -461,7 +461,9 @@ export const generateRestfulComponent = (
     needAResponseComponent
       ? `
 export ${
-          responseTypes.includes("|") ? `type ${componentName}Response =` : `interface ${componentName}Response`
+          responseTypes.includes("|") || responseTypes.includes("&")
+            ? `type ${componentName}Response =`
+            : `interface ${componentName}Response`
         } ${responseTypes}
 `
       : ""
