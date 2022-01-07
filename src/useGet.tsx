@@ -284,10 +284,15 @@ export function useGet<TData = any, TError = any, TQueryParams = { [key: string]
   }, [fetchData, props.lazy, props.mock]);
 
   const refetch = useCallback(
-    (options: RefetchOptions<TData, TError, TQueryParams, TPathParams> = {}) =>
-      fetchData({ ...props, ...options }, context, abort, getAbortSignal),
+    (options: RefetchOptions<TData, TError, TQueryParams, TPathParams> = {}) => {
+      if (!props.mock) {
+        return fetchData({ ...props, ...options }, context, abort, getAbortSignal);
+      } else {
+        return props.mock;
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fetchData],
+    [fetchData, props.mock],
   );
 
   return {

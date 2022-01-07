@@ -750,6 +750,47 @@ describe("useGet hook", () => {
       expect(children.mock.calls[3][0].data).toEqual({ id: 2 });
     });
 
+    it("should not refetch from network when mocked", async () => {
+      let apiCalls = 0;
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, () => {
+          apiCalls++;
+          return { id: 1 };
+        });
+
+      const children = jest.fn();
+      children.mockReturnValue(<div />);
+
+      const MyAwesomeComponent = () => {
+        const params = useGet<{ id: number }>({ path: "/", mock: { data: { id: 10 }, loading: false } });
+        return children(params);
+      };
+
+      // initial fetch
+      render(
+        <RestfulProvider base="https://my-awesome-api.fake">
+          <MyAwesomeComponent />
+        </RestfulProvider>,
+      );
+      expect(children.mock.calls[0][0].loading).toEqual(false);
+      expect(children.mock.calls[0][0].data).toEqual({ id: 10 }); // from mock
+
+      await wait(() => expect(children).toBeCalledTimes(1));
+      expect(apiCalls).toBe(0);
+
+      // refetch
+      nock("https://my-awesome-api.fake")
+        .get("/")
+        .reply(200, () => {
+          apiCalls++;
+          return { id: 2 };
+        });
+      expect(await children.mock.calls[0][0].refetch().data).toEqual({ id: 10 }); // from mock
+      await wait(() => expect(children).toHaveBeenCalledTimes(1));
+      expect(apiCalls).toBe(0);
+    });
+
     it("should have a stable refetch function identity", async () => {
       nock("https://my-awesome-api.fake")
         .get("/")
