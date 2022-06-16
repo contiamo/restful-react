@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/restful-react.svg)](https://www.npmjs.com/package/restful-react)
 
-⚠️ **restful-react will soon be deprecated:** We are working on a new open api generator that generates `react-query` components: https://github.com/fabien0102/openapi-codegen ⚠️
+⚠️ **restful-react has been deprecated:** We are focusing on a new open api generator that generates `react-query` components: https://github.com/fabien0102/openapi-codegen ⚠️
 
 Building React apps that interact with a RESTful API presents a set of questions, challenges and potential gotchas. This project aims to remove such pitfalls, and provide a pleasant developer experience when crafting such applications.
 
